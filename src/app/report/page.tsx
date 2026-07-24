@@ -2,12 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Log } from "../types";
 
-type Log = {
-  id: string;
-  date: string; // YYYY-MM-DD
-  hours: number;
-};
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
 
