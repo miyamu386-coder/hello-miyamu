@@ -12,9 +12,7 @@ import { useAddedToast } from "./hooks/useAddedToast";
 import { useLogEditing } from "./hooks/useLogEditing";
 import { useAddLog } from "./hooks/useAddLog";
 import { calcTotalHours } from "./lib/calcTotalHours";
-import DiaryHome, {
-  type DiaryCategory,
-} from "./components/DiaryHome";
+import DiaryHome, {type DiaryCategory,} from "./components/DiaryHome";
 import { useDiaryCards } from "./components/useDiaryCards";
 import { useDiaryNavigation } from "./hooks/useDiaryNavigation";
 
@@ -22,7 +20,12 @@ import { useDiaryNavigation } from "./hooks/useDiaryNavigation";
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
 
 export default function MiyamuDiaryClient() {
-  const { cards, addCard } = useDiaryCards();
+  const {
+  cards,
+  addCard,
+  renameCard,
+} = useDiaryCards();
+  
   const {
    currentView,
    openHome,
@@ -111,9 +114,10 @@ const handleAddDiaryCard = (category: DiaryCategory) => {
         }}
       >
         <DiaryHome
-          cards={cards}
-          onSelect={selectCard}
-          onAddCard={handleAddDiaryCard}
+         cards={cards}
+         onSelect={selectCard}
+         onAddCard={handleAddDiaryCard}
+         onRenameCard={renameCard}
      />
       </div>
     </main>

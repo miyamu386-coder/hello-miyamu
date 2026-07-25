@@ -13,12 +13,14 @@ type Props = {
   cards: DiaryCard[];
   onSelect: (card: DiaryCard) => void;
   onAddCard: (category: DiaryCategory) => void;
+  onRenameCard: (cardId: string, name: string) => void;
 };
 
 export default function DiaryHome({
   cards,
   onSelect,
   onAddCard,
+  onRenameCard,
 }: Props) {
   const workCards = cards.filter((card) => card.category === "work");
   const lifeCards = cards.filter((card) => card.category === "life");
@@ -33,6 +35,7 @@ export default function DiaryHome({
         cards={workCards}
         onSelect={onSelect}
         onAddCard={onAddCard}
+        onRenameCard={onRenameCard}
       />
 
       <DiaryCardSection
@@ -41,6 +44,7 @@ export default function DiaryHome({
         cards={lifeCards}
         onSelect={onSelect}
         onAddCard={onAddCard}
+        onRenameCard={onRenameCard}
       />
     </section>
   );
@@ -52,6 +56,7 @@ type DiaryCardSectionProps = {
   cards: DiaryCard[];
   onSelect: (card: DiaryCard) => void;
   onAddCard: (category: DiaryCategory) => void;
+  onRenameCard: (cardId: string, name: string) => void;
 };
 
 function DiaryCardSection({
@@ -60,7 +65,20 @@ function DiaryCardSection({
   cards,
   onSelect,
   onAddCard,
+  onRenameCard,
 }: DiaryCardSectionProps) {
+    const handleRenameCard = (card: DiaryCard) => {
+  const newName = window.prompt(
+    "新しいカード名を入力してください",
+    card.name
+  );
+
+  if (newName === null) {
+    return;
+  }
+
+  onRenameCard(card.id, newName);
+};
   return (
     <section style={sectionStyle}>
       <div style={sectionHeaderStyle}>
@@ -78,18 +96,28 @@ function DiaryCardSection({
       {cards.length > 0 ? (
         <div style={gridStyle}>
           {cards.map((card) => (
-            <button
-              key={card.id}
-              type="button"
-              style={cardStyle}
-              onClick={() => onSelect(card)}
-            >
-              <strong style={cardNameStyle}>{card.name}</strong>
+           <div
+  key={card.id}
+  style={cardStyle}
+  onClick={() => onSelect(card)}
+>
+  <strong style={cardNameStyle}>{card.name}</strong>
 
-              <span style={cardUnitStyle}>
-                記録単位：{card.unit}
-              </span>
-            </button>
+  <button
+    type="button"
+    style={renameButtonStyle}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleRenameCard(card);
+    }}
+  >
+    ✏️ 名前変更
+  </button>
+
+  <span style={cardUnitStyle}>
+    記録単位：{card.unit}
+  </span>
+</div>
           ))}
         </div>
       ) : (
@@ -150,6 +178,15 @@ const cardNameStyle: CSSProperties = {
 const cardUnitStyle: CSSProperties = {
   color: "#666",
   fontSize: 13,
+};
+
+const renameButtonStyle: CSSProperties = {
+  padding: "4px 8px",
+  borderRadius: 8,
+  border: "1px solid #ccc",
+  background: "#fff",
+  cursor: "pointer",
+  fontSize: 12,
 };
 
 const addButtonStyle: CSSProperties = {

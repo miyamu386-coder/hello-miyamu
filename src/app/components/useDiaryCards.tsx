@@ -58,9 +58,27 @@ export function useDiaryCards() {
       },
     ]);
   };
+  const renameCard = (cardId: string, name: string) => {
+  const trimmed = name.trim();
 
+  if (!trimmed) {
+    return;
+  }
+
+  setCards((prev) =>
+    prev.map((card) =>
+      card.id === cardId
+        ? {
+            ...card,
+            name: trimmed,
+          }
+        : card
+    )
+  );
+};
   return {
-    cards,
-    addCard,
-  };
+  cards,
+  addCard,
+  renameCard,
+};
 }
