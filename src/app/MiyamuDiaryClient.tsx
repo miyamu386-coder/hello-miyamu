@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { Log } from "./types";
+import { useMemo, useRef, useState } from "react";
 import {todayISO,ymFromISO,} from "./lib/dateUtils";
-import { parseHours } from "./lib/numberUtils";
-import { uid } from "./lib/idUtils";
 import DiaryHeader from "./components/DiaryHeader";
 import DiaryInputForm from "./components/DiaryInputForm";
 import AddLogButton from "./components/AddLogButton";
@@ -12,6 +9,9 @@ import LogList from "./components/LogList";
 import { useBlink } from "./hooks/useBlink";
 import { useMonthlyLogs } from "./hooks/useMonthlyLogs";
 import { useAddedToast } from "./hooks/useAddedToast";
+import { useLogEditing } from "./hooks/useLogEditing";
+import { useAddLog } from "./hooks/useAddLog";
+import { calcTotalHours } from "./lib/calcTotalHours";
 
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
@@ -26,11 +26,18 @@ export default function MiyamuDiaryClient() {
   const { logs, setLogs } = useMonthlyLogs(storageKey);
   
   const [hoursInput, setHoursInput] = useState<string>("");
-
-
-  // 編集
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editHoursInput, setEditHoursInput] = useState<string>("");
+const {
+  editingId,
+  editHoursInput,
+  setEditHoursInput,
+  startEdit,
+  cancelEdit,
+  saveEdit,
+  removeLog,
+} = useLogEditing({
+  setLogs,
+  storageKey,
+});
 
   const isBlink = useBlink();
 
@@ -40,75 +47,22 @@ export default function MiyamuDiaryClient() {
   const hoursRef = useRef<HTMLInputElement | null>(null);
   const [isMofuHover, setIsMofuHover] = useState(false);
 
-/* 月が変わったら編集中の状態を解除 */
-useEffect(() => {
-  setEditingId(null);
-  setEditHoursInput("");
-}, [storageKey]);
 
   /* 合計（選択中の月だけ） */
-  const total = useMemo(() => logs.reduce((sum, l) => sum + l.hours, 0), [logs]);
+const total = useMemo(() => calcTotalHours(logs), [logs]);
 
-  /* 入力中プレビュー */
-  const inputPreviewHours = useMemo(() => {
-    if (!hoursInput.trim()) return 0;
-    const n = parseHours(hoursInput);
-    return Number.isFinite(n) ? n : 0;
-  }, [hoursInput]);
-
-  /* 追加できるか */
-  const canAdd = useMemo(() => {
-    const h = parseHours(hoursInput);
-    return !!dateISO && Number.isFinite(h) && h > 0;
-  }, [hoursInput, dateISO]);
-
-
-  /* 追加 */
-  const addLog = () => {
-    const h = parseHours(hoursInput);
-    if (!Number.isFinite(h) || h <= 0) return;
-
-    // dateISO の月に保存される（storageKeyがym由来なので）
-    const next: Log = { id: uid(), date: dateISO, hours: h };
-
-    setLogs((prev) => {
-      const merged = [next, ...prev];
-      merged.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
-      return merged;
-    });
-
-    setHoursInput("");
-    requestAnimationFrame(() => hoursRef.current?.focus());
-
-        showAddedToast();
-  };
-
-  /* 編集開始 */
-  const startEdit = (log: Log) => {
-    setEditingId(log.id);
-    setEditHoursInput(String(log.hours));
-  };
-
-  /* 編集キャンセル */
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditHoursInput("");
-  };
-
-  /* 編集保存 */
-  const saveEdit = (id: string) => {
-    const n = parseHours(editHoursInput);
-    if (!Number.isFinite(n) || n <= 0) return;
-
-    setLogs((prev) => prev.map((l) => (l.id === id ? { ...l, hours: n } : l)));
-    cancelEdit();
-  };
-
-  /* 削除 */
-  const removeLog = (id: string) => {
-    setLogs((prev) => prev.filter((l) => l.id !== id));
-    if (editingId === id) cancelEdit();
-  };
+ const {
+  inputPreviewHours,
+  canAdd,
+  addLog,
+} = useAddLog({
+  dateISO,
+  hoursInput,
+  setHoursInput,
+  setLogs,
+  hoursRef,
+  showAddedToast,
+});
 
   /* この月を全消去 */
   const clearAll = () => {
