@@ -12,11 +12,23 @@ import { useAddedToast } from "./hooks/useAddedToast";
 import { useLogEditing } from "./hooks/useLogEditing";
 import { useAddLog } from "./hooks/useAddLog";
 import { calcTotalHours } from "./lib/calcTotalHours";
+import DiaryHome, {
+  type DiaryCategory,
+} from "./components/DiaryHome";
+import { useDiaryCards } from "./components/useDiaryCards";
+import { useDiaryNavigation } from "./hooks/useDiaryNavigation";
 
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
 
 export default function MiyamuDiaryClient() {
+  const { cards, addCard } = useDiaryCards();
+  const {
+   currentView,
+   openHome,
+   selectCard,
+} = useDiaryNavigation();
+
   // 日付は自由に選択（過去月OK）
   const [dateISO, setDateISO] = useState<string>(todayISO());
 
@@ -26,22 +38,22 @@ export default function MiyamuDiaryClient() {
   const { logs, setLogs } = useMonthlyLogs(storageKey);
   
   const [hoursInput, setHoursInput] = useState<string>("");
-const {
-  editingId,
-  editHoursInput,
-  setEditHoursInput,
-  startEdit,
-  cancelEdit,
-  saveEdit,
-  removeLog,
-} = useLogEditing({
-  setLogs,
-  storageKey,
-});
+  const {
+    editingId,
+    editHoursInput,
+    setEditHoursInput,
+    startEdit,
+    cancelEdit,
+    saveEdit,
+    removeLog,
+  } = useLogEditing({
+    setLogs,
+    storageKey,
+  });
 
   const isBlink = useBlink();
 
- const { justAdded, showAddedToast } = useAddedToast();
+  const { justAdded, showAddedToast } = useAddedToast();
 
   // UI
   const hoursRef = useRef<HTMLInputElement | null>(null);
@@ -49,9 +61,9 @@ const {
 
 
   /* 合計（選択中の月だけ） */
-const total = useMemo(() => calcTotalHours(logs), [logs]);
+  const total = useMemo(() => calcTotalHours(logs), [logs]);
 
- const {
+const {
   inputPreviewHours,
   canAdd,
   addLog,
@@ -70,7 +82,43 @@ const total = useMemo(() => calcTotalHours(logs), [logs]);
     cancelEdit();
   };
 
+const handleAddDiaryCard = (category: DiaryCategory) => {
+  addCard(category);
+};
+
+
   const mofuButtonImg = isBlink ? "/mofu-blink.png" : "/mofu-add.jpg";
+
+  if (currentView === "home") {
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        padding: 24,
+        display: "flex",
+        justifyContent: "center",
+        background: "#f5f6f7",
+      }}
+    >
+      <div
+        style={{
+          width: "min(720px, 100%)",
+          background: "#fff",
+          borderRadius: 16,
+          padding: 28,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+          border: "1px solid #eee",
+        }}
+      >
+        <DiaryHome
+          cards={cards}
+          onSelect={selectCard}
+          onAddCard={handleAddDiaryCard}
+     />
+      </div>
+    </main>
+  );
+}
 
   return (
     <main
@@ -82,6 +130,7 @@ const total = useMemo(() => calcTotalHours(logs), [logs]);
         background: "#f5f6f7",
       }}
     >
+      
       {/* 追加完了！アニメ */}
       <style jsx global>{`
         @keyframes fadeUp {
@@ -101,14 +150,29 @@ const total = useMemo(() => calcTotalHours(logs), [logs]);
           border: "1px solid #eee",
         }}
       >
+<button
+  type="button"
+  onClick={openHome}
+  style={{
+    marginBottom: 16,
+    padding: "8px 12px",
+    borderRadius: 10,
+    border: "1px solid #ccc",
+    background: "#fff",
+    cursor: "pointer",
+  }}
+>
+  ← ホームへ戻る
+</button>
+
         <DiaryHeader ym={ym} total={total} />
        <DiaryInputForm
-  dateISO={dateISO}
-  hoursInput={hoursInput}
-  inputPreviewHours={inputPreviewHours}
-  hoursRef={hoursRef}
-  onDateChange={setDateISO}
-  onHoursChange={setHoursInput}
+       dateISO={dateISO}
+       hoursInput={hoursInput}
+       inputPreviewHours={inputPreviewHours}
+       hoursRef={hoursRef}
+       onDateChange={setDateISO}
+       onHoursChange={setHoursInput}
 />
 
 <AddLogButton
