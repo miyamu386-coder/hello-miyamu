@@ -5,7 +5,6 @@ import {todayISO,ymFromISO,} from "./lib/dateUtils";
 import DiaryHeader from "./components/DiaryHeader";
 import DiaryInputForm from "./components/DiaryInputForm";
 import AddLogButton from "./components/AddLogButton";
-import LogList from "./components/LogList";
 import { useMonthlyLogs } from "./hooks/useMonthlyLogs";
 import { useAddedToast } from "./hooks/useAddedToast";
 import { useLogEditing } from "./hooks/useLogEditing";
@@ -124,24 +123,22 @@ if (showHistory) {
   if (currentView === "home") {
   return (
     <main
-      style={{
-        minHeight: "100vh",
-        padding: 24,
-        display: "flex",
-        justifyContent: "center",
-        background: "#f5f6f7",
-      }}
-    >
+  style={{
+    minHeight: "100vh",
+    padding: 0,
+    background: "#f5f6f7",
+  }}
+>
       <div
-        style={{
-          width: "min(720px, 100%)",
-          background: "#fff",
-          borderRadius: 16,
-          padding: 28,
-          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-          border: "1px solid #eee",
-        }}
-      >
+  style={{
+    width: "100%",
+    background: "transparent",
+    borderRadius: 0,
+    padding: 0,
+    boxShadow: "none",
+    border: "none",
+  }}
+>
         
         <DiaryHome
          cards={cards}

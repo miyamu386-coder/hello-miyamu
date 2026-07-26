@@ -268,10 +268,11 @@ const emptyStyle: CSSProperties = {
   textAlign: "center",
 };
 const houseStageStyle: CSSProperties = {
-  padding: 20,
-  borderRadius: 20,
-  border: "2px solid #d8c7ad",
-  background: "#f6ead8",
+  width: "100%",
+  padding: 0,
+  border: "none",
+  borderRadius: 0,
+  background: "transparent",
 };
 
 const houseTitleStyle: CSSProperties = {
@@ -284,12 +285,9 @@ const houseTitleStyle: CSSProperties = {
 const roomStyle: CSSProperties = {
   position: "relative",
   width: "100%",
-  maxWidth: 380,
   aspectRatio: "9 / 16",
   margin: "0 auto",
   overflow: "hidden",
-  borderRadius: 16,
-  border: "2px solid #c7aa83",
   backgroundImage: 'url("/room/mofu-room.png")',
   backgroundSize: "cover",
   backgroundPosition: "center",
