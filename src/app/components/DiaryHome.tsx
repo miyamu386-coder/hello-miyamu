@@ -37,7 +37,7 @@ export default function DiaryHome({
   <section>
     <div style={houseStageStyle}>
       <div style={houseTitleStyle}>
-        モフのいる家
+        みやむDiary
       </div>
 
       <div style={roomStyle}>
@@ -283,7 +283,10 @@ const houseTitleStyle: CSSProperties = {
 
 const roomStyle: CSSProperties = {
   position: "relative",
-  minHeight: 420,
+  width: "100%",
+  maxWidth: 380,
+  aspectRatio: "9 / 16",
+  margin: "0 auto",
   overflow: "hidden",
   borderRadius: 16,
   border: "2px solid #c7aa83",
@@ -293,99 +296,18 @@ const roomStyle: CSSProperties = {
   backgroundRepeat: "no-repeat",
 };
 
-const furnitureButtonStyle: CSSProperties = {
-  position: "absolute",
-  minWidth: 120,
-  minHeight: 110,
-  padding: 12,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 6,
-  borderRadius: 14,
-  border: "2px solid #b89a74",
-  background: "rgba(255, 255, 255, 0.9)",
-  cursor: "pointer",
-  fontSize: 44,
-  zIndex: 2,
-};
-
-const furnitureLabelStyle: CSSProperties = {
-  fontSize: 15,
-  fontWeight: 800,
-};
 
 const mofuStyle: CSSProperties = {
   position: "absolute",
   left: "50%",
   bottom: 12,
-  width: 150,
-  height: 210,
+  width: 120,
+  height: 170,
   transform: "translateX(-50%)",
   zIndex: 5,
   pointerEvents: "none",
 };
 
-const windowStyle: CSSProperties = {
-  position: "absolute",
-  top: 28,
-  left: "50%",
-  width: 150,
-  height: 110,
-  padding: 8,
-  border: "8px solid #9b7653",
-  background: "#dff3ff",
-  transform: "translateX(-50%)",
-  zIndex: 1,
-};
-
-const windowGlassStyle: CSSProperties = {
-  width: "100%",
-  height: "100%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  border: "2px solid #b8d8e8",
-  background: "linear-gradient(#bfe8ff, #f8fdff)",
-  fontSize: 36,
-};
-
-const tableStyle: CSSProperties = {
-  position: "absolute",
-  left: "50%",
-  bottom: 48,
-  width: 110,
-  minHeight: 72,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 4,
-  borderRadius: "50%",
-  border: "2px solid #9a7048",
-  background: "#d3a36f",
-  transform: "translateX(-50%)",
-  fontSize: 34,
-  zIndex: 3,
-};
-
-const shelfStyle: CSSProperties = {
-  position: "absolute",
-  right: 16,
-  top: 24,
-  width: 90,
-  minHeight: 120,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 6,
-  border: "3px solid #7f5b3b",
-  background: "#b8875b",
-  fontSize: 34,
-  zIndex: 2,
-};
 const mofuImageStyle: CSSProperties = {
   width: "100%",
   height: "100%",
