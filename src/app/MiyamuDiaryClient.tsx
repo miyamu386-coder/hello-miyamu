@@ -28,6 +28,7 @@ export default function MiyamuDiaryClient() {
   
   const {
    currentView,
+   selectedCard,
    openHome,
    selectCard,
 } = useDiaryNavigation();
@@ -36,7 +37,13 @@ export default function MiyamuDiaryClient() {
   const [dateISO, setDateISO] = useState<string>(todayISO());
 
   const ym = useMemo(() => ymFromISO(dateISO), [dateISO]);
-  const storageKey = useMemo(() => `${STORAGE_KEY_BASE}_${ym}`, [ym]);
+  const storageKey = useMemo(
+  () =>
+    selectedCard
+      ? `${STORAGE_KEY_BASE}_${selectedCard.id}_${ym}`
+      : `${STORAGE_KEY_BASE}_unselected_${ym}`,
+  [selectedCard, ym]
+);
 
   const { logs, setLogs } = useMonthlyLogs(storageKey);
   
@@ -173,7 +180,12 @@ const handleAddDiaryCard = (
   ← ホームへ戻る
 </button>
 
-        <DiaryHeader ym={ym} total={total} />
+        <DiaryHeader
+  title={selectedCard?.name ?? ""}
+  unit={selectedCard?.unit ?? "時間"}
+  ym={ym}
+  total={total}
+/>
        <DiaryInputForm
        dateISO={dateISO}
        hoursInput={hoursInput}

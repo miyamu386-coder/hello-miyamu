@@ -1,34 +1,41 @@
 import { monthLabel } from "../lib/dateUtils";
 
 type Props = {
+  title: string;
+  unit: string;
   ym: string;
   total: number;
 };
 
-export default function DiaryHeader({ ym, total }: Props) {
+export default function DiaryHeader({
+  title,
+  unit,
+  ym,
+  total,
+}: Props) {
   return (
     <>
-      <h1
-        style={{
-          margin: 0,
-          fontSize: 28,
-          fontWeight: 900,
-          textAlign: "center",
-        }}
-      >
-        みやむログ
-      </h1>
 
       <div
-        style={{
-          marginTop: 8,
-          textAlign: "center",
-          color: "#555",
-          fontWeight: 700,
-        }}
-      >
-        {monthLabel(ym)}
-      </div>
+  style={{
+    textAlign: "center",
+    fontSize: 26,
+    fontWeight: 900,
+  }}
+>
+  {title}
+</div>
+
+<div
+  style={{
+    marginTop: 4,
+    textAlign: "center",
+    color: "#555",
+    fontWeight: 700,
+  }}
+>
+  {monthLabel(ym)}
+</div>
 
       <div
         style={{
@@ -44,7 +51,8 @@ export default function DiaryHeader({ ym, total }: Props) {
         </div>
 
         <div style={{ marginTop: 4, fontSize: 34, fontWeight: 900 }}>
-          {total.toFixed(1)}時間
+          {total.toFixed(1)}
+          {unit}
         </div>
       </div>
     </>
