@@ -6,7 +6,6 @@ import DiaryHeader from "./components/DiaryHeader";
 import DiaryInputForm from "./components/DiaryInputForm";
 import AddLogButton from "./components/AddLogButton";
 import LogList from "./components/LogList";
-import { useBlink } from "./hooks/useBlink";
 import { useMonthlyLogs } from "./hooks/useMonthlyLogs";
 import { useAddedToast } from "./hooks/useAddedToast";
 import { useLogEditing } from "./hooks/useLogEditing";
@@ -15,6 +14,7 @@ import { calcTotalHours } from "./lib/calcTotalHours";
 import DiaryHome, {type DiaryCategory,type DiaryUnit,} from "./components/DiaryHome";
 import { useDiaryCards } from "./components/useDiaryCards";
 import { useDiaryNavigation } from "./hooks/useDiaryNavigation";
+import DiarySummaryRings from "./components/DiarySummaryRings";
 
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
@@ -48,6 +48,7 @@ export default function MiyamuDiaryClient() {
   const { logs, setLogs } = useMonthlyLogs(storageKey);
   
   const [hoursInput, setHoursInput] = useState<string>("");
+  const [showInput, setShowInput] = useState(false);
   const {
     editingId,
     editHoursInput,
@@ -61,18 +62,21 @@ export default function MiyamuDiaryClient() {
     storageKey,
   });
 
-  const isBlink = useBlink();
-
   const { justAdded, showAddedToast } = useAddedToast();
 
   // UI
   const hoursRef = useRef<HTMLInputElement | null>(null);
-  const [isMofuHover, setIsMofuHover] = useState(false);
 
 
   /* 合計（選択中の月だけ） */
   const total = useMemo(() => calcTotalHours(logs), [logs]);
-
+  const todayTotal = useMemo(
+  () =>
+    logs
+      .filter((log) => log.date === dateISO)
+      .reduce((sum, log) => sum + log.hours, 0),
+  [logs, dateISO]
+);
 const {
   inputPreviewHours,
   canAdd,
@@ -99,9 +103,6 @@ const handleAddDiaryCard = (
 ) => {
   addCard(category, name, unit);
 };
-
-
-  const mofuButtonImg = isBlink ? "/mofu-blink.png" : "/mofu-add.jpg";
 
   if (currentView === "home") {
   return (
@@ -186,25 +187,32 @@ const handleAddDiaryCard = (
   ym={ym}
   total={total}
 />
-       <DiaryInputForm
+<DiarySummaryRings
+  todayTotal={todayTotal}
+  monthlyTotal={total}
   unit={selectedCard?.unit ?? "時間"}
-  dateISO={dateISO}
-  hoursInput={hoursInput}
-  inputPreviewHours={inputPreviewHours}
-  hoursRef={hoursRef}
-  onDateChange={setDateISO}
-  onHoursChange={setHoursInput}
+  onTodayClick={() => setShowInput(true)}
 />
 
-<AddLogButton
-  canAdd={canAdd}
-  mofuButtonImg={mofuButtonImg}
-  isMofuHover={isMofuHover}
-  justAdded={justAdded}
-  onAdd={addLog}
-  onMouseEnter={() => setIsMofuHover(true)}
-  onMouseLeave={() => setIsMofuHover(false)}
-/>
+{showInput && (
+  <>
+    <DiaryInputForm
+      unit={selectedCard?.unit ?? "時間"}
+      dateISO={dateISO}
+      hoursInput={hoursInput}
+      inputPreviewHours={inputPreviewHours}
+      hoursRef={hoursRef}
+      onDateChange={setDateISO}
+      onHoursChange={setHoursInput}
+    />
+
+    <AddLogButton
+      canAdd={canAdd}
+      justAdded={justAdded}
+      onAdd={addLog}
+    />
+  </>
+)}
 
 <LogList
   ym={ym}
