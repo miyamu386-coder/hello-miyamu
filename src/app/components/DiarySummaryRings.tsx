@@ -65,15 +65,15 @@ function SummaryRing({
   onClick={onClick}
   disabled={!onClick}
   style={{
-    width: 150,
-    height: 150,
-    borderRadius: "50%",
-    padding: 10,
-    border: "none",
-    background: "#dce9e1",
-    boxShadow: "0 8px 22px rgba(0,0,0,0.07)",
-    cursor: onClick ? "pointer" : "default",
-  }}
+  width: 120,
+  height: 120,
+  borderRadius: "50%",
+  padding: 8,
+  border: "none",
+  background: "#dce9e1",
+  boxShadow: "0 8px 18px rgba(0,0,0,0.07)",
+  cursor: onClick ? "pointer" : "default",
+}}
 >
       <div
         style={{

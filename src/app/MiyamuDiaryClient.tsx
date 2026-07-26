@@ -181,11 +181,10 @@ const handleAddDiaryCard = (
   ← ホームへ戻る
 </button>
 
-        <DiaryHeader
+<DiaryHeader
   title={selectedCard?.name ?? ""}
   unit={selectedCard?.unit ?? "時間"}
   ym={ym}
-  total={total}
 />
 <DiarySummaryRings
   todayTotal={todayTotal}
