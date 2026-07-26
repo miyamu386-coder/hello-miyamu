@@ -15,7 +15,7 @@ import DiaryHome, {type DiaryCategory,type DiaryUnit,} from "./components/DiaryH
 import { useDiaryCards } from "./components/useDiaryCards";
 import { useDiaryNavigation } from "./hooks/useDiaryNavigation";
 import DiarySummaryRings from "./components/DiarySummaryRings";
-
+import DiaryHistory from "./components/history/DiaryHistory";
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
 
@@ -35,6 +35,7 @@ export default function MiyamuDiaryClient() {
 
   // 日付は自由に選択（過去月OK）
   const [dateISO, setDateISO] = useState<string>(todayISO());
+  const [showHistory, setShowHistory] = useState(false);
 
   const ym = useMemo(() => ymFromISO(dateISO), [dateISO]);
   const storageKey = useMemo(
@@ -103,7 +104,23 @@ const handleAddDiaryCard = (
 ) => {
   addCard(category, name, unit);
 };
-
+if (showHistory) {
+  return (
+    <DiaryHistory
+      onBack={() => setShowHistory(false)}
+      ym={ym}
+      logs={logs}
+      editingId={editingId}
+      editHoursInput={editHoursInput}
+      onEditHoursChange={setEditHoursInput}
+      onStartEdit={startEdit}
+      onSaveEdit={saveEdit}
+      onCancelEdit={cancelEdit}
+      onRemove={removeLog}
+      onClearAll={clearAll}
+    />
+  );
+}
   if (currentView === "home") {
   return (
     <main
@@ -125,6 +142,7 @@ const handleAddDiaryCard = (
           border: "1px solid #eee",
         }}
       >
+        
         <DiaryHome
          cards={cards}
          onSelect={selectCard}
@@ -192,6 +210,12 @@ const handleAddDiaryCard = (
   unit={selectedCard?.unit ?? "時間"}
   onTodayClick={() => setShowInput(true)}
 />
+<button
+  type="button"
+  onClick={() => setShowHistory(true)}
+>
+  履歴を見る
+</button>
 
 {showInput && (
   <>
@@ -212,19 +236,6 @@ const handleAddDiaryCard = (
     />
   </>
 )}
-
-<LogList
-  ym={ym}
-  logs={logs}
-  editingId={editingId}
-  editHoursInput={editHoursInput}
-  onEditHoursChange={setEditHoursInput}
-  onStartEdit={startEdit}
-  onSaveEdit={saveEdit}
-  onCancelEdit={cancelEdit}
-  onRemove={removeLog}
-  onClearAll={clearAll}
-/>
       </div>
     </main>
   );
