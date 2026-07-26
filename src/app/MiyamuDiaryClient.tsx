@@ -12,7 +12,7 @@ import { useAddedToast } from "./hooks/useAddedToast";
 import { useLogEditing } from "./hooks/useLogEditing";
 import { useAddLog } from "./hooks/useAddLog";
 import { calcTotalHours } from "./lib/calcTotalHours";
-import DiaryHome, {type DiaryCategory,} from "./components/DiaryHome";
+import DiaryHome, {type DiaryCategory,type DiaryUnit,} from "./components/DiaryHome";
 import { useDiaryCards } from "./components/useDiaryCards";
 import { useDiaryNavigation } from "./hooks/useDiaryNavigation";
 
@@ -85,8 +85,12 @@ const {
     cancelEdit();
   };
 
-const handleAddDiaryCard = (category: DiaryCategory) => {
-  addCard(category);
+const handleAddDiaryCard = (
+  category: DiaryCategory,
+  name: string,
+  unit: DiaryUnit
+) => {
+  addCard(category, name, unit);
 };
 
 
