@@ -1,18 +1,23 @@
 import type { CSSProperties } from "react";
 
 export type DiaryCategory = "work" | "life";
+export type DiaryUnit = "時間" | "分" | "回数";
 
 export type DiaryCard = {
   id: string;
   name: string;
   category: DiaryCategory;
-  unit: string;
+  unit: DiaryUnit;
 };
 
 type Props = {
   cards: DiaryCard[];
   onSelect: (card: DiaryCard) => void;
-  onAddCard: (category: DiaryCategory) => void;
+  onAddCard: (
+    category: DiaryCategory,
+    name: string,
+    unit: DiaryUnit
+  ) => void;
   onRenameCard: (cardId: string, name: string) => void;
 };
 
@@ -27,7 +32,6 @@ export default function DiaryHome({
 
   return (
     <section>
-      <h2 style={titleStyle}>ホーム</h2>
 
       <DiaryCardSection
         title="仕事"
@@ -55,7 +59,11 @@ type DiaryCardSectionProps = {
   category: DiaryCategory;
   cards: DiaryCard[];
   onSelect: (card: DiaryCard) => void;
-  onAddCard: (category: DiaryCategory) => void;
+  onAddCard: (
+    category: DiaryCategory,
+    name: string,
+    unit: DiaryUnit
+  ) => void;
   onRenameCard: (cardId: string, name: string) => void;
 };
 
@@ -68,9 +76,9 @@ function DiaryCardSection({
   onRenameCard,
 }: DiaryCardSectionProps) {
     const handleRenameCard = (card: DiaryCard) => {
-  const newName = window.prompt(
-    "新しいカード名を入力してください",
-    card.name
+     const newName = window.prompt(
+      "新しいカード名を入力してください",
+       card.name
   );
 
   if (newName === null) {
@@ -79,18 +87,41 @@ function DiaryCardSection({
 
   onRenameCard(card.id, newName);
 };
+
   return (
     <section style={sectionStyle}>
       <div style={sectionHeaderStyle}>
         <h3 style={sectionTitleStyle}>{title}</h3>
 
         <button
-          type="button"
-          style={addButtonStyle}
-          onClick={() => onAddCard(category)}
-        >
-          ＋ カード追加
-        </button>
+  type="button"
+  style={addButtonStyle}
+  onClick={() => {
+    const name = window.prompt("カード名を入力してください");
+
+    if (name === null || !name.trim()) {
+      return;
+    }
+
+    const unitInput = window.prompt(
+      "単位を入力してください（時間・分・回数）",
+      category === "work" ? "時間" : "回数"
+    );
+
+    if (
+      unitInput !== "時間" &&
+      unitInput !== "分" &&
+      unitInput !== "回数"
+    ) {
+      window.alert("単位は「時間」「分」「回数」から入力してください");
+      return;
+    }
+
+    onAddCard(category, name.trim(), unitInput);
+  }}
+>
+  ＋ カード追加
+</button>
       </div>
 
       {cards.length > 0 ? (
@@ -129,10 +160,6 @@ function DiaryCardSection({
   );
 }
 
-const titleStyle: CSSProperties = {
-  margin: "0 0 28px",
-  textAlign: "center",
-};
 
 const sectionStyle: CSSProperties = {
   marginTop: 28,

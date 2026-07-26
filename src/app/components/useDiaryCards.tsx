@@ -1,22 +1,13 @@
 import { useEffect, useState } from "react";
-import type { DiaryCard, DiaryCategory } from "./DiaryHome";
+import type {
+  DiaryCard,
+  DiaryCategory,
+  DiaryUnit,
+} from "./DiaryHome";
 
 const STORAGE_KEY = "miyamu-diary-cards";
 
-const createDefaultCards = (): DiaryCard[] => [
-  {
-    id: crypto.randomUUID(),
-    name: "仕事",
-    category: "work",
-    unit: "時間",
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "生活",
-    category: "life",
-    unit: "回",
-  },
-];
+const createDefaultCards = (): DiaryCard[] => [];
 
 export function useDiaryCards() {
   const [cards, setCards] = useState<DiaryCard[]>([]);
@@ -38,47 +29,57 @@ export function useDiaryCards() {
   }, []);
 
   useEffect(() => {
-    if (cards.length === 0) return;
+    if (cards.length === 0) {
+      return;
+    }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
   }, [cards]);
 
   const addCard = (
     category: DiaryCategory,
-    name = "新しいカード",
-    unit = "回"
+    name: string,
+    unit: DiaryUnit
   ) => {
+    const trimmed = name.trim();
+
+    if (!trimmed) {
+      return;
+    }
+
     setCards((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
-        name,
+        name: trimmed,
         category,
         unit,
       },
     ]);
   };
+
   const renameCard = (cardId: string, name: string) => {
-  const trimmed = name.trim();
+    const trimmed = name.trim();
 
-  if (!trimmed) {
-    return;
-  }
+    if (!trimmed) {
+      return;
+    }
 
-  setCards((prev) =>
-    prev.map((card) =>
-      card.id === cardId
-        ? {
-            ...card,
-            name: trimmed,
-          }
-        : card
-    )
-  );
-};
+    setCards((prev) =>
+      prev.map((card) =>
+        card.id === cardId
+          ? {
+              ...card,
+              name: trimmed,
+            }
+          : card
+      )
+    );
+  };
+
   return {
-  cards,
-  addCard,
-  renameCard,
-};
+    cards,
+    addCard,
+    renameCard,
+  };
 }
