@@ -2,6 +2,7 @@ import type { RefObject } from "react";
 import { normalizeNumberString } from "../lib/numberUtils";
 
 type Props = {
+  unit: string;
   dateISO: string;
   hoursInput: string;
   inputPreviewHours: number;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function DiaryInputForm({
+  unit,
   dateISO,
   hoursInput,
   inputPreviewHours,
@@ -18,6 +20,22 @@ export default function DiaryInputForm({
   onDateChange,
   onHoursChange,
 }: Props) {
+  const inputLabel =
+    unit === "時間"
+      ? "作業時間（時間）"
+      : unit === "分"
+        ? "時間（分）"
+        : "回数";
+
+  const placeholder =
+    unit === "時間"
+      ? "例：5 / 2.5"
+      : unit === "分"
+        ? "例：320"
+        : "例：10";
+
+  const inputMode = unit === "時間" ? "decimal" : "numeric";
+
   return (
     <>
       <label
@@ -53,7 +71,7 @@ export default function DiaryInputForm({
           marginBottom: 10,
         }}
       >
-        作業時間（時間）
+        {inputLabel}
       </label>
 
       <input
@@ -62,8 +80,8 @@ export default function DiaryInputForm({
         onChange={(e) =>
           onHoursChange(normalizeNumberString(e.target.value))
         }
-        placeholder="例：5 / 2.5"
-        inputMode="decimal"
+        placeholder={placeholder}
+        inputMode={inputMode}
         style={{
           width: "100%",
           padding: "14px 16px",
@@ -75,7 +93,7 @@ export default function DiaryInputForm({
       />
 
       <div style={{ marginTop: 12, color: "#666", fontSize: 18 }}>
-        入力中：{inputPreviewHours} 時間
+        入力中：{inputPreviewHours} {unit}
       </div>
     </>
   );

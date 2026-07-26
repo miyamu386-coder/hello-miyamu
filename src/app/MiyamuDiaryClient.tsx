@@ -187,12 +187,13 @@ const handleAddDiaryCard = (
   total={total}
 />
        <DiaryInputForm
-       dateISO={dateISO}
-       hoursInput={hoursInput}
-       inputPreviewHours={inputPreviewHours}
-       hoursRef={hoursRef}
-       onDateChange={setDateISO}
-       onHoursChange={setHoursInput}
+  unit={selectedCard?.unit ?? "時間"}
+  dateISO={dateISO}
+  hoursInput={hoursInput}
+  inputPreviewHours={inputPreviewHours}
+  hoursRef={hoursRef}
+  onDateChange={setDateISO}
+  onHoursChange={setHoursInput}
 />
 
 <AddLogButton
