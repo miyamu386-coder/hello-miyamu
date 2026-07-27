@@ -1,4 +1,6 @@
 import { useState, type CSSProperties } from "react";
+import RoomSwiper from "./room/RoomSwiper";
+
 
 export type DiaryCategory = "work" | "life";
 export type DiaryUnit = "時間" | "分" | "回数";
@@ -40,29 +42,7 @@ export default function DiaryHome({
         みやむDiary
       </div>
 
-      <div style={roomStyle}>
-  <button
-    type="button"
-    aria-label="仕事"
-    style={deskHotspotStyle}
-    onClick={() => setOpenCategory("work")}
-  />
-
-  <button
-    type="button"
-    aria-label="生活"
-    style={bedHotspotStyle}
-    onClick={() => setOpenCategory("life")}
-  />
-
-  <div style={mofuStyle}>
-    <img
-      src="/mofu-normal.png"
-      alt="モフ"
-      style={mofuImageStyle}
-    />
-  </div>
-</div>
+      <RoomSwiper />
     </div>
 
     {openCategory === "work" && (
