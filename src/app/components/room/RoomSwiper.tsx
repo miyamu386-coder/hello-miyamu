@@ -7,6 +7,12 @@ type Room = {
   name: string;
   image: string;
 };
+type Props = {
+  onOpenLife: () => void;
+  onOpenWork: () => void;
+  onOpenPuzzle: () => void;
+};
+
 
 const rooms: Room[] = [
   {
@@ -21,7 +27,11 @@ const rooms: Room[] = [
   },
 ];
 
-export default function RoomSwiper() {
+export default function RoomSwiper({
+  onOpenLife,
+  onOpenWork,
+  onOpenPuzzle,
+}: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentRoomIndex, setCurrentRoomIndex] = useState(0);
 
@@ -105,6 +115,63 @@ export default function RoomSwiper() {
     background: room.id === "workroom" ? "#2b1c12" : "transparent",
   }}
 />
+{room.id === "living-kitchen" && (
+  <>
+    <button
+      type="button"
+      aria-label="キッチンを開く"
+      onClick={onOpenLife}
+      style={{
+        position: "absolute",
+        left: "32%",
+        top: "22%",
+        width: "38%",
+        height: "40%",
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        zIndex: 4,
+      }}
+    />
+
+    <button
+      type="button"
+      aria-label="冷蔵庫を開く"
+      onClick={onOpenLife}
+      style={{
+        position: "absolute",
+        right: "0%",
+        top: "20%",
+        width: "22%",
+        height: "43%",
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        zIndex: 4,
+      }}
+    />
+  </>
+)}
+{room.id === "workroom" && (
+  <button
+    type="button"
+    aria-label="パソコンを開く"
+    onClick={onOpenWork}
+    style={{
+      position: "absolute",
+      left: "3%",
+      top: "34%",
+      width: "38%",
+      height: "30%",
+      padding: 0,
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      zIndex: 4,
+    }}
+  />
+)}
+
             <div
   style={{
     position: "absolute",

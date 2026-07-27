@@ -42,7 +42,11 @@ export default function DiaryHome({
         みやむDiary
       </div>
 
-      <RoomSwiper />
+   <RoomSwiper
+  onOpenLife={() => setOpenCategory("life")}
+  onOpenWork={() => setOpenCategory("work")}
+  onOpenPuzzle={() => alert("モフのナンプレ準備中🐾")}
+/>
     </div>
 
     {openCategory === "work" && (
