@@ -100,8 +100,7 @@ export default function RoomSwiper() {
                 height: "100%",
                 display: "block",
                 objectFit: "cover",
-                objectPosition:
-                   room.id === "workroom" ? "35% center" : "center",
+                objectPosition: "center",
                 userSelect: "none",
               }}
             />
