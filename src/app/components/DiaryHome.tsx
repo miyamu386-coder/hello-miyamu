@@ -34,7 +34,7 @@ export default function DiaryHome({
 
   const workCards = cards.filter((card) => card.category === "work");
   const lifeCards = cards.filter((card) => card.category === "life");
-
+  const [isPuzzleOpen, setIsPuzzleOpen] = useState(false);
   return (
   <section>
     <div style={houseStageStyle}>
@@ -43,9 +43,18 @@ export default function DiaryHome({
       </div>
 
    <RoomSwiper
-  onOpenLife={() => setOpenCategory("life")}
-  onOpenWork={() => setOpenCategory("work")}
-  onOpenPuzzle={() => alert("モフのナンプレ準備中🐾")}
+  onOpenLife={() => {
+    setIsPuzzleOpen(false);
+    setOpenCategory("life");
+  }}
+  onOpenWork={() => {
+    setIsPuzzleOpen(false);
+    setOpenCategory("work");
+  }}
+  onOpenPuzzle={() => {
+    setOpenCategory(null);
+    setIsPuzzleOpen(true);
+  }}
 />
     </div>
 
@@ -70,6 +79,24 @@ export default function DiaryHome({
         onRenameCard={onRenameCard}
       />
     )}
+      {isPuzzleOpen && (
+  <section style={puzzleSectionStyle}>
+    <h2 style={puzzleTitleStyle}>モフのナンプレ</h2>
+
+    <p style={puzzleTextStyle}>
+      今日の問題を準備中です🐾
+    </p>
+
+    <button
+      type="button"
+      style={puzzleCloseButtonStyle}
+      onClick={() => setIsPuzzleOpen(false)}
+    >
+      部屋へ戻る
+    </button>
+  </section>
+)}
+
   </section>
 );
 }
@@ -317,4 +344,31 @@ const bedHotspotStyle: CSSProperties = {
   background: "transparent",
   cursor: "pointer",
   zIndex: 4,
+};
+const puzzleSectionStyle: CSSProperties = {
+  marginTop: 28,
+  padding: 24,
+  borderRadius: 20,
+  border: "1px solid #ddd",
+  background: "#fff",
+  textAlign: "center",
+};
+
+const puzzleTitleStyle: CSSProperties = {
+  margin: "0 0 12px",
+};
+
+const puzzleTextStyle: CSSProperties = {
+  margin: "0 0 20px",
+  color: "#666",
+};
+
+const puzzleCloseButtonStyle: CSSProperties = {
+  padding: "10px 18px",
+  border: "none",
+  borderRadius: 999,
+  background: "#4f7c5b",
+  color: "#fff",
+  fontWeight: 700,
+  cursor: "pointer",
 };
