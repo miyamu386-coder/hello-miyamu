@@ -63,16 +63,6 @@ export default function RoomSwiper() {
         overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          textAlign: "center",
-          fontWeight: 700,
-          fontSize: 18,
-          marginBottom: 10,
-        }}
-      >
-        {rooms[currentRoomIndex]?.name}
-      </div>
 
       <div
         ref={scrollRef}
@@ -94,7 +84,7 @@ export default function RoomSwiper() {
               position: "relative",
               flex: "0 0 100%",
               width: "100%",
-              aspectRatio: "16 / 10",
+              aspectRatio: "9 / 16",
               scrollSnapAlign: "start",
               scrollSnapStop: "always",
               overflow: "hidden",
@@ -113,6 +103,31 @@ export default function RoomSwiper() {
                 userSelect: "none",
               }}
             />
+            <div
+  style={{
+  position: "absolute",
+  left: "50%",
+  bottom: 18,
+  width: 180,
+  height: 240,
+  transform: "translateX(-50%)",
+  zIndex: 5,
+  pointerEvents: "none",
+}}
+>
+  <img
+    src="/mofu-normal.png"
+    alt="モフ"
+    draggable={false}
+    style={{
+      width: "100%",
+      height: "100%",
+      objectFit: "contain",
+      display: "block",
+      userSelect: "none",
+    }}
+  />
+</div>
           </div>
         ))}
       </div>
