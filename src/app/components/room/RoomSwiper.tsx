@@ -92,23 +92,24 @@ export default function RoomSwiper() {
             }}
           >
             <img
-              src={room.image}
-              alt={room.name}
-              draggable={false}
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "block",
-                objectFit: "cover",
-                objectPosition: "center",
-                userSelect: "none",
-              }}
-            />
+  src={room.image}
+  alt={room.name}
+  draggable={false}
+  style={{
+    width: "100%",
+    height: "100%",
+    display: "block",
+    objectFit: room.id === "workroom" ? "contain" : "cover",
+    objectPosition: "center",
+    userSelect: "none",
+    background: room.id === "workroom" ? "#2b1c12" : "transparent",
+  }}
+/>
             <div
   style={{
     position: "absolute",
     left: "50%",
-    bottom: "8%",
+    bottom: "4%",
     width: 95,
     height: 135,
     transform: "translateX(-50%)",
