@@ -20,17 +20,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "みやむLog",
-    template: "%s | みやむLog",
+    default: "みやむDiary",
+    template: "%s | みやむDiary",
   },
-  description: "作業時間をサクッと記録して、月次で振り返る個人用ログアプリ。",
-  applicationName: "みやむLog",
+  description: "モフと一緒に毎日の記録を楽しむライフログアプリ。",
+  applicationName: "みやむDiary",
 
   icons: {
-    // ブラウザタブ（favicon相当）
     icon: [{ url: "/icon-mofu.png", type: "image/png" }],
-    // iPhoneホーム画面用
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
   },
 };
 

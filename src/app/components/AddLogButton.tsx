@@ -56,10 +56,6 @@ export default function AddLogButton({
     )}
   </button>
 </div>
-
-      <div style={{ marginTop: 10, color: "#888", fontSize: 14 }}>
-        ※保存はローカルストレージ（月ごとに自動で分かれます）
-      </div>
     </>
   );
 }

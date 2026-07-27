@@ -91,7 +91,7 @@ function SummaryRing({
         <div
           style={{
             color: "#78817c",
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: 700,
             marginBottom: 5,
           }}
@@ -102,7 +102,7 @@ function SummaryRing({
         <div
           style={{
             color: "#333",
-            fontSize: 27,
+            fontSize: 24,
             fontWeight: 900,
             lineHeight: 1.1,
           }}
@@ -114,7 +114,7 @@ function SummaryRing({
           style={{
             marginTop: 4,
             color: "#666",
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: 700,
           }}
         >
