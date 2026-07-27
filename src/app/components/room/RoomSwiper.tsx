@@ -105,15 +105,15 @@ export default function RoomSwiper() {
             />
             <div
   style={{
-  position: "absolute",
-  left: "50%",
-  bottom: "10%",
-  width: 72,
-  height: 105,
-  transform: "translateX(-50%)",
-  zIndex: 5,
-  pointerEvents: "none",
-}}
+    position: "absolute",
+    left: "50%",
+    bottom: "8%",
+    width: 95,
+    height: 135,
+    transform: "translateX(-50%)",
+    zIndex: 5,
+    pointerEvents: "none",
+  }}
 >
   <img
     src="/mofu-normal.png"
