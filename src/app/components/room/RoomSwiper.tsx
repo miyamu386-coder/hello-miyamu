@@ -107,7 +107,7 @@ export default function RoomSwiper() {
   style={{
   position: "absolute",
   left: "50%",
-  bottom: 18,
+  bottom: "10%",
   width: 72,
   height: 105,
   transform: "translateX(-50%)",
