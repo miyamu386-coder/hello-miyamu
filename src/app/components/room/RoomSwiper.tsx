@@ -99,8 +99,9 @@ export default function RoomSwiper() {
                 width: "100%",
                 height: "100%",
                 display: "block",
-                objectFit: "cover",
+                objectFit: room.id === "workroom" ? "contain" : "cover",
                 userSelect: "none",
+                background: "#2b1c12",
               }}
             />
             <div
