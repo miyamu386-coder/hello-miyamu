@@ -153,23 +153,43 @@ export default function RoomSwiper({
   </>
 )}
 {room.id === "workroom" && (
-  <button
-    type="button"
-    aria-label="パソコンを開く"
-    onClick={onOpenWork}
-    style={{
-      position: "absolute",
-      left: "3%",
-      top: "34%",
-      width: "38%",
-      height: "30%",
-      padding: 0,
-      border: "none",
-      background: "transparent",
-      cursor: "pointer",
-      zIndex: 4,
-    }}
-  />
+  <>
+    <button
+      type="button"
+      aria-label="パソコンを開く"
+      onClick={onOpenWork}
+      style={{
+        position: "absolute",
+        left: "4%",
+        top: "35%",
+        width: "33%",
+        height: "27%",
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        zIndex: 4,
+      }}
+    />
+
+    <button
+      type="button"
+      aria-label="本棚を開く"
+      onClick={onOpenPuzzle}
+      style={{
+        position: "absolute",
+        left: "42%",
+        top: "13%",
+        width: "32%",
+        height: "46%",
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        zIndex: 4,
+      }}
+    />
+  </>
 )}
 
             <div
