@@ -26,13 +26,23 @@ export function useBodySettings() {
     }
 
     try {
-      const parsed = JSON.parse(saved) as BodySettings;
+      const parsed = JSON.parse(saved) as Partial<BodySettings>;
 
       setSettings({
         targetWeight:
           typeof parsed.targetWeight === "number"
             ? parsed.targetWeight
             : null,
+
+        dailyBaseKcal:
+          typeof parsed.dailyBaseKcal === "number"
+            ? parsed.dailyBaseKcal
+            : INITIAL_SETTINGS.dailyBaseKcal,
+
+        dailyExtraKcal:
+          typeof parsed.dailyExtraKcal === "number"
+            ? parsed.dailyExtraKcal
+            : INITIAL_SETTINGS.dailyExtraKcal,
       });
     } catch {
       setSettings(INITIAL_SETTINGS);
@@ -57,8 +67,34 @@ export function useBodySettings() {
     }));
   };
 
+  const setDailyBaseKcal = (dailyBaseKcal: number) => {
+    if (!Number.isFinite(dailyBaseKcal) || dailyBaseKcal <= 0) {
+      return;
+    }
+
+    setSettings((prev) => ({
+      ...prev,
+      dailyBaseKcal,
+    }));
+  };
+
+  const setDailyExtraKcal = (dailyExtraKcal: number) => {
+    if (!Number.isFinite(dailyExtraKcal) || dailyExtraKcal < 0) {
+      return;
+    }
+
+    setSettings((prev) => ({
+      ...prev,
+      dailyExtraKcal,
+    }));
+  };
+
   return {
     targetWeight: settings.targetWeight,
+    dailyBaseKcal: settings.dailyBaseKcal,
+    dailyExtraKcal: settings.dailyExtraKcal,
     setTargetWeight,
+    setDailyBaseKcal,
+    setDailyExtraKcal,
   };
 }
