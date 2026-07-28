@@ -10,19 +10,24 @@ import { useAddedToast } from "./hooks/useAddedToast";
 import { useLogEditing } from "./hooks/useLogEditing";
 import { useAddLog } from "./hooks/useAddLog";
 import { calcTotalHours } from "./lib/calcTotalHours";
-import DiaryHome, {type DiaryCategory,type DiaryUnit,} from "./components/DiaryHome";
-import { useDiaryCards } from "./components/useDiaryCards";
+import DiaryHome, {type DiaryCard,type DiaryCategory,type DiaryUnit,} from "./components/DiaryHome";
+import { useDiaryCards } from "./components/cards/useDiaryCards";
 import { useDiaryNavigation } from "./hooks/useDiaryNavigation";
 import DiarySummaryRings from "./components/DiarySummaryRings";
 import DiaryHistory from "./components/history/DiaryHistory";
+import CardEditModal from "./components/cards/CardEditModal";
+import CardDeleteModal from "./components/cards/CardDeleteModal";
+
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
+
 
 export default function MiyamuDiaryClient() {
   const {
   cards,
   addCard,
   renameCard,
+  deleteCard,
 } = useDiaryCards();
   
   const {
@@ -35,6 +40,8 @@ export default function MiyamuDiaryClient() {
   // 日付は自由に選択（過去月OK）
   const [dateISO, setDateISO] = useState<string>(todayISO());
   const [showHistory, setShowHistory] = useState(false);
+  const [editingCard, setEditingCard] = useState<DiaryCard | null>(null);
+  const [deletingCard, setDeletingCard] = useState<DiaryCard | null>(null);
 
   const ym = useMemo(() => ymFromISO(dateISO), [dateISO]);
   const storageKey = useMemo(
@@ -120,6 +127,17 @@ if (showHistory) {
     />
   );
 }
+const deleteCardLogs = (cardId: string) => {
+  const prefix = `${STORAGE_KEY_BASE}_${cardId}_`;
+
+  for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+    const key = localStorage.key(index);
+
+    if (key?.startsWith(prefix)) {
+      localStorage.removeItem(key);
+    }
+  }
+};
   if (currentView === "home") {
   return (
     <main
@@ -141,11 +159,32 @@ if (showHistory) {
 >
         
         <DiaryHome
-         cards={cards}
-         onSelect={selectCard}
-         onAddCard={handleAddDiaryCard}
-         onRenameCard={renameCard}
-     />
+  cards={cards}
+  onSelect={selectCard}
+  onAddCard={handleAddDiaryCard}
+  onEditCard={setEditingCard}
+/>
+<CardEditModal
+  card={editingCard}
+  onClose={() => setEditingCard(null)}
+  onSave={renameCard}
+  onDelete={(card) => {
+    setEditingCard(null);
+    setDeletingCard(card);
+  }}
+/>
+<CardDeleteModal
+  card={deletingCard}
+  onClose={() => setDeletingCard(null)}
+  onDelete={(cardId, mode) => {
+  if (mode === "cardAndLogs") {
+    deleteCardLogs(cardId);
+  }
+
+  deleteCard(cardId);
+  setDeletingCard(null);
+}}
+/>
       </div>
     </main>
   );

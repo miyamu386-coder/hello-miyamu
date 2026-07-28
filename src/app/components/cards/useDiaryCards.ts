@@ -3,7 +3,7 @@ import type {
   DiaryCard,
   DiaryCategory,
   DiaryUnit,
-} from "./DiaryHome";
+} from "../DiaryHome";
 
 const STORAGE_KEY = "miyamu-diary-cards";
 
@@ -29,12 +29,8 @@ export function useDiaryCards() {
   }, []);
 
   useEffect(() => {
-    if (cards.length === 0) {
-      return;
-    }
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
-  }, [cards]);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+}, [cards]);
 
   const addCard = (
     category: DiaryCategory,
@@ -76,10 +72,16 @@ export function useDiaryCards() {
       )
     );
   };
+const deleteCard = (cardId: string) => {
+  setCards((currentCards) =>
+    currentCards.filter((card) => card.id !== cardId)
+  );
+};
 
   return {
-    cards,
-    addCard,
-    renameCard,
-  };
+  cards,
+  addCard,
+  renameCard,
+  deleteCard,
+};
 }

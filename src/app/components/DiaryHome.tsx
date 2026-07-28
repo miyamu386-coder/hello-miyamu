@@ -20,14 +20,14 @@ type Props = {
     name: string,
     unit: DiaryUnit
   ) => void;
-  onRenameCard: (cardId: string, name: string) => void;
+  onEditCard: (card: DiaryCard) => void;
 };
 
 export default function DiaryHome({
   cards,
   onSelect,
   onAddCard,
-  onRenameCard,
+  onEditCard,
 }: Props) {
   const [openCategory, setOpenCategory] =
     useState<DiaryCategory | null>(null);
@@ -59,26 +59,26 @@ export default function DiaryHome({
     </div>
 
     {openCategory === "work" && (
-      <DiaryCardSection
-        title="仕事"
-        category="work"
-        cards={workCards}
-        onSelect={onSelect}
-        onAddCard={onAddCard}
-        onRenameCard={onRenameCard}
-      />
+     <DiaryCardSection
+  title="仕事"
+  category="work"
+  cards={workCards}
+  onSelect={onSelect}
+  onAddCard={onAddCard}
+  onEditCard={onEditCard}
+/>
     )}
 
-    {openCategory === "life" && (
-      <DiaryCardSection
-        title="生活"
-        category="life"
-        cards={lifeCards}
-        onSelect={onSelect}
-        onAddCard={onAddCard}
-        onRenameCard={onRenameCard}
-      />
-    )}
+   {openCategory === "life" && (
+  <DiaryCardSection
+    title="生活"
+    category="life"
+    cards={lifeCards}
+    onSelect={onSelect}
+    onAddCard={onAddCard}
+    onEditCard={onEditCard}
+  />
+)}
       {isPuzzleOpen && (
   <section style={puzzleSectionStyle}>
     <h2 style={puzzleTitleStyle}>モフのナンプレ</h2>
@@ -111,7 +111,7 @@ type DiaryCardSectionProps = {
     name: string,
     unit: DiaryUnit
   ) => void;
-  onRenameCard: (cardId: string, name: string) => void;
+  onEditCard: (card: DiaryCard) => void;
 };
 
 function DiaryCardSection({
@@ -120,20 +120,8 @@ function DiaryCardSection({
   cards,
   onSelect,
   onAddCard,
-  onRenameCard,
+  onEditCard,
 }: DiaryCardSectionProps) {
-    const handleRenameCard = (card: DiaryCard) => {
-     const newName = window.prompt(
-      "新しいカード名を入力してください",
-       card.name
-  );
-
-  if (newName === null) {
-    return;
-  }
-
-  onRenameCard(card.id, newName);
-};
 
   return (
     <section style={sectionStyle}>
@@ -179,18 +167,20 @@ function DiaryCardSection({
   style={cardStyle}
   onClick={() => onSelect(card)}
 >
-  <strong style={cardNameStyle}>{card.name}</strong>
-
   <button
     type="button"
-    style={renameButtonStyle}
+    style={menuButtonStyle}
+    aria-label={`${card.name}のメニューを開く`}
     onClick={(e) => {
       e.stopPropagation();
-      handleRenameCard(card);
+      onEditCard(card);
     }}
   >
-    ✏️ 名前変更
+    ⋮
   </button>
+
+  <strong style={cardNameStyle}>{card.name}</strong>
+
 
   <span style={cardUnitStyle}>
     記録単位：{card.unit}
@@ -230,6 +220,7 @@ const gridStyle: CSSProperties = {
 };
 
 const cardStyle: CSSProperties = {
+  position: "relative",
   minHeight: 110,
   padding: 20,
   display: "flex",
@@ -247,19 +238,27 @@ const cardStyle: CSSProperties = {
 const cardNameStyle: CSSProperties = {
   fontSize: 18,
 };
+const menuButtonStyle: CSSProperties = {
+  position: "absolute",
+  top: 6,
+  right: 6,
+  width: 32,
+  height: 32,
+  padding: 0,
+  border: "none",
+  borderRadius: 8,
+  background: "transparent",
+  cursor: "pointer",
+  fontSize: 24,
+  lineHeight: 1,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
 
 const cardUnitStyle: CSSProperties = {
   color: "#666",
   fontSize: 13,
-};
-
-const renameButtonStyle: CSSProperties = {
-  padding: "4px 8px",
-  borderRadius: 8,
-  border: "1px solid #ccc",
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 12,
 };
 
 const addButtonStyle: CSSProperties = {
