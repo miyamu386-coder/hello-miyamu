@@ -256,14 +256,15 @@ const deleteCardLogs = (cardId: string) => {
 {showInput && (
   <>
     <DiaryInputForm
-      unit={selectedCard?.unit ?? "時間"}
-      dateISO={dateISO}
-      hoursInput={hoursInput}
-      inputPreviewHours={inputPreviewHours}
-      hoursRef={hoursRef}
-      onDateChange={setDateISO}
-      onHoursChange={setHoursInput}
-    />
+  cardName={selectedCard?.name ?? ""}
+  unit={selectedCard?.unit ?? "時間"}
+  dateISO={dateISO}
+  hoursInput={hoursInput}
+  inputPreviewHours={inputPreviewHours}
+  hoursRef={hoursRef}
+  onDateChange={setDateISO}
+  onHoursChange={setHoursInput}
+/>
 
     <AddLogButton
       canAdd={canAdd}

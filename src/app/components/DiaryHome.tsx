@@ -3,7 +3,12 @@ import RoomSwiper from "./room/RoomSwiper";
 
 
 export type DiaryCategory = "work" | "life";
-export type DiaryUnit = "時間" | "分" | "回数";
+export type DiaryUnit =
+  | "時間"
+  | "分"
+  | "回数"
+  | "kcal"
+  | "kg";
 
 export type DiaryCard = {
   id: string;
@@ -139,18 +144,22 @@ function DiaryCardSection({
     }
 
     const unitInput = window.prompt(
-      "単位を入力してください（時間・分・回数）",
-      category === "work" ? "時間" : "回数"
-    );
+  "単位を入力してください（時間・分・回数・kcal・kg）",
+  category === "work" ? "時間" : "kcal"
+);
 
-    if (
-      unitInput !== "時間" &&
-      unitInput !== "分" &&
-      unitInput !== "回数"
-    ) {
-      window.alert("単位は「時間」「分」「回数」から入力してください");
-      return;
-    }
+if (
+  unitInput !== "時間" &&
+  unitInput !== "分" &&
+  unitInput !== "回数" &&
+  unitInput !== "kcal" &&
+  unitInput !== "kg"
+) {
+  window.alert(
+    "単位は「時間」「分」「回数」「kcal」「kg」から入力してください"
+  );
+  return;
+}
 
     onAddCard(category, name.trim(), unitInput);
   }}

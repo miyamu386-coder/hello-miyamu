@@ -1,8 +1,10 @@
 "use client";
 
-import type { RefObject } from "react";
+import { useState, type RefObject } from "react";
+import { useFoodDictionary } from "../hooks/useFoodDictionary";
 
 type Props = {
+  cardName: string;
   unit: string;
   dateISO: string;
   hoursInput: string;
@@ -13,6 +15,7 @@ type Props = {
 };
 
 export default function DiaryInputForm({
+  cardName,
   unit,
   dateISO,
   hoursInput,
@@ -21,12 +24,25 @@ export default function DiaryInputForm({
   onDateChange,
   onHoursChange,
 }: Props) {
-  const placeholder =
-    unit === "時間"
-      ? "例：2.5"
-      : unit === "分"
-        ? "例：320"
-        : "例：10";
+  const isFoodCard =
+    cardName === "食事量" &&
+    unit === "kcal";
+
+const { foods, addFood } = useFoodDictionary();
+
+const [foodName, setFoodName] = useState("");
+const [foodKcal, setFoodKcal] = useState("");
+
+const placeholder =
+  unit === "時間"
+    ? "例：2.5"
+    : unit === "分"
+      ? "例：320"
+      : unit === "kcal"
+        ? "例：650"
+        : unit === "kg"
+          ? "例：58.2"
+          : "例：10";
 
   return (
     <div
@@ -50,6 +66,118 @@ export default function DiaryInputForm({
         今日の記録
       </div>
 
+{isFoodCard && (
+  <div
+    style={{
+      marginBottom: 20,
+      padding: 16,
+      borderRadius: 16,
+      background: "#fff",
+      border: "1px solid #dce7df",
+    }}
+  >
+    <div
+      style={{
+        marginBottom: 12,
+        fontWeight: 800,
+        textAlign: "center",
+      }}
+    >
+      食品辞書
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        justifyContent: "center",
+      }}
+    >
+      <input
+        type="text"
+        value={foodName}
+        placeholder="食品名"
+        onChange={(event) => setFoodName(event.target.value)}
+        style={{
+          minWidth: 160,
+          padding: "10px 12px",
+          borderRadius: 10,
+          border: "1px solid #cad8cf",
+        }}
+      />
+
+      <input
+        type="number"
+        inputMode="numeric"
+        value={foodKcal}
+        placeholder="kcal"
+        onChange={(event) => setFoodKcal(event.target.value)}
+        style={{
+          width: 100,
+          padding: "10px 12px",
+          borderRadius: 10,
+          border: "1px solid #cad8cf",
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={() => {
+          const kcal = Number(foodKcal);
+
+          if (!foodName.trim() || !Number.isFinite(kcal) || kcal < 0) {
+            window.alert("食品名とkcalを正しく入力してください");
+            return;
+          }
+
+          addFood(foodName, kcal);
+          setFoodName("");
+          setFoodKcal("");
+        }}
+        style={{
+          padding: "10px 14px",
+          border: "none",
+          borderRadius: 10,
+          background: "#4f7c5b",
+          color: "#fff",
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        辞書に追加
+      </button>
+    </div>
+
+    {foods.length > 0 && (
+      <div
+        style={{
+          marginTop: 14,
+          display: "grid",
+          gap: 8,
+        }}
+      >
+        {foods.map((food) => (
+          <button
+            key={food.id}
+            type="button"
+            onClick={() => onHoursChange(String(food.kcal))}
+            style={{
+              padding: "10px 12px",
+              borderRadius: 10,
+              border: "1px solid #dce7df",
+              background: "#f7faf8",
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            {food.name}：{food.kcal} kcal
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+)}
       <div
         style={{
           display: "flex",
@@ -61,7 +189,9 @@ export default function DiaryInputForm({
         <input
           ref={hoursRef}
           type="number"
-          inputMode={unit === "時間" ? "decimal" : "numeric"}
+          inputMode={unit === "時間" || unit === "kg"
+            ? "decimal"
+            : "numeric"}
           value={hoursInput}
           placeholder={placeholder}
           onChange={(event) => onHoursChange(event.target.value)}
