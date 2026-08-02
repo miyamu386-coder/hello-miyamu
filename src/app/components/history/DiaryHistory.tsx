@@ -8,6 +8,7 @@ type Props = {
   ym: string;
   logs: Log[];
   cardName: string;
+  unit: string;
   editingId: string | null;
   editHoursInput: string;
   onEditHoursChange: (value: string) => void;
@@ -25,6 +26,7 @@ export default function DiaryHistory({
   ym,
   logs,
   cardName,
+  unit,
   editingId,
   editHoursInput,
   onEditHoursChange,
@@ -98,18 +100,19 @@ export default function DiaryHistory({
 </h2>
 
       <LogList
-        ym={ym}
-        logs={logs}
-        editingId={editingId}
-        editHoursInput={editHoursInput}
-        cardName={cardName}
-        onEditHoursChange={onEditHoursChange}
-        onStartEdit={onStartEdit}
-        onSaveEdit={onSaveEdit}
-        onCancelEdit={onCancelEdit}
-        onRemove={onRemove}
-        onClearAll={onClearAll}
-      />
+  ym={ym}
+  logs={logs}
+  cardName={cardName}
+  unit={unit}
+  editingId={editingId}
+  editHoursInput={editHoursInput}
+  onEditHoursChange={onEditHoursChange}
+  onStartEdit={onStartEdit}
+  onSaveEdit={onSaveEdit}
+  onCancelEdit={onCancelEdit}
+  onRemove={onRemove}
+  onClearAll={onClearAll}
+/>
     </div>
   </main>
 );

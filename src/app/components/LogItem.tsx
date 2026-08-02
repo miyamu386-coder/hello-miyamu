@@ -4,6 +4,7 @@ import { normalizeNumberString } from "../lib/numberUtils";
 
 type Props = {
   log: Log;
+  unit: string;
   isEditing: boolean;
   editHoursInput: string;
   onEditHoursChange: (value: string) => void;
@@ -15,6 +16,7 @@ type Props = {
 
 export default function LogItem({
   log,
+  unit,
   isEditing,
   editHoursInput,
   onEditHoursChange,
@@ -67,8 +69,15 @@ export default function LogItem({
             />
           ) : (
             <span>
-              <b>{log.hours.toFixed(1)}</b> 時間
-            </span>
+  <b>
+    {unit === "時間"
+      ? log.hours.toFixed(1)
+      : Number.isInteger(log.hours)
+        ? log.hours
+        : log.hours.toFixed(1)}
+  </b>{" "}
+  {unit}
+</span>
           )}
         </div>
       </div>

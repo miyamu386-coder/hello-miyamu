@@ -127,6 +127,7 @@ if (showHistory) {
   ym={ym}
   logs={logs}
   cardName={selectedCard?.name ?? ""}
+  unit={selectedCard?.unit ?? "時間"}
   editingId={editingId}
   editHoursInput={editHoursInput}
   onEditHoursChange={setEditHoursInput}

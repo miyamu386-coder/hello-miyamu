@@ -6,6 +6,7 @@ type Props = {
   ym: string;
   logs: Log[];
   cardName: string;
+  unit: string;
   editingId: string | null;
   editHoursInput: string;
   onEditHoursChange: (value: string) => void;
@@ -19,6 +20,8 @@ type Props = {
 export default function LogList({
   ym,
   logs,
+  cardName,
+  unit,
   editingId,
   editHoursInput,
   onEditHoursChange,
@@ -45,6 +48,7 @@ export default function LogList({
             <LogItem
               key={log.id}
               log={log}
+              unit={unit}
               isEditing={editingId === log.id}
               editHoursInput={editHoursInput}
               onEditHoursChange={onEditHoursChange}
@@ -72,7 +76,7 @@ export default function LogList({
           fontWeight: 800,
         }}
       >
-        この月の記録を全部消去
+        この月の{cardName}記録を全部消去
       </button>
     </>
   );
