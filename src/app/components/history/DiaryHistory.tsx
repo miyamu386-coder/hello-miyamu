@@ -3,8 +3,11 @@ import LogList from "../LogList";
 
 type Props = {
   onBack: () => void;
+  onPrevMonth: () => void;
+  onNextMonth: () => void;
   ym: string;
   logs: Log[];
+  cardName: string;
   editingId: string | null;
   editHoursInput: string;
   onEditHoursChange: (value: string) => void;
@@ -17,8 +20,11 @@ type Props = {
 
 export default function DiaryHistory({
   onBack,
+  onPrevMonth,
+  onNextMonth,
   ym,
   logs,
+  cardName,
   editingId,
   editHoursInput,
   onEditHoursChange,
@@ -62,12 +68,41 @@ export default function DiaryHistory({
       >
         ← 戻る
       </button>
+<div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  }}
+>
+  <button type="button" onClick={onPrevMonth}>
+    ◀ 前月
+  </button>
+
+  <strong>{ym}</strong>
+
+  <button type="button" onClick={onNextMonth}>
+    次月 ▶
+  </button>
+</div>
+
+      <h2
+  style={{
+    margin: "0 0 20px",
+    fontSize: 24,
+    fontWeight: 700,
+  }}
+>
+  {cardName} の履歴
+</h2>
 
       <LogList
         ym={ym}
         logs={logs}
         editingId={editingId}
         editHoursInput={editHoursInput}
+        cardName={cardName}
         onEditHoursChange={onEditHoursChange}
         onStartEdit={onStartEdit}
         onSaveEdit={onSaveEdit}

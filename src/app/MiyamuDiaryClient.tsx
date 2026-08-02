@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import {todayISO,ymFromISO,} from "./lib/dateUtils";
+import { moveMonth, todayISO, ymFromISO } from "./lib/dateUtils";
 import DiaryHeader from "./components/DiaryHeader";
 import DiaryInputForm from "./components/DiaryInputForm";
 import AddLogButton from "./components/AddLogButton";
@@ -17,6 +17,7 @@ import DiarySummaryRings from "./components/DiarySummaryRings";
 import DiaryHistory from "./components/history/DiaryHistory";
 import CardEditModal from "./components/cards/CardEditModal";
 import CardDeleteModal from "./components/cards/CardDeleteModal";
+
 
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
@@ -52,6 +53,7 @@ export default function MiyamuDiaryClient() {
   [selectedCard, ym]
 );
 
+
   const { logs, setLogs } = useMonthlyLogs(storageKey);
   
   const [hoursInput, setHoursInput] = useState<string>("");
@@ -68,6 +70,12 @@ export default function MiyamuDiaryClient() {
     setLogs,
     storageKey,
   });
+  const changeMonth = (diff: number) => {
+  const nextYm = moveMonth(ym, diff);
+
+  setDateISO(`${nextYm}-01`);
+  cancelEdit();
+};
 
   const { justAdded, showAddedToast } = useAddedToast();
 
@@ -113,18 +121,21 @@ const handleAddDiaryCard = (
 if (showHistory) {
   return (
     <DiaryHistory
-      onBack={() => setShowHistory(false)}
-      ym={ym}
-      logs={logs}
-      editingId={editingId}
-      editHoursInput={editHoursInput}
-      onEditHoursChange={setEditHoursInput}
-      onStartEdit={startEdit}
-      onSaveEdit={saveEdit}
-      onCancelEdit={cancelEdit}
-      onRemove={removeLog}
-      onClearAll={clearAll}
-    />
+  onBack={() => setShowHistory(false)}
+  onPrevMonth={() => changeMonth(-1)}
+  onNextMonth={() => changeMonth(1)}
+  ym={ym}
+  logs={logs}
+  cardName={selectedCard?.name ?? ""}
+  editingId={editingId}
+  editHoursInput={editHoursInput}
+  onEditHoursChange={setEditHoursInput}
+  onStartEdit={startEdit}
+  onSaveEdit={saveEdit}
+  onCancelEdit={cancelEdit}
+  onRemove={removeLog}
+  onClearAll={clearAll}
+/>
   );
 }
 const deleteCardLogs = (cardId: string) => {

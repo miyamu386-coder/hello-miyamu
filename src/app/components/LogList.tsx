@@ -5,6 +5,7 @@ import { monthLabel } from "../lib/dateUtils";
 type Props = {
   ym: string;
   logs: Log[];
+  cardName: string;
   editingId: string | null;
   editHoursInput: string;
   onEditHoursChange: (value: string) => void;
@@ -27,6 +28,9 @@ export default function LogList({
   onRemove,
   onClearAll,
 }: Props) {
+  const sortedLogs = [...logs].sort((a, b) =>
+  b.date.localeCompare(a.date)
+);
   return (
     <>
       <div style={{ marginTop: 28, fontSize: 18, fontWeight: 800 }}>
@@ -37,7 +41,7 @@ export default function LogList({
         {logs.length === 0 ? (
           <div style={{ color: "#666" }}>まだ記録がありません</div>
         ) : (
-          logs.map((log) => (
+          sortedLogs.map((log) => (
             <LogItem
               key={log.id}
               log={log}

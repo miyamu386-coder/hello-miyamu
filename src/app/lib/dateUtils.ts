@@ -25,3 +25,13 @@ export function toSlashDate(iso: string): string {
 
   return `${match[1]}/${match[2]}/${match[3]}`;
 }
+/** YYYY-MM を前後の月へ移動 */
+export function moveMonth(ym: string, diff: number): string {
+  const [year, month] = ym.split("-").map(Number);
+
+  const date = new Date(year, month - 1 + diff, 1);
+
+  return `${date.getFullYear()}-${String(
+    date.getMonth() + 1
+  ).padStart(2, "0")}`;
+}
