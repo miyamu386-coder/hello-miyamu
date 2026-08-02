@@ -35,3 +35,12 @@ export function moveMonth(ym: string, diff: number): string {
     date.getMonth() + 1
   ).padStart(2, "0")}`;
 }
+/** YYYY-MM-DD を指定日数だけ移動 */
+export function moveDate(dateISO: string, diff: number): string {
+  const [year, month, day] = dateISO.split("-").map(Number);
+  const date = new Date(year, month - 1, day + diff);
+
+  return `${date.getFullYear()}-${String(
+    date.getMonth() + 1
+  ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}

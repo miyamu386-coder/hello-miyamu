@@ -17,7 +17,9 @@ import DiarySummaryRings from "./components/DiarySummaryRings";
 import DiaryHistory from "./components/history/DiaryHistory";
 import CardEditModal from "./components/cards/CardEditModal";
 import CardDeleteModal from "./components/cards/CardDeleteModal";
-
+import WeightSummaryRings from "./components/weight/WeightSummaryRings";
+import { useWeightSummary } from "./hooks/useWeightSummary";
+import WeightLineChart from "./components/weight/WeightLineChart";
 
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
@@ -92,6 +94,17 @@ export default function MiyamuDiaryClient() {
       .reduce((sum, log) => sum + log.hours, 0),
   [logs, dateISO]
 );
+const {
+  todayWeight,
+  previousWeight,
+  weightLogs,
+} = useWeightSummary({
+  logs,
+  dateISO,
+  cardId: selectedCard?.id ?? "",
+  storageKeyBase: STORAGE_KEY_BASE,
+});
+
 const {
   inputPreviewHours,
   canAdd,
@@ -252,12 +265,24 @@ const deleteCardLogs = (cardId: string) => {
   unit={selectedCard?.unit ?? "時間"}
   ym={ym}
 />
-<DiarySummaryRings
-  todayTotal={todayTotal}
-  monthlyTotal={total}
-  unit={selectedCard?.unit ?? "時間"}
-  onTodayClick={() => setShowInput(true)}
-/>
+{selectedCard?.unit === "kg" ? (
+  <>
+    <WeightSummaryRings
+      todayWeight={todayWeight}
+      previousWeight={previousWeight}
+      onTodayClick={() => setShowInput(true)}
+    />
+
+    <WeightLineChart logs={weightLogs} />
+  </>
+) : (
+  <DiarySummaryRings
+    todayTotal={todayTotal}
+    monthlyTotal={total}
+    unit={selectedCard?.unit ?? "時間"}
+    onTodayClick={() => setShowInput(true)}
+  />
+)}
 <button
   type="button"
   onClick={() => setShowHistory(true)}
