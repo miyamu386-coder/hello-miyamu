@@ -104,6 +104,14 @@ export const FOOD_DICTIONARY: FoodDictionaryItem[] = [
   kcal: 225,
   isDefault: true,
 },
+{
+  id: "coffee-black",
+  name: "ブラックコーヒー",
+  baseName: "ブラックコーヒー",
+  kcal: 0,
+  isDefault: true,
+  aliases: ["コーヒー", "ブラック", "ホットコーヒー", "アイスコーヒー"],
+},
 // 果物・軽食
 {
   id: "banana-1",
@@ -714,5 +722,19 @@ export const FOOD_DICTIONARY: FoodDictionaryItem[] = [
   baseName: "生姜焼きすた丼",
   kcal: 1090,
   isDefault: true,
+},
+// プロテイン
+{
+  id: "protein-1-scoop",
+  name: "プロテイン 1杯",
+  baseName: "プロテイン",
+  kcal: 120,
+  isDefault: true,
+},
+{
+  id: "protein-2-scoops",
+  name: "プロテイン 2杯",
+  baseName: "プロテイン",
+  kcal: 240,
 },
 ];
