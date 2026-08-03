@@ -20,7 +20,7 @@ import CardDeleteModal from "./components/cards/CardDeleteModal";
 import WeightSummaryRings from "./components/weight/WeightSummaryRings";
 import { useWeightSummary } from "./hooks/useWeightSummary";
 import WeightLineChart from "./components/weight/WeightLineChart";
-import FoodSummary from "./components/food/FoodSummary";
+import FoodSummaryRing from "./components/food/FoodSummaryRing";
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
 
@@ -276,9 +276,11 @@ const deleteCardLogs = (cardId: string) => {
     <WeightLineChart logs={weightLogs} />
   </>
 ) : selectedCard?.name === "食事量" ? (
-  <FoodSummary
+  
+  <FoodSummaryRing
   todayTotal={todayTotal}
-  onInputClick={() => setShowInput(true)}
+  recommendedKcal={2300}
+  onClick={() => setShowInput(true)}
 />
 ) : (
   <DiarySummaryRings
