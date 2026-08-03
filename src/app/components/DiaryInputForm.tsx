@@ -1,6 +1,6 @@
 "use client";
 
-import type { RefObject } from "react";
+import { useState, type RefObject } from "react";
 import { useFoodDictionary } from "../hooks/useFoodDictionary";
 
 type Props = {
@@ -32,7 +32,10 @@ export default function DiaryInputForm({
     cardName === "食事量" &&
     unit === "kcal";
 
-const { foods } = useFoodDictionary();
+const { foods, addFood } = useFoodDictionary();
+
+const [newFoodName, setNewFoodName] = useState("");
+const [newFoodKcal, setNewFoodKcal] = useState("");
 
 const normalizeText = (text: string) =>
   text
@@ -212,7 +215,101 @@ const placeholder =
 >
   カロリーを計算
 </button>
+<details
+  style={{
+    marginTop: 4,
+    paddingTop: 12,
+    borderTop: "1px solid #e2ebe5",
+  }}
+>
+  <summary
+    style={{
+      cursor: "pointer",
+      color: "#4f7c5b",
+      fontSize: 14,
+      fontWeight: 700,
+      textAlign: "center",
+    }}
+  >
+    食品辞書に追加
+  </summary>
 
+  <div
+    style={{
+      marginTop: 12,
+      display: "grid",
+      gap: 10,
+    }}
+  >
+    <input
+      type="text"
+      value={newFoodName}
+      placeholder="例：オリジン のり弁 大盛"
+      onChange={(event) => setNewFoodName(event.target.value)}
+      style={{
+        width: "100%",
+        boxSizing: "border-box",
+        padding: "11px 12px",
+        borderRadius: 10,
+        border: "1px solid #cad8cf",
+        background: "#fff",
+        fontSize: 16,
+      }}
+    />
+
+    <input
+      type="number"
+      inputMode="numeric"
+      value={newFoodKcal}
+      placeholder="例：920"
+      onChange={(event) => setNewFoodKcal(event.target.value)}
+      style={{
+        width: "100%",
+        boxSizing: "border-box",
+        padding: "11px 12px",
+        borderRadius: 10,
+        border: "1px solid #cad8cf",
+        background: "#fff",
+        fontSize: 16,
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() => {
+        const kcal = Number(newFoodKcal);
+
+        if (!newFoodName.trim()) {
+          window.alert("食品名を入力してください");
+          return;
+        }
+
+        if (!Number.isFinite(kcal) || kcal <= 0) {
+          window.alert("1以上のカロリーを入力してください");
+          return;
+        }
+
+        addFood(newFoodName, kcal);
+        setNewFoodName("");
+        setNewFoodKcal("");
+
+        window.alert("食品辞書に追加しました");
+      }}
+      style={{
+        width: "100%",
+        padding: "11px 16px",
+        border: "1px solid #4f7c5b",
+        borderRadius: 10,
+        background: "#fff",
+        color: "#4f7c5b",
+        fontWeight: 700,
+        cursor: "pointer",
+      }}
+    >
+      辞書に登録
+    </button>
+  </div>
+</details>
   </div>
 )}
       <div
