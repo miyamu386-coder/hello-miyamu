@@ -276,7 +276,10 @@ const deleteCardLogs = (cardId: string) => {
     <WeightLineChart logs={weightLogs} />
   </>
 ) : selectedCard?.name === "食事量" ? (
-  <FoodSummary todayTotal={todayTotal} />
+  <FoodSummary
+  todayTotal={todayTotal}
+  onInputClick={() => setShowInput(true)}
+/>
 ) : (
   <DiarySummaryRings
     todayTotal={todayTotal}

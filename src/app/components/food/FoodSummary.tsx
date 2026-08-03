@@ -1,16 +1,20 @@
 type Props = {
   todayTotal: number;
+  onInputClick: () => void;
 };
 
 export default function FoodSummary({
   todayTotal,
+  onInputClick,
 }: Props) {
   const recommendedKcal = 2300;
   const remainingKcal = recommendedKcal - todayTotal;
 
   return (
     <section
-      style={{
+  onClick={onInputClick}
+  style={{
+        cursor: "pointer",
         marginTop: 20,
         marginBottom: 24,
         padding: 20,
