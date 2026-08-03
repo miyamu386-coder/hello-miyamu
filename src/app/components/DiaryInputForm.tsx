@@ -28,10 +28,98 @@ export default function DiaryInputForm({
     cardName === "食事量" &&
     unit === "kcal";
 
-const { foods, addFood } = useFoodDictionary();
+const { foods } = useFoodDictionary();
+const [mealText, setMealText] = useState("");
 
-const [foodName, setFoodName] = useState("");
-const [foodKcal, setFoodKcal] = useState("");
+const normalizeText = (text: string) =>
+  text
+    .replace(/[０-９]/g, (s) =>
+      String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
+    )
+    .replace(/\s+/g, "")
+    .replace(/納豆卵かけご飯|納豆たまごかけごはん/gi,"ご飯納豆卵")
+    .replace(/卵かけご飯|たまごかけごはん|tkg/gi, "ご飯卵")
+    .replace(/納豆ご飯|納豆ごはん/g, "ご飯納豆")
+    .replace(/[　]/g, "")
+    .replace(/ごはん/g, "ご飯")
+    .replace(/白米/g, "ご飯")
+    .replace(/たまご/g, "卵")
+    .replace(/玉子/g, "卵")
+    .replace(/鶏胸/g, "鶏むね")
+    .replace(/鳥/g, "鶏")
+    .toLowerCase();
+const calculateMealKcal = () => {
+  const normalizedMealText = normalizeText(mealText);
+
+  const matchedFoods = foods.filter((food) => {
+  const normalizedFoodName = normalizeText(food.name);
+  const normalizedBaseName = normalizeText(food.baseName);
+
+  const hasSpecificAmount = foods.some(
+    (candidate) =>
+      candidate.baseName === food.baseName &&
+      normalizedMealText.includes(normalizeText(candidate.name))
+  );
+
+  const hasMoreSpecificMenu = foods.some((candidate) => {
+    if (candidate.id === food.id) {
+      return false;
+    }
+
+    const normalizedCandidateName = normalizeText(candidate.name);
+
+    return (
+      normalizedCandidateName.length > normalizedFoodName.length &&
+      normalizedCandidateName.includes(normalizedFoodName) &&
+      normalizedMealText.includes(normalizedCandidateName)
+    );
+  });
+
+  if (hasMoreSpecificMenu) {
+    return false;
+  }
+
+  if (hasSpecificAmount) {
+    return normalizedMealText.includes(normalizedFoodName);
+  }
+
+  return (
+    food.isDefault &&
+    normalizedMealText.includes(normalizedBaseName)
+  );
+});
+
+  const totalKcal = matchedFoods.reduce((total, food) => {
+  const normalizedFoodName = normalizeText(food.name);
+  const normalizedBaseName = normalizeText(food.baseName);
+
+  const isSpecificAmount =
+    normalizedMealText.includes(normalizedFoodName);
+
+  if (isSpecificAmount) {
+    return total + food.kcal;
+  }
+
+  const quantityPattern = new RegExp(
+    `${normalizedBaseName}(\\d+)(個|本|枚|パック|玉)`
+  );
+
+  const quantityMatch = normalizedMealText.match(quantityPattern);
+
+  const quantity = quantityMatch
+    ? Number(quantityMatch[1])
+    : 1;
+
+  return total + food.kcal * quantity;
+}, 0);
+
+  if (matchedFoods.length === 0) {
+    window.alert("食品辞書に一致する食品が見つかりませんでした");
+    return;
+  }
+
+  onHoursChange(String(totalKcal));
+};
 
 const placeholder =
   unit === "時間"
@@ -83,99 +171,43 @@ const placeholder =
         textAlign: "center",
       }}
     >
-      食品辞書
+      食事内容
     </div>
+    <textarea
+  value={mealText}
+  placeholder="例：ご飯 150g、納豆 1パック、卵 1個"
+  onChange={(event) => setMealText(event.target.value)}
+  rows={4}
+  style={{
+    width: "100%",
+    boxSizing: "border-box",
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    border: "1px solid #cad8cf",
+    background: "#fff",
+    resize: "vertical",
+    fontSize: 16,
+  }}
+/>
+<button
+  type="button"
+  onClick={calculateMealKcal}
+  style={{
+    width: "100%",
+    marginBottom: 12,
+    padding: "12px 16px",
+    border: "none",
+    borderRadius: 12,
+    background: "#4f7c5b",
+    color: "#fff",
+    fontWeight: 700,
+    cursor: "pointer",
+  }}
+>
+  カロリーを計算
+</button>
 
-    <div
-      style={{
-        display: "flex",
-        gap: 8,
-        flexWrap: "wrap",
-        justifyContent: "center",
-      }}
-    >
-      <input
-        type="text"
-        value={foodName}
-        placeholder="食品名"
-        onChange={(event) => setFoodName(event.target.value)}
-        style={{
-          minWidth: 160,
-          padding: "10px 12px",
-          borderRadius: 10,
-          border: "1px solid #cad8cf",
-        }}
-      />
-
-      <input
-        type="number"
-        inputMode="numeric"
-        value={foodKcal}
-        placeholder="kcal"
-        onChange={(event) => setFoodKcal(event.target.value)}
-        style={{
-          width: 100,
-          padding: "10px 12px",
-          borderRadius: 10,
-          border: "1px solid #cad8cf",
-        }}
-      />
-
-      <button
-        type="button"
-        onClick={() => {
-          const kcal = Number(foodKcal);
-
-          if (!foodName.trim() || !Number.isFinite(kcal) || kcal < 0) {
-            window.alert("食品名とkcalを正しく入力してください");
-            return;
-          }
-
-          addFood(foodName, kcal);
-          setFoodName("");
-          setFoodKcal("");
-        }}
-        style={{
-          padding: "10px 14px",
-          border: "none",
-          borderRadius: 10,
-          background: "#4f7c5b",
-          color: "#fff",
-          fontWeight: 700,
-          cursor: "pointer",
-        }}
-      >
-        辞書に追加
-      </button>
-    </div>
-
-    {foods.length > 0 && (
-      <div
-        style={{
-          marginTop: 14,
-          display: "grid",
-          gap: 8,
-        }}
-      >
-        {foods.map((food) => (
-          <button
-            key={food.id}
-            type="button"
-            onClick={() => onHoursChange(String(food.kcal))}
-            style={{
-              padding: "10px 12px",
-              borderRadius: 10,
-              border: "1px solid #dce7df",
-              background: "#f7faf8",
-              cursor: "pointer",
-              textAlign: "left",
-            }}
-          >
-            {food.name}：{food.kcal} kcal
-          </button>
-        ))}
-      </div>
-    )}
   </div>
 )}
       <div

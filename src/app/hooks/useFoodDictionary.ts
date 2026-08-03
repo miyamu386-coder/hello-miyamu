@@ -49,10 +49,12 @@ export function useFoodDictionary() {
     setCustomFoods((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
-        name: trimmed,
-        kcal,
-      },
+  id: crypto.randomUUID(),
+  name: trimmed,
+  baseName: trimmed,
+  kcal,
+  isDefault: true,
+},
     ]);
   };
 

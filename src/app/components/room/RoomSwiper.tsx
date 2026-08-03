@@ -8,7 +8,8 @@ type Room = {
   image: string;
 };
 type Props = {
-  onOpenLife: () => void;
+  onOpenKitchen: () => void;
+  onOpenFridge: () => void;
   onOpenWork: () => void;
   onOpenPuzzle: () => void;
 };
@@ -28,7 +29,8 @@ const rooms: Room[] = [
 ];
 
 export default function RoomSwiper({
-  onOpenLife,
+  onOpenKitchen,
+  onOpenFridge,
   onOpenWork,
   onOpenPuzzle,
 }: Props) {
@@ -118,9 +120,9 @@ export default function RoomSwiper({
 {room.id === "living-kitchen" && (
   <>
     <button
-      type="button"
-      aria-label="キッチンを開く"
-      onClick={onOpenLife}
+  type="button"
+aria-label="キッチンを開く"
+onClick={onOpenKitchen}
       style={{
         position: "absolute",
         left: "32%",
@@ -137,7 +139,7 @@ export default function RoomSwiper({
     <button
       type="button"
       aria-label="冷蔵庫を開く"
-      onClick={onOpenLife}
+      onClick={onOpenFridge}
       style={{
         position: "absolute",
         right: "0%",

@@ -40,6 +40,16 @@ export default function DiaryHome({
   const workCards = cards.filter((card) => card.category === "work");
   const lifeCards = cards.filter((card) => card.category === "life");
   const [isPuzzleOpen, setIsPuzzleOpen] = useState(false);
+  const openCardByName = (cardName: string) => {
+  const targetCard = cards.find((card) => card.name === cardName);
+
+  if (!targetCard) {
+    window.alert(`「${cardName}」カードが見つかりません`);
+    return;
+  }
+
+  onSelect(targetCard);
+};
   return (
   <section>
     <div style={houseStageStyle}>
@@ -48,10 +58,15 @@ export default function DiaryHome({
       </div>
 
    <RoomSwiper
-  onOpenLife={() => {
+  onOpenKitchen={() => {
     setIsPuzzleOpen(false);
     setOpenCategory("life");
   }}
+  onOpenFridge={() => {
+  setIsPuzzleOpen(false);
+  setOpenCategory(null);
+  openCardByName("食事量");
+}}
   onOpenWork={() => {
     setIsPuzzleOpen(false);
     setOpenCategory("work");
@@ -64,15 +79,28 @@ export default function DiaryHome({
     </div>
 
     {openCategory === "work" && (
-     <DiaryCardSection
-  title="仕事"
-  category="work"
-  cards={workCards}
-  onSelect={onSelect}
-  onAddCard={onAddCard}
-  onEditCard={onEditCard}
-/>
-    )}
+  <div style={modalOverlayStyle}>
+    <div style={modalContentStyle}>
+      <button
+        type="button"
+        aria-label="仕事カード一覧を閉じる"
+        style={modalCloseButtonStyle}
+        onClick={() => setOpenCategory(null)}
+      >
+        ×
+      </button>
+
+      <DiaryCardSection
+        title="仕事"
+        category="work"
+        cards={workCards}
+        onSelect={onSelect}
+        onAddCard={onAddCard}
+        onEditCard={onEditCard}
+      />
+    </div>
+  </div>
+)}
 
    {openCategory === "life" && (
   <DiaryCardSection
@@ -379,4 +407,40 @@ const puzzleCloseButtonStyle: CSSProperties = {
   color: "#fff",
   fontWeight: 700,
   cursor: "pointer",
+};
+const modalOverlayStyle: CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 20,
+  background: "rgba(0, 0, 0, 0.45)",
+  zIndex: 1000,
+};
+
+const modalContentStyle: CSSProperties = {
+  position: "relative",
+  width: "min(680px, 100%)",
+  maxHeight: "85vh",
+  overflowY: "auto",
+  padding: 24,
+  borderRadius: 20,
+  background: "#fff",
+  boxShadow: "0 20px 50px rgba(0, 0, 0, 0.2)",
+};
+
+const modalCloseButtonStyle: CSSProperties = {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  width: 36,
+  height: 36,
+  padding: 0,
+  border: "none",
+  borderRadius: 999,
+  background: "#f0f0f0",
+  cursor: "pointer",
+  fontSize: 24,
+  lineHeight: 1,
 };
