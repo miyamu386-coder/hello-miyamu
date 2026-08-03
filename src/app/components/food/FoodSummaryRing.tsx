@@ -1,12 +1,18 @@
 type Props = {
   todayTotal: number;
   recommendedKcal: number;
+  automaticRecommendedKcal: number;
+  customRecommendedKcal: number | null;
+  onRecommendedKcalChange: (value: number | null) => void;
   onClick: () => void;
 };
 
 export default function FoodSummaryRing({
   todayTotal,
   recommendedKcal,
+  automaticRecommendedKcal,
+  customRecommendedKcal,
+  onRecommendedKcalChange,
   onClick,
 }: Props) {
   const progress = Math.min(todayTotal / recommendedKcal, 1);
@@ -85,7 +91,8 @@ export default function FoodSummaryRing({
         </text>
       </svg>
 
-      <div
+      
+            <div
         style={{
           marginTop: 8,
           fontWeight: 700,
@@ -96,6 +103,63 @@ export default function FoodSummaryRing({
           ? `あと ${remaining} kcal`
           : `${Math.abs(remaining)} kcal 超過`}
       </div>
+
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+
+          const input = window.prompt(
+            `目標摂取カロリーを入力してください\n自動計算値：${automaticRecommendedKcal} kcal`,
+            String(customRecommendedKcal ?? recommendedKcal)
+          );
+
+          if (input === null) {
+            return;
+          }
+
+          const parsed = Number(input);
+
+          if (!Number.isFinite(parsed) || parsed <= 0) {
+            window.alert("1以上の数値を入力してください");
+            return;
+          }
+
+          onRecommendedKcalChange(Math.round(parsed));
+        }}
+        style={{
+          marginTop: 10,
+          padding: "6px 12px",
+          borderRadius: 999,
+          border: "1px solid #cad8cf",
+          background: "#fff",
+          color: "#4f7c5b",
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        目標を変更
+      </button>
+      {customRecommendedKcal !== null && (
+  <button
+    type="button"
+    onClick={(event) => {
+      event.stopPropagation();
+      onRecommendedKcalChange(null);
+    }}
+    style={{
+      marginTop: 8,
+      border: "none",
+      background: "transparent",
+      color: "#78817c",
+      cursor: "pointer",
+      textDecoration: "underline",
+      fontSize: 13,
+    }}
+  >
+    自動計算に戻す
+  </button>
+)}
     </div>
   );
 }

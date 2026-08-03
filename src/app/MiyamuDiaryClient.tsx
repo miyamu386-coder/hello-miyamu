@@ -21,6 +21,7 @@ import WeightSummaryRings from "./components/weight/WeightSummaryRings";
 import { useWeightSummary } from "./hooks/useWeightSummary";
 import WeightLineChart from "./components/weight/WeightLineChart";
 import FoodSummaryRing from "./components/food/FoodSummaryRing";
+import { useCalorieRecommendation } from "./hooks/useCalorieRecommendation";
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
 
@@ -81,6 +82,12 @@ export default function MiyamuDiaryClient() {
 };
 
   const { justAdded, showAddedToast } = useAddedToast();
+ const {
+  automaticRecommendedKcal,
+  customRecommendedKcal,
+  recommendedKcal,
+  setCustomRecommendedKcal,
+} = useCalorieRecommendation();
 
   // UI
   const hoursRef = useRef<HTMLInputElement | null>(null);
@@ -282,7 +289,10 @@ const deleteCardLogs = (cardId: string) => {
   
   <FoodSummaryRing
   todayTotal={todayTotal}
-  recommendedKcal={2300}
+  recommendedKcal={recommendedKcal}
+  automaticRecommendedKcal={automaticRecommendedKcal}
+  customRecommendedKcal={customRecommendedKcal}
+  onRecommendedKcalChange={setCustomRecommendedKcal}
   onClick={() => setShowInput(true)}
 />
 ) : (
