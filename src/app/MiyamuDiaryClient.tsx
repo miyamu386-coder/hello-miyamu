@@ -105,6 +105,7 @@ export default function MiyamuDiaryClient() {
 const {
   todayWeight,
   previousWeight,
+  monthlyAverageWeight,
   weightLogs,
 } = useWeightSummary({
   logs,
@@ -278,10 +279,11 @@ const deleteCardLogs = (cardId: string) => {
 {selectedCard?.unit === "kg" ? (
   <>
     <WeightSummaryRings
-      todayWeight={todayWeight}
-      previousWeight={previousWeight}
-      onTodayClick={() => setShowInput(true)}
-    />
+  todayWeight={todayWeight}
+  previousWeight={previousWeight}
+  monthlyAverageWeight={monthlyAverageWeight}
+  onTodayClick={() => setShowInput(true)}
+/>
 
     <WeightLineChart logs={weightLogs} />
   </>

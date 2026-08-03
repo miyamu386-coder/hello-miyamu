@@ -12,6 +12,7 @@ type Props = {
   onOpenFridge: () => void;
   onOpenWork: () => void;
   onOpenPuzzle: () => void;
+  onOpenBook: () => void;
 };
 
 
@@ -33,6 +34,7 @@ export default function RoomSwiper({
   onOpenFridge,
   onOpenWork,
   onOpenPuzzle,
+  onOpenBook,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentRoomIndex, setCurrentRoomIndex] = useState(0);
@@ -152,6 +154,23 @@ onClick={onOpenKitchen}
         zIndex: 4,
       }}
     />
+   <button
+  type="button"
+  aria-label="リビングの本を開く"
+  onClick={onOpenBook}
+  style={{
+  position: "absolute",
+  left: "61%",
+  top: "64%",
+  width: "18%",
+  height: "10%",
+  padding: 0,
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+  zIndex: 10,
+}}
+/>
   </>
 )}
 {room.id === "workroom" && (

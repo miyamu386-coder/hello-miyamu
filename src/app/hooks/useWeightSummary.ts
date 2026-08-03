@@ -11,6 +11,7 @@ type Props = {
 type WeightSummary = {
   todayWeight: number | null;
   previousWeight: number | null;
+  monthlyAverageWeight: number | null;
   weightLogs: Log[];
 };
 
@@ -68,12 +69,25 @@ const previousWeight = useMemo(() => {
     .filter((log) => log.date < dateISO)
     .sort((a, b) => b.date.localeCompare(a.date));
 
+
   return previousLogs[0]?.hours ?? null;
 }, [dateISO, weightLogs]);
+const monthlyAverageWeight = useMemo(() => {
+  if (logs.length === 0) {
+    return null;
+  }
 
+  const totalWeight = logs.reduce(
+    (sum, log) => sum + log.hours,
+    0
+  );
+
+  return totalWeight / logs.length;
+}, [logs]);
 return {
   todayWeight,
   previousWeight,
+  monthlyAverageWeight,
   weightLogs,
 };
 }

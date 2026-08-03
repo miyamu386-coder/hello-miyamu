@@ -40,7 +40,9 @@ export default function DiaryHome({
   const workCards = cards.filter((card) => card.category === "work");
   const lifeCards = cards.filter((card) => card.category === "life");
   const [isPuzzleOpen, setIsPuzzleOpen] = useState(false);
-  const openCardByName = (cardName: string) => {
+  const [isBookOpen, setIsBookOpen] = useState(false);
+
+const openCardByName = (cardName: string) => {
   const targetCard = cards.find((card) => card.name === cardName);
 
   if (!targetCard) {
@@ -50,6 +52,64 @@ export default function DiaryHome({
 
   onSelect(targetCard);
 };
+if (isBookOpen) {
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        padding: 24,
+        background: "#f5f6f7",
+      }}
+    >
+      <div
+        style={{
+          width: "min(720px, 100%)",
+          margin: "0 auto",
+          padding: 28,
+          borderRadius: 20,
+          background: "#fff",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setIsBookOpen(false)}
+          style={{
+            marginBottom: 20,
+            padding: "8px 12px",
+            borderRadius: 10,
+            border: "1px solid #ccc",
+            background: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          ← リビングへ戻る
+        </button>
+
+        <h1
+          style={{
+            margin: 0,
+            textAlign: "center",
+            fontSize: 32,
+          }}
+        >
+          リビングの本
+        </h1>
+
+        <p
+          style={{
+            marginTop: 24,
+            textAlign: "center",
+            color: "#666",
+          }}
+        >
+          月間総括ページを準備中です📖
+        </p>
+      </div>
+    </main>
+  );
+}
+
   return (
   <section>
     <div style={houseStageStyle}>
@@ -75,6 +135,11 @@ export default function DiaryHome({
     setOpenCategory(null);
     setIsPuzzleOpen(true);
   }}
+  onOpenBook={() => {
+  setOpenCategory(null);
+  setIsPuzzleOpen(false);
+  setIsBookOpen(true);
+}}
 />
     </div>
 
@@ -124,6 +189,23 @@ export default function DiaryHome({
       type="button"
       style={puzzleCloseButtonStyle}
       onClick={() => setIsPuzzleOpen(false)}
+    >
+      部屋へ戻る
+    </button>
+  </section>
+)}
+{isBookOpen && (
+  <section style={puzzleSectionStyle}>
+    <h2 style={puzzleTitleStyle}>リビングの本</h2>
+
+    <p style={puzzleTextStyle}>
+      月間総括ページを準備中です📖
+    </p>
+
+    <button
+      type="button"
+      style={puzzleCloseButtonStyle}
+      onClick={() => setIsBookOpen(false)}
     >
       部屋へ戻る
     </button>

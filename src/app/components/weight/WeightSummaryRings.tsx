@@ -1,6 +1,7 @@
 type Props = {
   todayWeight: number | null;
   previousWeight: number | null;
+  monthlyAverageWeight: number | null;
   onTodayClick: () => void;
 };
 
@@ -29,6 +30,7 @@ function formatDifference(
 export default function WeightSummaryRings({
   todayWeight,
   previousWeight,
+  monthlyAverageWeight,
   onTodayClick,
 }: Props) {
   return (
@@ -54,6 +56,11 @@ export default function WeightSummaryRings({
         value={formatDifference(todayWeight, previousWeight)}
         unit="kg"
       />
+      <WeightRing
+  label="月平均"
+  value={formatWeight(monthlyAverageWeight)}
+  unit="kg"
+/>
     </div>
   );
 }
