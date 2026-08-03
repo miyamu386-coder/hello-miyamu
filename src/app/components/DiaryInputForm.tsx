@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type RefObject } from "react";
+import type { RefObject } from "react";
 import { useFoodDictionary } from "../hooks/useFoodDictionary";
 
 type Props = {
@@ -8,10 +8,12 @@ type Props = {
   unit: string;
   dateISO: string;
   hoursInput: string;
+  mealText: string;
   inputPreviewHours: number;
   hoursRef: RefObject<HTMLInputElement | null>;
   onDateChange: (value: string) => void;
   onHoursChange: (value: string) => void;
+  onMealTextChange: (value: string) => void;
 };
 
 export default function DiaryInputForm({
@@ -19,17 +21,18 @@ export default function DiaryInputForm({
   unit,
   dateISO,
   hoursInput,
+  mealText,
   inputPreviewHours,
   hoursRef,
   onDateChange,
   onHoursChange,
+  onMealTextChange,
 }: Props) {
   const isFoodCard =
     cardName === "食事量" &&
     unit === "kcal";
 
 const { foods } = useFoodDictionary();
-const [mealText, setMealText] = useState("");
 
 const normalizeText = (text: string) =>
   text
@@ -176,7 +179,9 @@ const placeholder =
     <textarea
   value={mealText}
   placeholder="例：ご飯 150g、納豆 1パック、卵 1個"
-  onChange={(event) => setMealText(event.target.value)}
+  onChange={(event) =>
+  onMealTextChange(event.target.value)
+}
   rows={4}
   style={{
     width: "100%",

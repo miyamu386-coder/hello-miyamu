@@ -59,6 +59,7 @@ export default function MiyamuDiaryClient() {
   const { logs, setLogs } = useMonthlyLogs(storageKey);
   
   const [hoursInput, setHoursInput] = useState<string>("");
+  const [mealText, setMealText] = useState("");
   const [showInput, setShowInput] = useState(false);
   const {
     editingId,
@@ -115,6 +116,8 @@ const {
   setHoursInput,
   setLogs,
   hoursRef,
+  mealText,
+  setMealText,
   showAddedToast,
 });
 
@@ -304,10 +307,12 @@ const deleteCardLogs = (cardId: string) => {
   unit={selectedCard?.unit ?? "時間"}
   dateISO={dateISO}
   hoursInput={hoursInput}
+  mealText={mealText}
   inputPreviewHours={inputPreviewHours}
   hoursRef={hoursRef}
   onDateChange={setDateISO}
   onHoursChange={setHoursInput}
+  onMealTextChange={setMealText}
 />
 
     <AddLogButton

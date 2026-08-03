@@ -49,7 +49,23 @@ export default function LogItem({
           <span aria-hidden="true">📅</span>
           <b>{toSlashDate(log.date)}</b>
         </div>
-
+         {log.mealText && (
+  <div
+    style={{
+      marginTop: 10,
+      padding: "10px 12px",
+      borderRadius: 10,
+      background: "#f7faf8",
+      color: "#35453b",
+      fontSize: 16,
+      lineHeight: 1.6,
+      whiteSpace: "pre-wrap",
+      overflowWrap: "anywhere",
+    }}
+  >
+    {log.mealText}
+  </div>
+)}
         <div style={{ marginTop: 8, fontSize: 18, color: "#333" }}>
           ・{" "}
           {isEditing ? (
