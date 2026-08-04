@@ -96,7 +96,81 @@ const workHoursTotal = workSummaries.reduce(
   0
 );
 
+const healthSummaries = cards
+  .filter(
+    (card) =>
+      card.category === "life" &&
+      (
+        card.name === "体重" ||
+        card.name === "食事量" ||
+        card.name === "筋トレ量" ||
+        card.name === "睡眠時間" ||
+        card.name === "水分量"
+      )
+  )
+  .map((card) => {
+    const logs = getLogsByCard(card.id);
 
+    const total = logs.reduce(
+      (sum, log) =>
+        sum +
+        (
+          typeof log === "object" &&
+          log !== null &&
+          "hours" in log &&
+          typeof log.hours === "number"
+            ? log.hours
+            : 0
+        ),
+      0
+    );
+
+   const value =
+  card.name === "体重" && logs.length > 0
+    ? total / logs.length
+    : total;
+
+return {
+  card,
+  value,
+  count: logs.length,
+};
+  });
+  const lifeSummaries = cards
+  .filter(
+    (card) =>
+      card.category === "life" &&
+      !(
+        card.name === "体重" ||
+        card.name === "食事量" ||
+        card.name === "筋トレ量" ||
+        card.name === "睡眠時間" ||
+        card.name === "水分量"
+      )
+  )
+  .map((card) => {
+    const logs = getLogsByCard(card.id);
+
+    const total = logs.reduce(
+      (sum, log) =>
+        sum +
+        (
+          typeof log === "object" &&
+          log !== null &&
+          "hours" in log &&
+          typeof log.hours === "number"
+            ? log.hours
+            : 0
+        ),
+      0
+    );
+
+    return {
+      card,
+      total,
+      count: logs.length,
+    };
+  });
 const topWork = workSummaries.reduce<
   (typeof workSummaries)[number] | null
 >((top, item) => {
@@ -304,7 +378,9 @@ if (page === "work") {
           }}
         >
           {"█".repeat(
-            Math.max(1, Math.round(percent / 6))
+            percent === 0
+  ? 0
+  : Math.max(1, Math.round(percent / 6))
           )}
         </div>
 
@@ -353,7 +429,68 @@ if (page === "health") {
 
         <h1>🌿 健康</h1>
 
-        <p>準備中...</p>
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 20,
+  }}
+>
+  <button
+    type="button"
+    onClick={() => moveBookMonth(-1)}
+  >
+    ◀ 前月
+  </button>
+
+  <strong>{bookYm}</strong>
+
+  <button
+    type="button"
+    onClick={() => moveBookMonth(1)}
+  >
+    次月 ▶
+  </button>
+</div>
+
+<div
+  style={{
+    display: "grid",
+    gap: 12,
+  }}
+>
+  {healthSummaries.length === 0 ? (
+  <p style={{ color: "#666" }}>
+    健康カードがありません
+  </p>
+) : (
+  healthSummaries.map(({ card, value }) => (
+    <div
+      key={card.id}
+      style={{
+        padding: 16,
+        borderRadius: 14,
+        border: "1px solid #d8e2dc",
+        background: "#f7faf8",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <strong>{card.name}</strong>
+
+      <span>
+  {Number.isInteger(value)
+    ? value
+    : value.toFixed(1)}{" "}
+  {card.unit}
+</span>
+    </div>
+  ))
+)}
+</div>
       </div>
     </main>
   );
@@ -386,7 +523,71 @@ if (page === "life") {
 
         <h1>🏠 生活</h1>
 
-        <p>準備中...</p>
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 20,
+  }}
+>
+  <button
+    type="button"
+    onClick={() => moveBookMonth(-1)}
+  >
+    ◀ 前月
+  </button>
+
+  <strong>{bookYm}</strong>
+
+  <button
+    type="button"
+    onClick={() => moveBookMonth(1)}
+  >
+    次月 ▶
+  </button>
+</div>
+
+<div
+  style={{
+    display: "grid",
+    gap: 12,
+  }}
+>
+  {lifeSummaries.length === 0 ? (
+    <p style={{ color: "#666" }}>
+      生活カードがありません
+    </p>
+  ) : (
+    lifeSummaries.map(({ card, total }) => (
+      <div
+        key={card.id}
+        style={{
+          padding: 16,
+          borderRadius: 14,
+          border: "1px solid #d8e2dc",
+          background: "#f7faf8",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <strong>{card.name}</strong>
+
+        <span>
+          {card.unit === "時間"
+            ? total.toFixed(1)
+            : Number.isInteger(total)
+              ? total
+              : total.toFixed(1)}{" "}
+          {card.unit}
+        </span>
+      </div>
+    ))
+  )}
+</div>
       </div>
     </main>
   );
