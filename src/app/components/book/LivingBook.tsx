@@ -89,12 +89,23 @@ return {
   total,
   hoursTotal,
 };
-  });
+  })
+  .sort((a, b) => b.hoursTotal - a.hoursTotal);
 const workHoursTotal = workSummaries.reduce(
   (sum, item) => sum + item.hoursTotal,
   0
 );
 
+
+const topWork = workSummaries.reduce<
+  (typeof workSummaries)[number] | null
+>((top, item) => {
+  if (!top || item.hoursTotal > top.hoursTotal) {
+    return item;
+  }
+
+  return top;
+}, null);
 if (page === "work") {
   return (
     <main
@@ -204,7 +215,112 @@ if (page === "work") {
   <span>合計</span>
   <span>{workHoursTotal.toFixed(1)} 時間</span>
 </div>
+{topWork && topWork.hoursTotal > 0 && (
+  <div
+    style={{
+      marginTop: 20,
+      padding: 18,
+      borderRadius: 16,
+      border: "1px solid #ead9a7",
+      background: "#fffaf0",
+    }}
+  >
+    <div
+      style={{
+        fontSize: 17,
+        fontWeight: 800,
+      }}
+    >
+      🏆 今月一番頑張った仕事
+    </div>
 
+    <div
+      style={{
+        marginTop: 10,
+        fontSize: 22,
+        fontWeight: 800,
+      }}
+    >
+      🥇 {topWork.card.name}
+    </div>
+
+    <div
+      style={{
+        marginTop: 4,
+        color: "#555",
+        fontSize: 18,
+      }}
+    >
+      {topWork.hoursTotal.toFixed(1)} 時間
+    </div>
+  </div>
+)}
+<div
+  style={{
+    marginTop: 24,
+  }}
+>
+  <div
+    style={{
+      fontWeight: 800,
+      marginBottom: 12,
+      fontSize: 18,
+    }}
+  >
+    📊 割合
+  </div>
+
+  {workSummaries.map((item) => {
+    const percent =
+      workHoursTotal === 0
+        ? 0
+        : Math.round(
+            (item.hoursTotal / workHoursTotal) * 100
+          );
+
+    return (
+      <div
+        key={item.card.id}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 8,
+        }}
+      >
+        <div
+          style={{
+            width: 90,
+            fontWeight: 700,
+          }}
+        >
+          {item.card.name}
+        </div>
+
+        <div
+          style={{
+            flex: 1,
+            fontFamily: "monospace",
+          }}
+        >
+          {"█".repeat(
+            Math.max(1, Math.round(percent / 6))
+          )}
+        </div>
+
+        <div
+          style={{
+            width: 45,
+            textAlign: "right",
+            fontWeight: 700,
+          }}
+        >
+          {percent}%
+        </div>
+      </div>
+    );
+  })}
+</div>
       </div>
     </main>
   );
