@@ -27,6 +27,11 @@ const rooms: Room[] = [
     name: "仕事部屋",
     image: "/room/mofu-workroom.png",
   },
+  {
+  id: "conditioning-room",
+  name: "コンディショニングルーム",
+  image: "/room/mohu-ConditioningRoom.png",
+},
 ];
 
 export default function RoomSwiper({
@@ -113,10 +118,19 @@ export default function RoomSwiper({
     width: "100%",
     height: "100%",
     display: "block",
-    objectFit: room.id === "workroom" ? "contain" : "cover",
-    objectPosition: "center",
-    userSelect: "none",
-    background: room.id === "workroom" ? "#2b1c12" : "transparent",
+    objectFit:
+  room.id === "workroom" ||
+  room.id === "conditioning-room"
+    ? "contain"
+    : "cover",
+objectPosition: "center",
+userSelect: "none",
+background:
+  room.id === "workroom"
+    ? "#2b1c12"
+    : room.id === "conditioning-room"
+      ? "#f3eadc"
+      : "transparent",
   }}
 />
 {room.id === "living-kitchen" && (
