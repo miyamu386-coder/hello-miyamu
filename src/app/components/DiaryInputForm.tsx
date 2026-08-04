@@ -2,6 +2,11 @@
 
 import { useState, type RefObject } from "react";
 import { useFoodDictionary } from "../hooks/useFoodDictionary";
+export type MealType =
+  | "breakfast"
+  | "lunch"
+  | "dinner"
+  | "snack";
 
 type Props = {
   cardName: string;
@@ -9,11 +14,13 @@ type Props = {
   dateISO: string;
   hoursInput: string;
   mealText: string;
+  mealType: MealType;
   inputPreviewHours: number;
   hoursRef: RefObject<HTMLInputElement | null>;
   onDateChange: (value: string) => void;
   onHoursChange: (value: string) => void;
   onMealTextChange: (value: string) => void;
+  onMealTypeChange: (value: MealType) => void;
 };
 
 export default function DiaryInputForm({
@@ -22,11 +29,13 @@ export default function DiaryInputForm({
   dateISO,
   hoursInput,
   mealText,
+  mealType,
   inputPreviewHours,
   hoursRef,
   onDateChange,
   onHoursChange,
   onMealTextChange,
+  onMealTypeChange,
 }: Props) {
   const isFoodCard =
     cardName === "食事量" &&
@@ -179,6 +188,46 @@ const placeholder =
     >
       食事内容
     </div>
+    <div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: 8,
+    marginBottom: 12,
+  }}
+>
+  {[
+    { value: "breakfast", label: "朝食" },
+    { value: "lunch", label: "昼食" },
+    { value: "dinner", label: "夕食" },
+    { value: "snack", label: "間食" },
+  ].map((option) => {
+    const selected = mealType === option.value;
+
+    return (
+      <button
+        key={option.value}
+        type="button"
+        onClick={() =>
+          onMealTypeChange(option.value as MealType)
+        }
+        style={{
+          padding: "10px 4px",
+          borderRadius: 10,
+          border: selected
+            ? "1px solid #4f7c5b"
+            : "1px solid #cad8cf",
+          background: selected ? "#e9f2ec" : "#fff",
+          color: selected ? "#3f6849" : "#78817c",
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        {option.label}
+      </button>
+    );
+  })}
+</div>
     <textarea
   value={mealText}
   placeholder="例：ご飯 150g、納豆 1パック、卵 1個"

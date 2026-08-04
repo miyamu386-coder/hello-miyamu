@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { moveMonth, todayISO, ymFromISO } from "./lib/dateUtils";
 import DiaryHeader from "./components/DiaryHeader";
-import DiaryInputForm from "./components/DiaryInputForm";
+import DiaryInputForm, {type MealType,} from "./components/DiaryInputForm";
 import AddLogButton from "./components/AddLogButton";
 import { useMonthlyLogs } from "./hooks/useMonthlyLogs";
 import { useAddedToast } from "./hooks/useAddedToast";
@@ -61,19 +61,23 @@ export default function MiyamuDiaryClient() {
   
   const [hoursInput, setHoursInput] = useState<string>("");
   const [mealText, setMealText] = useState("");
+  const [mealType, setMealType] =
+  useState<MealType>("breakfast");
   const [showInput, setShowInput] = useState(false);
   const {
-    editingId,
-    editHoursInput,
-    setEditHoursInput,
-    startEdit,
-    cancelEdit,
-    saveEdit,
-    removeLog,
-  } = useLogEditing({
-    setLogs,
-    storageKey,
-  });
+  editingId,
+  editHoursInput,
+  setEditHoursInput,
+  editMealType,
+  setEditMealType,
+  startEdit,
+  cancelEdit,
+  saveEdit,
+  removeLog,
+} = useLogEditing({
+  setLogs,
+  storageKey,
+});
   const changeMonth = (diff: number) => {
   const nextYm = moveMonth(ym, diff);
 
@@ -119,12 +123,14 @@ const {
   canAdd,
   addLog,
 } = useAddLog({
+  logs,
   dateISO,
   hoursInput,
   setHoursInput,
   setLogs,
   hoursRef,
   mealText,
+  mealType,
   setMealText,
   showAddedToast,
 });
@@ -150,6 +156,7 @@ if (showHistory) {
   onNextMonth={() => changeMonth(1)}
   ym={ym}
   logs={logs}
+  setLogs={setLogs}
   cardName={selectedCard?.name ?? ""}
   unit={selectedCard?.unit ?? "時間"}
   editingId={editingId}
@@ -160,6 +167,8 @@ if (showHistory) {
   onCancelEdit={cancelEdit}
   onRemove={removeLog}
   onClearAll={clearAll}
+  editMealType={editMealType}
+onEditMealTypeChange={setEditMealType}
 />
   );
 }
@@ -320,11 +329,13 @@ const deleteCardLogs = (cardId: string) => {
   dateISO={dateISO}
   hoursInput={hoursInput}
   mealText={mealText}
+  mealType={mealType}
   inputPreviewHours={inputPreviewHours}
   hoursRef={hoursRef}
   onDateChange={setDateISO}
   onHoursChange={setHoursInput}
   onMealTextChange={setMealText}
+  onMealTypeChange={setMealType}
 />
 
     <AddLogButton

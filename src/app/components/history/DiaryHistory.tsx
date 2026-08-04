@@ -1,5 +1,7 @@
 import type { Log } from "../../types";
 import LogList from "../LogList";
+import type { MealType } from "../DiaryInputForm";
+import type { Dispatch, SetStateAction } from "react";
 
 type Props = {
   onBack: () => void;
@@ -7,6 +9,7 @@ type Props = {
   onNextMonth: () => void;
   ym: string;
   logs: Log[];
+  setLogs: Dispatch<SetStateAction<Log[]>>;
   cardName: string;
   unit: string;
   editingId: string | null;
@@ -17,6 +20,8 @@ type Props = {
   onCancelEdit: () => void;
   onRemove: (id: string) => void;
   onClearAll: () => void;
+  editMealType: MealType;
+  onEditMealTypeChange: (value: MealType) => void;
 };
 
 export default function DiaryHistory({
@@ -25,6 +30,7 @@ export default function DiaryHistory({
   onNextMonth,
   ym,
   logs,
+  setLogs,
   cardName,
   unit,
   editingId,
@@ -33,8 +39,10 @@ export default function DiaryHistory({
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
-  onRemove,
+    onRemove,
   onClearAll,
+  editMealType,
+  onEditMealTypeChange,
 }: Props) {
   return (
   <main
@@ -102,11 +110,14 @@ export default function DiaryHistory({
       <LogList
   ym={ym}
   logs={logs}
+  setLogs={setLogs}
   cardName={cardName}
   unit={unit}
   editingId={editingId}
   editHoursInput={editHoursInput}
+  editMealType={editMealType}
   onEditHoursChange={onEditHoursChange}
+  onEditMealTypeChange={onEditMealTypeChange}
   onStartEdit={onStartEdit}
   onSaveEdit={onSaveEdit}
   onCancelEdit={onCancelEdit}

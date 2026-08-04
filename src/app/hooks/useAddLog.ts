@@ -7,8 +7,10 @@ import type {
 import type { Log } from "../types";
 import { parseHours } from "../lib/numberUtils";
 import { uid } from "../lib/idUtils";
+import type { MealType } from "../components/DiaryInputForm";
 
 type UseAddLogProps = {
+  logs: Log[];
   dateISO: string;
   hoursInput: string;
   setHoursInput: Dispatch<SetStateAction<string>>;
@@ -17,9 +19,11 @@ type UseAddLogProps = {
   mealText?: string;
   setMealText?: Dispatch<SetStateAction<string>>;
   showAddedToast: () => void;
+  mealType?: MealType;
 };
 
 export function useAddLog({
+  logs,
   dateISO,
   hoursInput,
   setHoursInput,
@@ -28,6 +32,7 @@ export function useAddLog({
   mealText,
   setMealText,
   showAddedToast,
+  mealType,
 }: UseAddLogProps) {
   const inputPreviewHours = useMemo(() => {
     if (!hoursInput.trim()) {
@@ -57,15 +62,29 @@ export function useAddLog({
     }
 
     const trimmedMealText = mealText?.trim();
-
-    const nextLog: Log = {
-      id: uid(),
-      date: dateISO,
-      hours,
-      ...(trimmedMealText
-        ? { mealText: trimmedMealText }
-        : {}),
-    };
+    const nextSortOrder =
+  Math.max(
+    -1,
+    ...logs
+      .filter(
+        (log) =>
+          log.date === dateISO &&
+          log.mealType === mealType
+      )
+      .map((log) => log.sortOrder ?? 0)
+  ) + 1;
+   const nextLog: Log = {
+  id: uid(),
+  date: dateISO,
+  hours,
+  sortOrder: nextSortOrder,
+  ...(trimmedMealText
+    ? { mealText: trimmedMealText }
+    : {}),
+  ...(mealType
+    ? { mealType }
+    : {}),
+};
 
     setLogs((prev) => {
       const merged = [nextLog, ...prev];

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { Log } from "../types";
 import { parseHours } from "../lib/numberUtils";
+import type { MealType } from "../components/DiaryInputForm";
 
 type UseLogEditingProps = {
   setLogs: Dispatch<SetStateAction<Log[]>>;
@@ -14,24 +15,30 @@ export function useLogEditing({
 }: UseLogEditingProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editHoursInput, setEditHoursInput] = useState("");
+  const [editMealType, setEditMealType] =
+
+  useState<MealType>("breakfast");
 
   /* 月が変わったら編集中の状態を解除 */
   useEffect(() => {
-    setEditingId(null);
-    setEditHoursInput("");
-  }, [storageKey]);
+  setEditingId(null);
+  setEditHoursInput("");
+  setEditMealType("breakfast");
+}, [storageKey]);
 
   /* 編集開始 */
   const startEdit = (log: Log) => {
-    setEditingId(log.id);
-    setEditHoursInput(String(log.hours));
-  };
+  setEditingId(log.id);
+  setEditHoursInput(String(log.hours));
+  setEditMealType(log.mealType ?? "breakfast");
+};
 
   /* 編集キャンセル */
   const cancelEdit = () => {
-    setEditingId(null);
-    setEditHoursInput("");
-  };
+  setEditingId(null);
+  setEditHoursInput("");
+  setEditMealType("breakfast");
+};
 
   /* 編集保存 */
   const saveEdit = (id: string) => {
@@ -44,11 +51,12 @@ export function useLogEditing({
     setLogs((prev) =>
       prev.map((log) =>
         log.id === id
-          ? {
-              ...log,
-              hours,
-            }
-          : log,
+  ? {
+      ...log,
+      hours,
+      mealType: editMealType,
+    }
+  : log
       ),
     );
 
@@ -72,5 +80,7 @@ export function useLogEditing({
     cancelEdit,
     saveEdit,
     removeLog,
+    editMealType,
+    setEditMealType,
   };
 }

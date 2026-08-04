@@ -1,6 +1,10 @@
 import type { Log } from "../types";
 import { toSlashDate } from "../lib/dateUtils";
 import { normalizeNumberString } from "../lib/numberUtils";
+import type { MealType } from "./DiaryInputForm";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
 
 type Props = {
   log: Log;
@@ -12,6 +16,8 @@ type Props = {
   onSaveEdit: (id: string) => void;
   onCancelEdit: () => void;
   onRemove: (id: string) => void;
+  editMealType: MealType;
+onEditMealTypeChange: (value: MealType) => void;
 };
 
 export default function LogItem({
@@ -19,24 +25,47 @@ export default function LogItem({
   unit,
   isEditing,
   editHoursInput,
+  editMealType,
   onEditHoursChange,
+  onEditMealTypeChange,
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
   onRemove,
 }: Props) {
+const mealTypeLabel = {
+  breakfast: "🌅 朝食",
+  lunch: "🍱 昼食",
+  dinner: "🌙 夕食",
+  snack: "🍪 間食",
+} as const;
+const {
+  attributes,
+  listeners,
+  setNodeRef,
+  transform,
+  transition,
+  isDragging,
+} = useSortable({
+  id: log.id,
+});
+
   return (
-    <div
-      style={{
-        border: "2px solid #333",
-        borderRadius: 12,
-        padding: 14,
-        display: "grid",
-        gridTemplateColumns: "1fr auto",
-        gap: 10,
-        alignItems: "center",
-      }}
-    >
+  <div
+    ref={setNodeRef}
+    style={{
+  border: "2px solid #333",
+  borderRadius: 12,
+  padding: 14,
+  display: "grid",
+  gridTemplateColumns: "1fr auto",
+  gap: 10,
+  alignItems: "center",
+  transform: CSS.Transform.toString(transform),
+  transition,
+  opacity: isDragging ? 0.6 : 1,
+}}
+  >
       <div>
         <div
           style={{
@@ -46,10 +75,26 @@ export default function LogItem({
             gap: 10,
           }}
         >
+          <button
+  type="button"
+  {...attributes}
+  {...listeners}
+  aria-label="並び替え"
+  style={{
+    border: "none",
+    background: "transparent",
+    cursor: "grab",
+    fontSize: 20,
+    padding: 0,
+    touchAction: "none",
+  }}
+>
+  ≡
+</button>
           <span aria-hidden="true">📅</span>
           <b>{toSlashDate(log.date)}</b>
         </div>
-         {log.mealText && (
+        {log.mealText && (
   <div
     style={{
       marginTop: 10,
@@ -63,6 +108,42 @@ export default function LogItem({
       overflowWrap: "anywhere",
     }}
   >
+    {isEditing ? (
+  <select
+    value={editMealType}
+    onChange={(event) =>
+      onEditMealTypeChange(event.target.value as MealType)
+    }
+    style={{
+      marginBottom: 8,
+      padding: "8px 10px",
+      borderRadius: 8,
+      border: "1px solid #cad8cf",
+      background: "#fff",
+      fontSize: 15,
+      fontWeight: 700,
+      color: "#35453b",
+    }}
+  >
+    <option value="breakfast">🌅 朝食</option>
+    <option value="lunch">🍱 昼食</option>
+    <option value="dinner">🌙 夕食</option>
+    <option value="snack">🍪 間食</option>
+  </select>
+) : (
+  log.mealType && (
+    <div
+      style={{
+        fontWeight: 700,
+        marginBottom: 6,
+        color: "#4f7c5b",
+      }}
+    >
+      {mealTypeLabel[log.mealType]}
+    </div>
+  )
+)}
+
     {log.mealText}
   </div>
 )}
