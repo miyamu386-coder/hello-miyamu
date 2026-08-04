@@ -101,7 +101,7 @@ const healthSummaries = cards
     (card) =>
       card.category === "life" &&
       (
-        card.name === "体重" ||
+        card.name === "体重表" ||
         card.name === "食事量" ||
         card.name === "筋トレ量" ||
         card.name === "睡眠時間" ||
@@ -126,7 +126,7 @@ const healthSummaries = cards
     );
 
    const value =
-  card.name === "体重" && logs.length > 0
+  card.name === "体重表" && logs.length > 0
     ? total / logs.length
     : total;
 
@@ -141,7 +141,7 @@ return {
     (card) =>
       card.category === "life" &&
       !(
-        card.name === "体重" ||
+        card.name === "体重表" ||
         card.name === "食事量" ||
         card.name === "筋トレ量" ||
         card.name === "睡眠時間" ||
