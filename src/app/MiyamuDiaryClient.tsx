@@ -205,6 +205,8 @@ const deleteCardLogs = (cardId: string) => {
         
         <DiaryHome
   cards={cards}
+  currentYm={ym}
+  storageKeyBase={STORAGE_KEY_BASE}
   onSelect={selectCard}
   onAddCard={handleAddDiaryCard}
   onEditCard={setEditingCard}
