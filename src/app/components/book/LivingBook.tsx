@@ -77,11 +77,24 @@ const workSummaries = cards
       0
     );
 
-    return {
-      card,
-      total,
-    };
+    const hoursTotal =
+  card.unit === "分"
+    ? total / 60
+    : card.unit === "時間"
+      ? total
+      : 0;
+
+return {
+  card,
+  total,
+  hoursTotal,
+};
   });
+const workHoursTotal = workSummaries.reduce(
+  (sum, item) => sum + item.hoursTotal,
+  0
+);
+
 if (page === "work") {
   return (
     <main
@@ -172,8 +185,26 @@ if (page === "work") {
         </span>
       </div>
     ))
-  )}
+    )}
 </div>
+
+<div
+  style={{
+    marginTop: 20,
+    paddingTop: 16,
+    borderTop: "1px solid #d8e2dc",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    fontSize: 20,
+    fontWeight: 800,
+  }}
+>
+  <span>合計</span>
+  <span>{workHoursTotal.toFixed(1)} 時間</span>
+</div>
+
       </div>
     </main>
   );
