@@ -22,6 +22,7 @@ import { useWeightSummary } from "./hooks/useWeightSummary";
 import WeightLineChart from "./components/weight/WeightLineChart";
 import FoodSummaryRing from "./components/food/FoodSummaryRing";
 import { useCalorieRecommendation } from "./hooks/useCalorieRecommendation";
+import BackupButton from "./components/backup/BackupButton";
 
 const STORAGE_KEY_BASE = "miyamu_time_logs_v1";
 
@@ -211,6 +212,17 @@ const deleteCardLogs = (cardId: string) => {
   onAddCard={handleAddDiaryCard}
   onEditCard={setEditingCard}
 />
+<div
+  style={{
+    padding: 16,
+    display: "flex",
+    justifyContent: "center",
+  }}
+>
+  <BackupButton
+    storageKeyBase={STORAGE_KEY_BASE}
+  />
+</div>
 <CardEditModal
   card={editingCard}
   onClose={() => setEditingCard(null)}
