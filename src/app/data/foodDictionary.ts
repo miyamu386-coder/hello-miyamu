@@ -199,7 +199,45 @@ export const FOOD_DICTIONARY: FoodDictionaryItem[] = [
   baseName: "なか卯牛丼",
   kcal: 789,
 },
+{
 
+  id: "nakau-torikara-don-small",
+
+  name: "なか卯 鶏から丼 小盛",
+
+  baseName: "なか卯鶏から丼",
+
+  kcal: 701,
+
+},
+
+{
+
+  id: "nakau-torikara-don-normal",
+
+  name: "なか卯 鶏から丼 並盛",
+
+  baseName: "なか卯鶏から丼",
+
+  kcal: 971,
+
+  isDefault: true,
+
+  aliases: ["鶏から丼", "なか卯鶏唐丼", "鶏唐丼"],
+
+},
+
+{
+
+  id: "nakau-torikara-don-large",
+
+  name: "なか卯 鶏から丼 大盛",
+
+  baseName: "なか卯鶏から丼",
+
+  kcal: 1110,
+
+},
 {
   id: "nakau-haikara-udon-small",
   name: "なか卯 はいからうどん 小",

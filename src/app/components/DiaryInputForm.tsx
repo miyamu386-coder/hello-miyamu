@@ -129,9 +129,11 @@ const calculateMealKcal = () => {
 }, 0);
 
   if (matchedFoods.length === 0) {
-    window.alert("食品辞書に一致する食品が見つかりませんでした");
-    return;
-  }
+  window.alert(
+    `『${mealText.trim()}』は辞書登録されていません。\n下の「食品辞書に追加」から登録してください。`
+  );
+  return;
+}
 
   onHoursChange(String(totalKcal));
 };
