@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import RoomSwiper from "./room/RoomSwiper";
 import LivingBook from "./book/LivingBook";
+import CalendarPage from "./calendar/CalendarPage";
 
 export type DiaryCategory = "work" | "life";
 export type DiaryUnit =
@@ -29,7 +30,6 @@ type Props = {
   ) => void;
   onEditCard: (card: DiaryCard) => void;
 };
-
 export default function DiaryHome({
   cards,
   currentYm,
@@ -45,8 +45,8 @@ export default function DiaryHome({
   const lifeCards = cards.filter((card) => card.category === "life");
   const [isPuzzleOpen, setIsPuzzleOpen] = useState(false);
   const [isBookOpen, setIsBookOpen] = useState(false);
-
-const openCardByName = (cardName: string) => {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const openCardByName = (cardName: string) => {
   const targetCard = cards.find((card) => card.name === cardName);
 
   if (!targetCard) {
@@ -59,13 +59,22 @@ const openCardByName = (cardName: string) => {
 if (isBookOpen) {
   return (
     <LivingBook
-  cards={cards}
-  currentYm={currentYm}
-  storageKeyBase={storageKeyBase}
-  onBack={() => setIsBookOpen(false)}
-/>
+      cards={cards}
+      currentYm={currentYm}
+      storageKeyBase={storageKeyBase}
+      onBack={() => setIsBookOpen(false)}
+    />
   );
 }
+
+if (isCalendarOpen) {
+  return (
+    <CalendarPage
+      onBack={() => setIsCalendarOpen(false)}
+    />
+  );
+}
+
 
   return (
   <section>
@@ -74,16 +83,16 @@ if (isBookOpen) {
         みやむDiary
       </div>
 
-   <RoomSwiper
+ <RoomSwiper
   onOpenKitchen={() => {
     setIsPuzzleOpen(false);
     setOpenCategory("life");
   }}
   onOpenFridge={() => {
-  setIsPuzzleOpen(false);
-  setOpenCategory(null);
-  openCardByName("食事量");
-}}
+    setIsPuzzleOpen(false);
+    setOpenCategory(null);
+    openCardByName("食事量");
+  }}
   onOpenWork={() => {
     setIsPuzzleOpen(false);
     setOpenCategory("work");
@@ -93,10 +102,16 @@ if (isBookOpen) {
     setIsPuzzleOpen(true);
   }}
   onOpenBook={() => {
-  setOpenCategory(null);
-  setIsPuzzleOpen(false);
-  setIsBookOpen(true);
-}}
+    setOpenCategory(null);
+    setIsPuzzleOpen(false);
+    setIsBookOpen(true);
+  }}
+  onOpenCalendar={() => {
+    setOpenCategory(null);
+    setIsPuzzleOpen(false);
+    setIsBookOpen(false);
+    setIsCalendarOpen(true);
+  }}
 />
     </div>
 

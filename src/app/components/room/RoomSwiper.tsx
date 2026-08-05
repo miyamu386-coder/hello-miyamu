@@ -13,6 +13,7 @@ type Props = {
   onOpenWork: () => void;
   onOpenPuzzle: () => void;
   onOpenBook: () => void;
+  onOpenCalendar: () => void;
 };
 
 
@@ -40,6 +41,7 @@ export default function RoomSwiper({
   onOpenWork,
   onOpenPuzzle,
   onOpenBook,
+  onOpenCalendar,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentRoomIndex, setCurrentRoomIndex] = useState(0);
@@ -184,6 +186,23 @@ onClick={onOpenKitchen}
   cursor: "pointer",
   zIndex: 10,
 }}
+/>
+   <button
+  type="button"
+  aria-label="予定表を開く"
+  onClick={onOpenCalendar}
+  style={{
+    position: "absolute",
+    left: "5%",
+    top: "13%",
+    width: "31%",
+    height: "31%",
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    zIndex: 6,
+  }}
 />
   </>
 )}

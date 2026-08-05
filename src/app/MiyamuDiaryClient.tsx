@@ -47,7 +47,6 @@ export default function MiyamuDiaryClient() {
   const [showHistory, setShowHistory] = useState(false);
   const [editingCard, setEditingCard] = useState<DiaryCard | null>(null);
   const [deletingCard, setDeletingCard] = useState<DiaryCard | null>(null);
-
   const ym = useMemo(() => ymFromISO(dateISO), [dateISO]);
   const storageKey = useMemo(
   () =>
