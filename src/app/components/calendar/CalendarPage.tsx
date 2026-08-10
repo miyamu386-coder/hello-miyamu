@@ -11,7 +11,7 @@ type Props = {
   onBack: () => void;
 };
 
-type RepeatType = "none" | "weekly";
+type RepeatType = "none" | "weekly" | "monthly" | "yearly";
 
 type ScheduleItem = {
   id: string;
@@ -45,6 +45,34 @@ const getTodayISO = () => {
     today.getDate()
   );
 };
+type HolidayItem = {
+  date: string;
+  name: string;
+};
+
+const HOLIDAYS: HolidayItem[] = [
+  { date: "2026-01-01", name: "元日" },
+  { date: "2026-01-12", name: "成人の日" },
+  { date: "2026-02-11", name: "建国記念の日" },
+  { date: "2026-02-23", name: "天皇誕生日" },
+  { date: "2026-03-20", name: "春分の日" },
+  { date: "2026-04-29", name: "昭和の日" },
+  { date: "2026-05-03", name: "憲法記念日" },
+  { date: "2026-05-04", name: "みどりの日" },
+  { date: "2026-05-05", name: "こどもの日" },
+  { date: "2026-05-06", name: "休日" },
+  { date: "2026-07-20", name: "海の日" },
+  { date: "2026-08-11", name: "山の日" },
+  { date: "2026-09-21", name: "敬老の日" },
+  { date: "2026-09-22", name: "休日" },
+  { date: "2026-09-23", name: "秋分の日" },
+  { date: "2026-10-12", name: "スポーツの日" },
+  { date: "2026-11-03", name: "文化の日" },
+  { date: "2026-11-23", name: "勤労感謝の日" },
+];
+
+const getHolidayByDate = (dateISO: string) =>
+  HOLIDAYS.find((holiday) => holiday.date === dateISO);
 
 const getWeekdayFromISO = (dateISO: string) => {
   const [year, month, day] = dateISO
@@ -85,23 +113,41 @@ const scheduleMatchesDate = (
   schedule: ScheduleItem,
   dateISO: string
 ) => {
-  if (schedule.repeat === "weekly") {
-    // 登録日より前には表示しない
-    if (dateISO < schedule.date) {
-      return false;
-    }
+  // 登録日より前には表示しない
+  if (dateISO < schedule.date) {
+    return false;
+  }
 
-    const weekday =
-      getWeekdayFromISO(dateISO);
+  const [scheduleYear, scheduleMonth, scheduleDay] =
+    schedule.date.split("-").map(Number);
+
+  const [targetYear, targetMonth, targetDay] =
+    dateISO.split("-").map(Number);
+
+  if (schedule.repeat === "weekly") {
+    const weekday = getWeekdayFromISO(dateISO);
 
     return (
-      schedule.weekdays?.includes(
-        weekday
-      ) ?? false
+      schedule.weekdays?.includes(weekday) ?? false
     );
   }
 
-  return schedule.date === dateISO;
+  if (schedule.repeat === "monthly") {
+    return targetDay === scheduleDay;
+  }
+
+  if (schedule.repeat === "yearly") {
+    return (
+      targetMonth === scheduleMonth &&
+      targetDay === scheduleDay
+    );
+  }
+
+  return (
+    targetYear === scheduleYear &&
+    targetMonth === scheduleMonth &&
+    targetDay === scheduleDay
+  );
 };
 
 export default function CalendarPage({
@@ -387,10 +433,10 @@ export default function CalendarPage({
       );
 
     const message =
-      target?.repeat ===
-      "weekly"
-        ? "この繰り返し予定をすべて削除しますか？"
-        : "この予定を削除しますか？";
+  target?.repeat &&
+  target.repeat !== "none"
+    ? "この繰り返し予定をすべて削除しますか？"
+    : "この予定を削除しますか？";
 
     const confirmed =
       window.confirm(message);
@@ -506,7 +552,8 @@ export default function CalendarPage({
                 getSchedulesByDate(
                   dateISO
                 );
-
+                const holiday =
+               getHolidayByDate(dateISO);
               const scheduleCount =
                 dateSchedules.length;
 
@@ -532,17 +579,21 @@ export default function CalendarPage({
                       ? `${dateISO}、予定${scheduleCount}件`
                       : dateISO
                   }
-                  style={{
-                    ...dayButtonStyle,
+                 style={{
+  ...dayButtonStyle,
 
-                    ...(selected
-                      ? selectedDayStyle
-                      : {}),
+  ...(holiday
+    ? holidayDayStyle
+    : {}),
 
-                    ...(todayDate
-                      ? todayDayStyle
-                      : {}),
-                  }}
+  ...(selected
+    ? selectedDayStyle
+    : {}),
+
+  ...(todayDate
+    ? todayDayStyle
+    : {}),
+}}
                 >
                   <span
                     style={{
@@ -555,6 +606,11 @@ export default function CalendarPage({
                   >
                     {day}
                   </span>
+                  {holiday && (
+  <span style={holidayNameStyle}>
+    {holiday.name}
+  </span>
+)}
 
                   {scheduleCount >
                     0 && (
@@ -629,23 +685,30 @@ export default function CalendarPage({
             />
 
             <select
-              value={repeatInput}
-              onChange={(event) =>
-                changeRepeat(
-                  event.target
-                    .value as RepeatType
-                )
-              }
-              style={inputStyle}
-            >
-              <option value="none">
-                繰り返しなし
-              </option>
+  value={repeatInput}
+  onChange={(event) =>
+    changeRepeat(
+      event.target.value as RepeatType
+    )
+  }
+  style={inputStyle}
+>
+  <option value="none">
+    繰り返しなし
+  </option>
 
-              <option value="weekly">
-                毎週
-              </option>
-            </select>
+  <option value="weekly">
+    毎週
+  </option>
+
+  <option value="monthly">
+    毎月
+  </option>
+
+  <option value="yearly">
+    毎年
+  </option>
+</select>
 
             {repeatInput ===
               "weekly" && (
@@ -736,29 +799,24 @@ export default function CalendarPage({
                         }
                       </strong>
 
-                      {schedule.repeat ===
-                        "weekly" && (
-                        <p
-                          style={
-                            repeatLabelStyle
-                          }
-                        >
-                          毎週{" "}
-                          {schedule.weekdays
-                            ?.map(
-                              (
-                                weekday
-                              ) =>
-                                WEEKDAYS[
-                                  weekday
-                                ]
-                            )
-                            .join(
-                              "・"
-                            )}
-                          曜日
-                        </p>
-                      )}
+                      {schedule.repeat !== "none" && (
+  <p style={repeatLabelStyle}>
+    {schedule.repeat === "weekly" &&
+      `毎週 ${
+        schedule.weekdays
+          ?.map((weekday) => WEEKDAYS[weekday])
+          .join("・")
+      }曜日`}
+
+    {schedule.repeat === "monthly" &&
+      `毎月 ${Number(schedule.date.slice(8, 10))}日`}
+
+    {schedule.repeat === "yearly" &&
+      `毎年 ${Number(schedule.date.slice(5, 7))}月${Number(
+        schedule.date.slice(8, 10)
+      )}日`}
+  </p>
+)}
 
                       {schedule.memo && (
                         <p
@@ -842,7 +900,7 @@ const todayNumberStyle: CSSProperties = {
 const scheduleIconStyle: CSSProperties = {
   position: "absolute",
   left: "50%",
-  bottom: 3,
+  bottom: 16,
   transform: "translateX(-50%)",
   fontSize: 14,
   lineHeight: 1,
@@ -1062,4 +1120,22 @@ const emptyTextStyle: CSSProperties = {
   margin: "18px 0 0",
   textAlign: "center",
   color: "#78817c",
+};
+const holidayDayStyle: CSSProperties = {
+  background: "#fff5f5",
+};
+
+const holidayNameStyle: CSSProperties = {
+  position: "absolute",
+  left: 2,
+  right: 2,
+  bottom: 3,
+  color: "#c44",
+  fontSize: 8,
+  fontWeight: 700,
+  lineHeight: 1.1,
+  textAlign: "center",
+  overflow: "hidden",
+  whiteSpace: "nowrap",
+  textOverflow: "ellipsis",
 };

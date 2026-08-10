@@ -1,6 +1,68 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+type RepeatType = "none" | "weekly" | "monthly" | "yearly";
+
+type ScheduleItem = {
+  id: string;
+  date: string;
+  title: string;
+  memo: string;
+  repeat: RepeatType;
+  weekdays?: number[];
+};
+
+const STORAGE_KEY = "miyamu_diary_schedules_v1";
+
+const pad2 = (value: number) => String(value).padStart(2, "0");
+
+const toDateISO = (date: Date) =>
+  `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+
+const getWeekdayFromISO = (dateISO: string) => {
+  const [year, month, day] = dateISO.split("-").map(Number);
+
+  return new Date(year, month - 1, day).getDay();
+};
+
+const scheduleMatchesDate = (
+  schedule: ScheduleItem,
+  dateISO: string
+) => {
+  // 登録日より前には表示しない
+  if (dateISO < schedule.date) {
+    return false;
+  }
+
+  const [scheduleYear, scheduleMonth, scheduleDay] =
+    schedule.date.split("-").map(Number);
+
+  const [targetYear, targetMonth, targetDay] =
+    dateISO.split("-").map(Number);
+
+  if (schedule.repeat === "weekly") {
+    const weekday = getWeekdayFromISO(dateISO);
+
+    return schedule.weekdays?.includes(weekday) ?? false;
+  }
+
+  if (schedule.repeat === "monthly") {
+    return targetDay === scheduleDay;
+  }
+
+  if (schedule.repeat === "yearly") {
+    return (
+      targetMonth === scheduleMonth &&
+      targetDay === scheduleDay
+    );
+  }
+
+  return (
+    targetYear === scheduleYear &&
+    targetMonth === scheduleMonth &&
+    targetDay === scheduleDay
+  );
+};
 
 type Room = {
   id: string;
@@ -45,6 +107,85 @@ export default function RoomSwiper({
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentRoomIndex, setCurrentRoomIndex] = useState(0);
+  const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
+
+useEffect(() => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+
+  if (!saved) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(saved);
+
+    if (Array.isArray(parsed)) {
+      const normalized: ScheduleItem[] = parsed.map((schedule) => ({
+        ...schedule,
+        repeat: schedule.repeat ?? "none",
+        weekdays: Array.isArray(schedule.weekdays)
+          ? schedule.weekdays
+          : [],
+      }));
+
+      setSchedules(normalized);
+    }
+  } catch {
+    // 読み込み失敗時は予定なし扱い
+  }
+}, []);
+
+const mofuMessage = useMemo(() => {
+  const today = new Date();
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const todayISO = toDateISO(today);
+  const tomorrowISO = toDateISO(tomorrow);
+
+  const todaySchedules = schedules.filter((schedule) =>
+    scheduleMatchesDate(schedule, todayISO)
+  );
+
+  const tomorrowSchedules = schedules.filter((schedule) =>
+    scheduleMatchesDate(schedule, tomorrowISO)
+  );
+
+  const todayText = todaySchedules
+    .map((schedule) => `${schedule.title} ${schedule.memo}`)
+    .join(" ");
+
+  if (/誕生日|birthday/i.test(todayText)) {
+    return "今日は誕生日だね🎂 おめでとう！";
+  }
+
+  const formatScheduleTitles = (items: ScheduleItem[]) => {
+    const visible = items.slice(0, 2);
+
+    const titles = visible
+      .map((schedule) => `「${schedule.title}」`)
+      .join("、");
+
+    const remaining = items.length - visible.length;
+
+    if (remaining > 0) {
+      return `${titles}ほか${remaining}件`;
+    }
+
+    return titles;
+  };
+
+  if (todaySchedules.length > 0) {
+    return `今日は${formatScheduleTitles(todaySchedules)}の予定があるよ🐾`;
+  }
+
+  if (tomorrowSchedules.length > 0) {
+    return `明日は${formatScheduleTitles(tomorrowSchedules)}の予定があるよ🐾`;
+  }
+
+  return "今日は何しようかな〜🐾";
+}, [schedules]);
 
   const handleScroll = () => {
     const container = scrollRef.current;
@@ -258,6 +399,26 @@ onClick={onOpenKitchen}
     pointerEvents: "none",
   }}
 >
+  <div
+    style={{
+      position: "absolute",
+      bottom: "105%",
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: 220,
+      padding: "8px 10px",
+      borderRadius: 12,
+      background: "white",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+      fontSize: 13,
+      lineHeight: 1.5,
+      textAlign: "center",
+      color: "#333",
+    }}
+  >
+    {mofuMessage}
+  </div>
+
   <img
     src="/mofu-normal.png"
     alt="モフ"
