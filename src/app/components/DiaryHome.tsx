@@ -112,6 +112,10 @@ if (isCalendarOpen) {
     setIsBookOpen(false);
     setIsCalendarOpen(true);
   }}
+  onOpenConditioning={() => {
+    setIsPuzzleOpen(false);
+    setOpenCategory("life");
+  }}
 />
     </div>
 

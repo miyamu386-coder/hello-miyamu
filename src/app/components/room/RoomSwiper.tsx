@@ -76,6 +76,7 @@ type Props = {
   onOpenPuzzle: () => void;
   onOpenBook: () => void;
   onOpenCalendar: () => void;
+  onOpenConditioning: () => void;
 };
 
 
@@ -104,6 +105,7 @@ export default function RoomSwiper({
   onOpenPuzzle,
   onOpenBook,
   onOpenCalendar,
+  onOpenConditioning,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentRoomIndex, setCurrentRoomIndex] = useState(0);
@@ -386,8 +388,29 @@ onClick={onOpenKitchen}
     />
   </>
 )}
+{room.id === "conditioning-room" && (
+  <>
+    <button
+      type="button"
+      aria-label="コンディションを開く"
+      onClick={onOpenConditioning}
+      style={{
+        position: "absolute",
+        left: "25%",
+        top: "35%",
+        width: "50%",
+        height: "30%",
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        zIndex: 4,
+      }}
+    />
+  </>
+)}
 
-            <div
+  <div
   style={{
     position: "absolute",
     left: "50%",
