@@ -1,23 +1,39 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 
 type Props = {
   onBack: () => void;
 };
+
+type RepeatType = "none" | "weekly";
 
 type ScheduleItem = {
   id: string;
   date: string;
   title: string;
   memo: string;
+  repeat: RepeatType;
+  weekdays?: number[];
 };
 
 const STORAGE_KEY = "miyamu_diary_schedules_v1";
 
-const pad2 = (value: number) => String(value).padStart(2, "0");
+const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
-const toDateISO = (year: number, month: number, day: number) =>
+const pad2 = (value: number) =>
+  String(value).padStart(2, "0");
+
+const toDateISO = (
+  year: number,
+  month: number,
+  day: number
+) =>
   `${year}-${pad2(month + 1)}-${pad2(day)}`;
 
 const getTodayISO = () => {
@@ -29,45 +45,135 @@ const getTodayISO = () => {
     today.getDate()
   );
 };
-const getScheduleIcon = (schedules: ScheduleItem[]) => {
+
+const getWeekdayFromISO = (dateISO: string) => {
+  const [year, month, day] = dateISO
+    .split("-")
+    .map(Number);
+
+  return new Date(
+    year,
+    month - 1,
+    day
+  ).getDay();
+};
+
+const getScheduleIcon = (
+  schedules: ScheduleItem[]
+) => {
   const text = schedules
-    .map((schedule) => `${schedule.title} ${schedule.memo}`)
+    .map(
+      (schedule) =>
+        `${schedule.title} ${schedule.memo}`
+    )
     .join(" ");
 
   if (/誕生日|birthday/i.test(text)) {
     return "🎂";
   }
 
-  if (/ボイトレ|歌|歌唱|発声|レッスン/i.test(text)) {
+  if (
+    /ボイトレ|歌|歌唱|発声|レッスン/i.test(text)
+  ) {
     return "🎤";
   }
 
   return "🐾";
 };
 
-export default function CalendarPage({ onBack }: Props) {
-  const today = useMemo(() => new Date(), []);
+const scheduleMatchesDate = (
+  schedule: ScheduleItem,
+  dateISO: string
+) => {
+  if (schedule.repeat === "weekly") {
+    // 登録日より前には表示しない
+    if (dateISO < schedule.date) {
+      return false;
+    }
 
-  const [displayYear, setDisplayYear] = useState(today.getFullYear());
-  const [displayMonth, setDisplayMonth] = useState(today.getMonth());
-  const [selectedDate, setSelectedDate] = useState(getTodayISO());
-  const [titleInput, setTitleInput] = useState("");
-  const [memoInput, setMemoInput] = useState("");
-  const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+    const weekday =
+      getWeekdayFromISO(dateISO);
+
+    return (
+      schedule.weekdays?.includes(
+        weekday
+      ) ?? false
+    );
+  }
+
+  return schedule.date === dateISO;
+};
+
+export default function CalendarPage({
+  onBack,
+}: Props) {
+  const today = useMemo(
+    () => new Date(),
+    []
+  );
+
+  const [displayYear, setDisplayYear] =
+    useState(today.getFullYear());
+
+  const [displayMonth, setDisplayMonth] =
+    useState(today.getMonth());
+
+  const [selectedDate, setSelectedDate] =
+    useState(getTodayISO());
+
+  const [titleInput, setTitleInput] =
+    useState("");
+
+  const [memoInput, setMemoInput] =
+    useState("");
+
+  const [repeatInput, setRepeatInput] =
+    useState<RepeatType>("none");
+
+  const [
+    weekdayInputs,
+    setWeekdayInputs,
+  ] = useState<number[]>([]);
+
+  const [schedules, setSchedules] =
+    useState<ScheduleItem[]>([]);
+
+  const [isLoaded, setIsLoaded] =
+    useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved =
+      localStorage.getItem(STORAGE_KEY);
 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
 
         if (Array.isArray(parsed)) {
-          setSchedules(parsed);
+          const normalized: ScheduleItem[] =
+            parsed.map((schedule) => ({
+              ...schedule,
+
+              // 旧データにはrepeatがないので
+              // 繰り返しなしとして扱う
+              repeat:
+                schedule.repeat ??
+                "none",
+
+              weekdays:
+                Array.isArray(
+                  schedule.weekdays
+                )
+                  ? schedule.weekdays
+                  : [],
+            }));
+
+          setSchedules(normalized);
         }
       } catch {
-        window.alert("予定表データの読み込みに失敗しました");
+        window.alert(
+          "予定表データの読み込みに失敗しました"
+        );
       }
     }
 
@@ -79,24 +185,42 @@ export default function CalendarPage({ onBack }: Props) {
       return;
     }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(schedules)
+    );
   }, [schedules, isLoaded]);
 
   const calendarDays = useMemo(() => {
-    const firstDay = new Date(displayYear, displayMonth, 1).getDay();
+    const firstDay = new Date(
+      displayYear,
+      displayMonth,
+      1
+    ).getDay();
+
     const lastDate = new Date(
       displayYear,
       displayMonth + 1,
       0
     ).getDate();
 
-    const days: Array<number | null> = [];
+    const days: Array<
+      number | null
+    > = [];
 
-    for (let index = 0; index < firstDay; index += 1) {
+    for (
+      let index = 0;
+      index < firstDay;
+      index += 1
+    ) {
       days.push(null);
     }
 
-    for (let day = 1; day <= lastDate; day += 1) {
+    for (
+      let day = 1;
+      day <= lastDate;
+      day += 1
+    ) {
       days.push(day);
     }
 
@@ -107,19 +231,47 @@ export default function CalendarPage({ onBack }: Props) {
     return days;
   }, [displayYear, displayMonth]);
 
-  const selectedSchedules = useMemo(
-    () =>
-      schedules
-        .filter((schedule) => schedule.date === selectedDate)
-        .sort((a, b) => a.title.localeCompare(b.title, "ja")),
-    [schedules, selectedDate]
-  );
+  const getSchedulesByDate = (
+    dateISO: string
+  ) =>
+    schedules.filter((schedule) =>
+      scheduleMatchesDate(
+        schedule,
+        dateISO
+      )
+    );
 
-  const changeMonth = (diff: number) => {
-    const nextDate = new Date(displayYear, displayMonth + diff, 1);
+  const selectedSchedules =
+    useMemo(
+      () =>
+        getSchedulesByDate(
+          selectedDate
+        ).sort((a, b) =>
+          a.title.localeCompare(
+            b.title,
+            "ja"
+          )
+        ),
+      [schedules, selectedDate]
+    );
 
-    setDisplayYear(nextDate.getFullYear());
-    setDisplayMonth(nextDate.getMonth());
+  const changeMonth = (
+    diff: number
+  ) => {
+    const nextDate = new Date(
+      displayYear,
+      displayMonth + diff,
+      1
+    );
+
+    setDisplayYear(
+      nextDate.getFullYear()
+    );
+
+    setDisplayMonth(
+      nextDate.getMonth()
+    );
+
     setSelectedDate(
       toDateISO(
         nextDate.getFullYear(),
@@ -129,40 +281,132 @@ export default function CalendarPage({ onBack }: Props) {
     );
   };
 
+  const changeRepeat = (
+    value: RepeatType
+  ) => {
+    setRepeatInput(value);
+
+    if (value === "weekly") {
+      // 最初は選択中の日付の曜日を
+      // 自動で選ぶ
+      setWeekdayInputs([
+        getWeekdayFromISO(
+          selectedDate
+        ),
+      ]);
+    } else {
+      setWeekdayInputs([]);
+    }
+  };
+
+  const toggleWeekday = (
+    weekday: number
+  ) => {
+    setWeekdayInputs(
+      (current) => {
+        if (
+          current.includes(
+            weekday
+          )
+        ) {
+          return current.filter(
+            (value) =>
+              value !== weekday
+          );
+        }
+
+        return [
+          ...current,
+          weekday,
+        ].sort(
+          (a, b) => a - b
+        );
+      }
+    );
+  };
+
   const addSchedule = () => {
-    const title = titleInput.trim();
+    const title =
+      titleInput.trim();
 
     if (!title) {
-      window.alert("予定名を入力してください");
+      window.alert(
+        "予定名を入力してください"
+      );
+
       return;
     }
 
-    const newSchedule: ScheduleItem = {
-      id: crypto.randomUUID(),
-      date: selectedDate,
-      title,
-      memo: memoInput.trim(),
-    };
+    if (
+      repeatInput ===
+        "weekly" &&
+      weekdayInputs.length === 0
+    ) {
+      window.alert(
+        "繰り返す曜日を選択してください"
+      );
 
-    setSchedules((current) => [...current, newSchedule]);
+      return;
+    }
+
+    const newSchedule: ScheduleItem =
+      {
+        id: crypto.randomUUID(),
+        date: selectedDate,
+        title,
+        memo: memoInput.trim(),
+        repeat: repeatInput,
+
+        weekdays:
+          repeatInput ===
+          "weekly"
+            ? weekdayInputs
+            : [],
+      };
+
+    setSchedules(
+      (current) => [
+        ...current,
+        newSchedule,
+      ]
+    );
+
     setTitleInput("");
     setMemoInput("");
+    setRepeatInput("none");
+    setWeekdayInputs([]);
   };
 
-  const removeSchedule = (id: string) => {
-    const confirmed = window.confirm("この予定を削除しますか？");
+  const removeSchedule = (
+    id: string
+  ) => {
+    const target =
+      schedules.find(
+        (schedule) =>
+          schedule.id === id
+      );
+
+    const message =
+      target?.repeat ===
+      "weekly"
+        ? "この繰り返し予定をすべて削除しますか？"
+        : "この予定を削除しますか？";
+
+    const confirmed =
+      window.confirm(message);
 
     if (!confirmed) {
       return;
     }
 
-    setSchedules((current) =>
-      current.filter((schedule) => schedule.id !== id)
+    setSchedules(
+      (current) =>
+        current.filter(
+          (schedule) =>
+            schedule.id !== id
+        )
     );
   };
-
-  const getSchedulesByDate = (dateISO: string) =>
-  schedules.filter((schedule) => schedule.date === dateISO);
 
   return (
     <main style={pageStyle}>
@@ -175,25 +419,38 @@ export default function CalendarPage({ onBack }: Props) {
           ← 部屋へ戻る
         </button>
 
-        <h1 style={titleStyle}>予定表</h1>
+        <h1 style={titleStyle}>
+          予定表
+        </h1>
 
-        <div style={monthNavigationStyle}>
+        <div
+          style={
+            monthNavigationStyle
+          }
+        >
           <button
             type="button"
-            onClick={() => changeMonth(-1)}
+            onClick={() =>
+              changeMonth(-1)
+            }
             style={monthButtonStyle}
             aria-label="前月へ"
           >
             ◀
           </button>
 
-          <strong style={monthLabelStyle}>
-            {displayYear}年{displayMonth + 1}月
+          <strong
+            style={monthLabelStyle}
+          >
+            {displayYear}年
+            {displayMonth + 1}月
           </strong>
 
           <button
             type="button"
-            onClick={() => changeMonth(1)}
+            onClick={() =>
+              changeMonth(1)
+            }
             style={monthButtonStyle}
             aria-label="次月へ"
           >
@@ -202,88 +459,145 @@ export default function CalendarPage({ onBack }: Props) {
         </div>
 
         <div style={calendarStyle}>
-          {["日", "月", "火", "水", "木", "金", "土"].map(
+          {WEEKDAYS.map(
             (weekday) => (
-              <div key={weekday} style={weekdayStyle}>
+              <div
+                key={weekday}
+                style={
+                  weekdayStyle
+                }
+              >
                 {weekday}
               </div>
             )
           )}
 
-          {calendarDays.map((day, index) => {
-  if (day === null) {
-    return (
-      <div
-        key={`empty-${index}`}
-        style={emptyDayStyle}
-      />
-    );
-  }
+          {calendarDays.map(
+            (day, index) => {
+              if (
+                day === null
+              ) {
+                return (
+                  <div
+                    key={`empty-${index}`}
+                    style={
+                      emptyDayStyle
+                    }
+                  />
+                );
+              }
 
-  const dateISO = toDateISO(
-    displayYear,
-    displayMonth,
-    day
-  );
+              const dateISO =
+                toDateISO(
+                  displayYear,
+                  displayMonth,
+                  day
+                );
 
-  const selected = selectedDate === dateISO;
-  const todayDate = getTodayISO() === dateISO;
-  const dateSchedules = getSchedulesByDate(dateISO);
-  const scheduleCount = dateSchedules.length;
-  const scheduleIcon =
-    scheduleCount > 0
-      ? getScheduleIcon(dateSchedules)
-      : null;
+              const selected =
+                selectedDate ===
+                dateISO;
 
-  return (
-    <button
-      key={dateISO}
-      type="button"
-      onClick={() => setSelectedDate(dateISO)}
-      aria-label={
-        scheduleCount > 0
-          ? `${dateISO}、予定${scheduleCount}件`
-          : dateISO
-      }
-      style={{
-        ...dayButtonStyle,
-        ...(selected ? selectedDayStyle : {}),
-        ...(todayDate ? todayDayStyle : {}),
-      }}
-    >
-      <span
-        style={{
-          ...dayNumberStyle,
-          ...(todayDate ? todayNumberStyle : {}),
-        }}
-      >
-        {day}
-      </span>
+              const todayDate =
+                getTodayISO() ===
+                dateISO;
 
-      {scheduleCount > 0 && (
-        <>
-          <span
-            aria-hidden="true"
-            style={scheduleIconStyle}
-          >
-            {scheduleIcon}
-          </span>
+              const dateSchedules =
+                getSchedulesByDate(
+                  dateISO
+                );
 
-          <span
-            aria-label={`予定${scheduleCount}件`}
-            style={scheduleCountStyle}
-          >
-            {scheduleCount}
-          </span>
-        </>
-      )}
-    </button>
-  );
-})}
+              const scheduleCount =
+                dateSchedules.length;
+
+              const scheduleIcon =
+                scheduleCount > 0
+                  ? getScheduleIcon(
+                      dateSchedules
+                    )
+                  : null;
+
+              return (
+                <button
+                  key={dateISO}
+                  type="button"
+                  onClick={() =>
+                    setSelectedDate(
+                      dateISO
+                    )
+                  }
+                  aria-label={
+                    scheduleCount >
+                    0
+                      ? `${dateISO}、予定${scheduleCount}件`
+                      : dateISO
+                  }
+                  style={{
+                    ...dayButtonStyle,
+
+                    ...(selected
+                      ? selectedDayStyle
+                      : {}),
+
+                    ...(todayDate
+                      ? todayDayStyle
+                      : {}),
+                  }}
+                >
+                  <span
+                    style={{
+                      ...dayNumberStyle,
+
+                      ...(todayDate
+                        ? todayNumberStyle
+                        : {}),
+                    }}
+                  >
+                    {day}
+                  </span>
+
+                  {scheduleCount >
+                    0 && (
+                    <>
+                      <span
+                        aria-hidden="true"
+                        style={
+                          scheduleIconStyle
+                        }
+                      >
+                        {
+                          scheduleIcon
+                        }
+                      </span>
+
+                      <span
+                        aria-label={`予定${scheduleCount}件`}
+                        style={
+                          scheduleCountStyle
+                        }
+                      >
+                        {
+                          scheduleCount
+                        }
+                      </span>
+                    </>
+                  )}
+                </button>
+              );
+            }
+          )}
         </div>
 
-        <section style={scheduleSectionStyle}>
-          <h2 style={sectionTitleStyle}>
+        <section
+          style={
+            scheduleSectionStyle
+          }
+        >
+          <h2
+            style={
+              sectionTitleStyle
+            }
+          >
             {selectedDate}の予定
           </h2>
 
@@ -293,7 +607,10 @@ export default function CalendarPage({ onBack }: Props) {
               value={titleInput}
               placeholder="予定名"
               onChange={(event) =>
-                setTitleInput(event.target.value)
+                setTitleInput(
+                  event.target
+                    .value
+                )
               }
               style={inputStyle}
             />
@@ -303,53 +620,182 @@ export default function CalendarPage({ onBack }: Props) {
               placeholder="メモ（任意）"
               rows={3}
               onChange={(event) =>
-                setMemoInput(event.target.value)
+                setMemoInput(
+                  event.target
+                    .value
+                )
               }
               style={textareaStyle}
             />
 
+            <select
+              value={repeatInput}
+              onChange={(event) =>
+                changeRepeat(
+                  event.target
+                    .value as RepeatType
+                )
+              }
+              style={inputStyle}
+            >
+              <option value="none">
+                繰り返しなし
+              </option>
+
+              <option value="weekly">
+                毎週
+              </option>
+            </select>
+
+            {repeatInput ===
+              "weekly" && (
+              <div
+                style={
+                  weekdaySelectStyle
+                }
+              >
+                {WEEKDAYS.map(
+                  (
+                    label,
+                    index
+                  ) => {
+                    const checked =
+                      weekdayInputs.includes(
+                        index
+                      );
+
+                    return (
+                      <button
+                        key={
+                          label
+                        }
+                        type="button"
+                        onClick={() =>
+                          toggleWeekday(
+                            index
+                          )
+                        }
+                        style={{
+                          ...weekdayButtonStyle,
+
+                          ...(checked
+                            ? weekdayButtonSelectedStyle
+                            : {}),
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            )}
+
             <button
               type="button"
-              onClick={addSchedule}
-              style={addButtonStyle}
+              onClick={
+                addSchedule
+              }
+              style={
+                addButtonStyle
+              }
             >
               予定を追加
             </button>
           </div>
 
-          {selectedSchedules.length > 0 ? (
-            <div style={scheduleListStyle}>
-              {selectedSchedules.map((schedule) => (
-                <div
-                  key={schedule.id}
-                  style={scheduleItemStyle}
-                >
-                  <div style={{ minWidth: 0 }}>
-                    <strong style={scheduleTitleStyle}>
-                      {schedule.title}
-                    </strong>
-
-                    {schedule.memo && (
-                      <p style={scheduleMemoStyle}>
-                        {schedule.memo}
-                      </p>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeSchedule(schedule.id)
+          {selectedSchedules.length >
+          0 ? (
+            <div
+              style={
+                scheduleListStyle
+              }
+            >
+              {selectedSchedules.map(
+                (schedule) => (
+                  <div
+                    key={
+                      schedule.id
                     }
-                    style={deleteButtonStyle}
+                    style={
+                      scheduleItemStyle
+                    }
                   >
-                    削除
-                  </button>
-                </div>
-              ))}
+                    <div
+                      style={{
+                        minWidth: 0,
+                      }}
+                    >
+                      <strong
+                        style={
+                          scheduleTitleStyle
+                        }
+                      >
+                        {
+                          schedule.title
+                        }
+                      </strong>
+
+                      {schedule.repeat ===
+                        "weekly" && (
+                        <p
+                          style={
+                            repeatLabelStyle
+                          }
+                        >
+                          毎週{" "}
+                          {schedule.weekdays
+                            ?.map(
+                              (
+                                weekday
+                              ) =>
+                                WEEKDAYS[
+                                  weekday
+                                ]
+                            )
+                            .join(
+                              "・"
+                            )}
+                          曜日
+                        </p>
+                      )}
+
+                      {schedule.memo && (
+                        <p
+                          style={
+                            scheduleMemoStyle
+                          }
+                        >
+                          {
+                            schedule.memo
+                          }
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeSchedule(
+                          schedule.id
+                        )
+                      }
+                      style={
+                        deleteButtonStyle
+                      }
+                    >
+                      削除
+                    </button>
+                  </div>
+                )
+              )}
             </div>
           ) : (
-            <p style={emptyTextStyle}>
+            <p
+              style={
+                emptyTextStyle
+              }
+            >
               この日の予定はありません
             </p>
           )}
@@ -373,6 +819,7 @@ const containerStyle: CSSProperties = {
   borderRadius: 20,
   background: "#fff",
 };
+
 const dayNumberStyle: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -436,7 +883,8 @@ const titleStyle: CSSProperties = {
 
 const monthNavigationStyle: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "48px 1fr 48px",
+  gridTemplateColumns:
+    "48px 1fr 48px",
   alignItems: "center",
   gap: 8,
   marginBottom: 16,
@@ -457,7 +905,8 @@ const monthLabelStyle: CSSProperties = {
 
 const calendarStyle: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+  gridTemplateColumns:
+    "repeat(7, minmax(0, 1fr))",
   gap: 6,
 };
 
@@ -491,14 +940,17 @@ const selectedDayStyle: CSSProperties = {
 };
 
 const todayDayStyle: CSSProperties = {
-  boxShadow: "inset 0 0 0 1px #4f7c5b",
+  boxShadow:
+    "inset 0 0 0 1px #4f7c5b",
 };
 
-const scheduleSectionStyle: CSSProperties = {
-  marginTop: 24,
-  paddingTop: 20,
-  borderTop: "1px solid #e2ebe5",
-};
+const scheduleSectionStyle: CSSProperties =
+  {
+    marginTop: 24,
+    paddingTop: 20,
+    borderTop:
+      "1px solid #e2ebe5",
+  };
 
 const sectionTitleStyle: CSSProperties = {
   margin: "0 0 16px",
@@ -517,12 +969,37 @@ const inputStyle: CSSProperties = {
   border: "1px solid #cad8cf",
   borderRadius: 12,
   fontSize: 16,
+  background: "#fff",
 };
 
 const textareaStyle: CSSProperties = {
   ...inputStyle,
   resize: "vertical",
 };
+
+const weekdaySelectStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(7, 1fr)",
+  gap: 6,
+};
+
+const weekdayButtonStyle: CSSProperties = {
+  minHeight: 40,
+  border: "1px solid #cad8cf",
+  borderRadius: 10,
+  background: "#fff",
+  color: "#66706a",
+  cursor: "pointer",
+  fontWeight: 700,
+};
+
+const weekdayButtonSelectedStyle: CSSProperties =
+  {
+    border: "1px solid #4f7c5b",
+    background: "#e9f2ec",
+    color: "#3f6849",
+  };
 
 const addButtonStyle: CSSProperties = {
   padding: "12px 16px",
@@ -554,6 +1031,13 @@ const scheduleItemStyle: CSSProperties = {
 const scheduleTitleStyle: CSSProperties = {
   display: "block",
   overflowWrap: "anywhere",
+};
+
+const repeatLabelStyle: CSSProperties = {
+  margin: "5px 0 0",
+  color: "#4f7c5b",
+  fontSize: 13,
+  fontWeight: 700,
 };
 
 const scheduleMemoStyle: CSSProperties = {
