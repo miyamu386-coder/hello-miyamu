@@ -77,6 +77,8 @@ type Props = {
   onOpenBook: () => void;
   onOpenCalendar: () => void;
   onOpenConditioning: () => void;
+  onOpenTraining: () => void;
+  onOpenWeight: () => void;
 };
 
 
@@ -106,6 +108,8 @@ export default function RoomSwiper({
   onOpenBook,
   onOpenCalendar,
   onOpenConditioning,
+  onOpenTraining,
+  onOpenWeight,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentRoomIndex, setCurrentRoomIndex] = useState(0);
@@ -427,14 +431,32 @@ onClick={onOpenKitchen}
   <>
     <button
       type="button"
-      aria-label="コンディションを開く"
-      onClick={onOpenConditioning}
+      aria-label="筋トレメニューを開く"
+      onClick={onOpenTraining}
       style={{
         position: "absolute",
-        left: "25%",
-        top: "35%",
-        width: "50%",
-        height: "30%",
+        left: "36%",
+        top: "56%",
+        width: "30%",
+        height: "20%",
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        zIndex: 4,
+      }}
+    />
+
+    <button
+      type="button"
+      aria-label="体重表を開く"
+      onClick={onOpenWeight}
+      style={{
+        position: "absolute",
+        left: "43%",
+        top: "31%",
+        width: "14%",
+        height: "9%",
         padding: 0,
         border: "none",
         background: "transparent",

@@ -112,11 +112,22 @@ if (isCalendarOpen) {
     setIsBookOpen(false);
     setIsCalendarOpen(true);
   }}
-  onOpenConditioning={() => {
+onOpenConditioning={() => {
     setIsPuzzleOpen(false);
     setOpenCategory("life");
   }}
-/>
+
+    onOpenTraining={() => {
+    setIsPuzzleOpen(false);
+    setOpenCategory(null);
+    openCardByName("筋トレ");
+  }}
+  onOpenWeight={() => {
+    setIsPuzzleOpen(false);
+    setOpenCategory(null);
+    openCardByName("体重表");
+  }}
+  />
     </div>
 
     {openCategory === "work" && (
@@ -143,15 +154,28 @@ if (isCalendarOpen) {
   </div>
 )}
 
-   {openCategory === "life" && (
-  <DiaryCardSection
-    title="生活"
-    category="life"
-    cards={lifeCards}
-    onSelect={onSelect}
-    onAddCard={onAddCard}
-    onEditCard={onEditCard}
-  />
+  {openCategory === "life" && (
+  <div style={modalOverlayStyle}>
+    <div style={modalContentStyle}>
+      <button
+        type="button"
+        aria-label="生活カード一覧を閉じる"
+        style={modalCloseButtonStyle}
+        onClick={() => setOpenCategory(null)}
+      >
+        ×
+      </button>
+
+      <DiaryCardSection
+        title="生活"
+        category="life"
+        cards={lifeCards}
+        onSelect={onSelect}
+        onAddCard={onAddCard}
+        onEditCard={onEditCard}
+      />
+    </div>
+  </div>
 )}
       {isPuzzleOpen && (
   <section style={puzzleSectionStyle}>
