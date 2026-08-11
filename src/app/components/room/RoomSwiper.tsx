@@ -158,9 +158,12 @@ const mofuMessage = useMemo(() => {
     .map((schedule) => `${schedule.title} ${schedule.memo}`)
     .join(" ");
 
-  if (/誕生日|birthday/i.test(todayText)) {
-    return "今日は誕生日だね🎂 おめでとう！";
-  }
+  if (
+  currentRoomIndex === 0 &&
+  /誕生日|birthday/i.test(todayText)
+) {
+  return "今日は誕生日だね🎂 おめでとう！";
+}
 
   const formatScheduleTitles = (items: ScheduleItem[]) => {
     const visible = items.slice(0, 2);
@@ -178,16 +181,48 @@ const mofuMessage = useMemo(() => {
     return titles;
   };
 
-  if (todaySchedules.length > 0) {
-    return `今日は${formatScheduleTitles(todaySchedules)}の予定があるよ🐾`;
-  }
+  if (currentRoomIndex === 0 && todaySchedules.length > 0) {
+  return `今日は${formatScheduleTitles(todaySchedules)}の予定があるよ🐾`;
+}
 
-  if (tomorrowSchedules.length > 0) {
-    return `明日は${formatScheduleTitles(tomorrowSchedules)}の予定があるよ🐾`;
-  }
+if (currentRoomIndex === 0 && tomorrowSchedules.length > 0) {
+  return `明日は${formatScheduleTitles(tomorrowSchedules)}の予定があるよ🐾`;
+}
+if (currentRoomIndex === 0) {
+  const messages = [
+    "今日は予定なしか。たまにはのんびりするのも悪くないぞ🐾",
+    "暇なら冷蔵庫でも覗いてこい。何かあるだろ🐾",
+    "予定がない日くらい、好きに過ごせばいいんじゃないか？🐾",
+    "何もない日も立派な予定だ。俺は寝るけどな🐾",
+  ];
 
-  return "今日は何しようかな〜🐾";
-}, [schedules]);
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
+if (currentRoomIndex === 1) {
+  const messages = [
+    "さて、今日はどれだけ積むつもりだ？🐾",
+    "また作業か。好きだな、お前も🐾",
+    "無理して倒れたら意味ないぞ🐾",
+    "積むのはいいが、休むのも仕事だぞ🐾",
+  ];
+
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
+if (currentRoomIndex === 2) {
+  const messages = [
+    "ちゃんと自分の体もメンテしてるか？🐾",
+    "鍛えるのもいいが、休ませるのも忘れるなよ🐾",
+    "体重計から逃げても数字は変わらんぞ🐾",
+    "今日の調子くらい、自分で把握しとけよ🐾",
+  ];
+
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
+return "今日は何しようかな〜🐾";
+}, [schedules, currentRoomIndex]);
 
   const handleScroll = () => {
     const container = scrollRef.current;
