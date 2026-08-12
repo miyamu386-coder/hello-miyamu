@@ -2,8 +2,10 @@ import { useState, type CSSProperties } from "react";
 import RoomSwiper from "./room/RoomSwiper";
 import LivingBook from "./book/LivingBook";
 import CalendarPage from "./calendar/CalendarPage";
+import TrainingPage from "./training/TrainingPage";
 
 export type DiaryCategory = "work" | "life";
+
 export type DiaryUnit =
   | "時間"
   | "分"
@@ -30,6 +32,7 @@ type Props = {
   ) => void;
   onEditCard: (card: DiaryCard) => void;
 };
+
 export default function DiaryHome({
   cards,
   currentYm,
@@ -41,162 +44,235 @@ export default function DiaryHome({
   const [openCategory, setOpenCategory] =
     useState<DiaryCategory | null>(null);
 
-  const workCards = cards.filter((card) => card.category === "work");
-  const lifeCards = cards.filter((card) => card.category === "life");
   const [isPuzzleOpen, setIsPuzzleOpen] = useState(false);
   const [isBookOpen, setIsBookOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const openCardByName = (cardName: string) => {
-  const targetCard = cards.find((card) => card.name === cardName);
+  const [isTrainingOpen, setIsTrainingOpen] = useState(false);
 
-  if (!targetCard) {
-    window.alert(`「${cardName}」カードが見つかりません`);
-    return;
+  const workCards = cards.filter(
+    (card) => card.category === "work"
+  );
+
+  const lifeCards = cards.filter(
+    (card) => card.category === "life"
+  );
+
+  const openCardByName = (cardName: string) => {
+    const targetCard = cards.find(
+      (card) => card.name === cardName
+    );
+
+    if (!targetCard) {
+      window.alert(
+        `「${cardName}」カードが見つかりません`
+      );
+      return;
+    }
+
+    onSelect(targetCard);
+  };
+
+  const trainingNames: Record<string, string> = {
+    squat: "スクワット",
+    "push-up": "腕立て伏せ",
+    crunch: "腹筋",
+    plank: "プランク",
+    lunge: "ランジ",
+  };
+
+  const openTrainingRecord = (
+    trainingId: string
+  ) => {
+    const trainingName =
+      trainingNames[trainingId];
+
+    const trainingCard = cards.find(
+      (card) => card.name === "筋トレ"
+    );
+
+    if (!trainingName) {
+      window.alert(
+        "筋トレメニューが見つかりません"
+      );
+      return;
+    }
+
+    if (!trainingCard) {
+      window.alert(
+        "「筋トレ」カードが見つかりません"
+      );
+      return;
+    }
+
+    onSelect({
+      ...trainingCard,
+      name: trainingName,
+    });
+  };
+
+  if (isBookOpen) {
+    return (
+      <LivingBook
+        cards={cards}
+        currentYm={currentYm}
+        storageKeyBase={storageKeyBase}
+        onBack={() => setIsBookOpen(false)}
+      />
+    );
   }
 
-  onSelect(targetCard);
-};
-if (isBookOpen) {
-  return (
-    <LivingBook
-      cards={cards}
-      currentYm={currentYm}
-      storageKeyBase={storageKeyBase}
-      onBack={() => setIsBookOpen(false)}
-    />
-  );
-}
+  if (isCalendarOpen) {
+    return (
+      <CalendarPage
+        onBack={() =>
+          setIsCalendarOpen(false)
+        }
+      />
+    );
+  }
 
-if (isCalendarOpen) {
-  return (
-    <CalendarPage
-      onBack={() => setIsCalendarOpen(false)}
-    />
-  );
-}
+  if (isTrainingOpen) {
+    return (
+      <TrainingPage
+        onBack={() =>
+          setIsTrainingOpen(false)
+        }
+        onSelectTraining={(trainingId) => {
+          setIsTrainingOpen(false);
+          openTrainingRecord(trainingId);
+        }}
+      />
+    );
+  }
 
-
   return (
-  <section>
-    <div style={houseStageStyle}>
-      <div style={houseTitleStyle}>
-        みやむDiary
+    <section>
+      <div style={houseStageStyle}>
+        <div style={houseTitleStyle}>
+          みやむDiary
+        </div>
+
+        <RoomSwiper
+          onOpenKitchen={() => {
+            setIsPuzzleOpen(false);
+            setOpenCategory("life");
+          }}
+          onOpenFridge={() => {
+            setIsPuzzleOpen(false);
+            setOpenCategory(null);
+            openCardByName("食事量");
+          }}
+          onOpenWork={() => {
+            setIsPuzzleOpen(false);
+            setOpenCategory("work");
+          }}
+          onOpenPuzzle={() => {
+            setOpenCategory(null);
+            setIsPuzzleOpen(true);
+          }}
+          onOpenBook={() => {
+            setOpenCategory(null);
+            setIsPuzzleOpen(false);
+            setIsBookOpen(true);
+          }}
+          onOpenCalendar={() => {
+            setOpenCategory(null);
+            setIsPuzzleOpen(false);
+            setIsBookOpen(false);
+            setIsCalendarOpen(true);
+          }}
+          onOpenConditioning={() => {
+            setIsPuzzleOpen(false);
+            setOpenCategory("life");
+          }}
+          onOpenTraining={() => {
+            setIsPuzzleOpen(false);
+            setOpenCategory(null);
+            setIsTrainingOpen(true);
+          }}
+          onOpenWeight={() => {
+            setIsPuzzleOpen(false);
+            setOpenCategory(null);
+            openCardByName("体重表");
+          }}
+        />
       </div>
 
- <RoomSwiper
-  onOpenKitchen={() => {
-    setIsPuzzleOpen(false);
-    setOpenCategory("life");
-  }}
-  onOpenFridge={() => {
-    setIsPuzzleOpen(false);
-    setOpenCategory(null);
-    openCardByName("食事量");
-  }}
-  onOpenWork={() => {
-    setIsPuzzleOpen(false);
-    setOpenCategory("work");
-  }}
-  onOpenPuzzle={() => {
-    setOpenCategory(null);
-    setIsPuzzleOpen(true);
-  }}
-  onOpenBook={() => {
-    setOpenCategory(null);
-    setIsPuzzleOpen(false);
-    setIsBookOpen(true);
-  }}
-  onOpenCalendar={() => {
-    setOpenCategory(null);
-    setIsPuzzleOpen(false);
-    setIsBookOpen(false);
-    setIsCalendarOpen(true);
-  }}
-onOpenConditioning={() => {
-    setIsPuzzleOpen(false);
-    setOpenCategory("life");
-  }}
+      {openCategory === "work" && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <button
+              type="button"
+              aria-label="仕事カード一覧を閉じる"
+              style={modalCloseButtonStyle}
+              onClick={() =>
+                setOpenCategory(null)
+              }
+            >
+              ×
+            </button>
 
-    onOpenTraining={() => {
-    setIsPuzzleOpen(false);
-    setOpenCategory(null);
-    openCardByName("筋トレ");
-  }}
-  onOpenWeight={() => {
-    setIsPuzzleOpen(false);
-    setOpenCategory(null);
-    openCardByName("体重表");
-  }}
-  />
-    </div>
+            <DiaryCardSection
+              title="仕事"
+              category="work"
+              cards={workCards}
+              onSelect={onSelect}
+              onAddCard={onAddCard}
+              onEditCard={onEditCard}
+            />
+          </div>
+        </div>
+      )}
 
-    {openCategory === "work" && (
-  <div style={modalOverlayStyle}>
-    <div style={modalContentStyle}>
-      <button
-        type="button"
-        aria-label="仕事カード一覧を閉じる"
-        style={modalCloseButtonStyle}
-        onClick={() => setOpenCategory(null)}
-      >
-        ×
-      </button>
+      {openCategory === "life" && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <button
+              type="button"
+              aria-label="生活カード一覧を閉じる"
+              style={modalCloseButtonStyle}
+              onClick={() =>
+                setOpenCategory(null)
+              }
+            >
+              ×
+            </button>
 
-      <DiaryCardSection
-        title="仕事"
-        category="work"
-        cards={workCards}
-        onSelect={onSelect}
-        onAddCard={onAddCard}
-        onEditCard={onEditCard}
-      />
-    </div>
-  </div>
-)}
+            <DiaryCardSection
+              title="生活"
+              category="life"
+              cards={lifeCards}
+              onSelect={onSelect}
+              onAddCard={onAddCard}
+              onEditCard={onEditCard}
+            />
+          </div>
+        </div>
+      )}
 
-  {openCategory === "life" && (
-  <div style={modalOverlayStyle}>
-    <div style={modalContentStyle}>
-      <button
-        type="button"
-        aria-label="生活カード一覧を閉じる"
-        style={modalCloseButtonStyle}
-        onClick={() => setOpenCategory(null)}
-      >
-        ×
-      </button>
-
-      <DiaryCardSection
-        title="生活"
-        category="life"
-        cards={lifeCards}
-        onSelect={onSelect}
-        onAddCard={onAddCard}
-        onEditCard={onEditCard}
-      />
-    </div>
-  </div>
-)}
       {isPuzzleOpen && (
-  <section style={puzzleSectionStyle}>
-    <h2 style={puzzleTitleStyle}>モフのナンプレ</h2>
+        <section style={puzzleSectionStyle}>
+          <h2 style={puzzleTitleStyle}>
+            モフのナンプレ
+          </h2>
 
-    <p style={puzzleTextStyle}>
-      今日の問題を準備中です🐾
-    </p>
+          <p style={puzzleTextStyle}>
+            今日の問題を準備中です🐾
+          </p>
 
-    <button
-      type="button"
-      style={puzzleCloseButtonStyle}
-      onClick={() => setIsPuzzleOpen(false)}
-    >
-      部屋へ戻る
-    </button>
-  </section>
-)}
-
-  </section>
-);
+          <button
+            type="button"
+            style={puzzleCloseButtonStyle}
+            onClick={() =>
+              setIsPuzzleOpen(false)
+            }
+          >
+            部屋へ戻る
+          </button>
+        </section>
+      )}
+    </section>
+  );
 }
 
 type DiaryCardSectionProps = {
@@ -220,74 +296,92 @@ function DiaryCardSection({
   onAddCard,
   onEditCard,
 }: DiaryCardSectionProps) {
-
   return (
     <section style={sectionStyle}>
       <div style={sectionHeaderStyle}>
-        <h3 style={sectionTitleStyle}>{title}</h3>
+        <h3 style={sectionTitleStyle}>
+          {title}
+        </h3>
 
         <button
-  type="button"
-  style={addButtonStyle}
-  onClick={() => {
-    const name = window.prompt("カード名を入力してください");
+          type="button"
+          style={addButtonStyle}
+          onClick={() => {
+            const name = window.prompt(
+              "カード名を入力してください"
+            );
 
-    if (name === null || !name.trim()) {
-      return;
-    }
+            if (
+              name === null ||
+              !name.trim()
+            ) {
+              return;
+            }
 
-    const unitInput = window.prompt(
-  "単位を入力してください（時間・分・回数・kcal・kg）",
-  category === "work" ? "時間" : "kcal"
-);
+            const unitInput =
+              window.prompt(
+                "単位を入力してください（時間・分・回数・kcal・kg）",
+                category === "work"
+                  ? "時間"
+                  : "kcal"
+              );
 
-if (
-  unitInput !== "時間" &&
-  unitInput !== "分" &&
-  unitInput !== "回数" &&
-  unitInput !== "kcal" &&
-  unitInput !== "kg"
-) {
-  window.alert(
-    "単位は「時間」「分」「回数」「kcal」「kg」から入力してください"
-  );
-  return;
-}
+            if (
+              unitInput !== "時間" &&
+              unitInput !== "分" &&
+              unitInput !== "回数" &&
+              unitInput !== "kcal" &&
+              unitInput !== "kg"
+            ) {
+              window.alert(
+                "単位は「時間」「分」「回数」「kcal」「kg」から入力してください"
+              );
+              return;
+            }
 
-    onAddCard(category, name.trim(), unitInput);
-  }}
->
-  ＋ カード追加
-</button>
+            onAddCard(
+              category,
+              name.trim(),
+              unitInput
+            );
+          }}
+        >
+          ＋ カード追加
+        </button>
       </div>
 
       {cards.length > 0 ? (
         <div style={gridStyle}>
           {cards.map((card) => (
-           <div
-  key={card.id}
-  style={cardStyle}
-  onClick={() => onSelect(card)}
->
-  <button
-    type="button"
-    style={menuButtonStyle}
-    aria-label={`${card.name}のメニューを開く`}
-    onClick={(e) => {
-      e.stopPropagation();
-      onEditCard(card);
-    }}
-  >
-    ⋮
-  </button>
+            <div
+              key={card.id}
+              style={cardStyle}
+              onClick={() =>
+                onSelect(card)
+              }
+            >
+              <button
+                type="button"
+                style={menuButtonStyle}
+                aria-label={`${card.name}のメニューを開く`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditCard(card);
+                }}
+              >
+                ⋮
+              </button>
 
-  <strong style={cardNameStyle}>{card.name}</strong>
+              <strong
+                style={cardNameStyle}
+              >
+                {card.name}
+              </strong>
 
-
-  <span style={cardUnitStyle}>
-    記録単位：{card.unit}
-  </span>
-</div>
+              <span style={cardUnitStyle}>
+                記録単位：{card.unit}
+              </span>
+            </div>
           ))}
         </div>
       ) : (
@@ -317,7 +411,8 @@ const sectionTitleStyle: CSSProperties = {
 
 const gridStyle: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(180px, 1fr))",
   gap: 12,
 };
 
@@ -340,6 +435,7 @@ const cardStyle: CSSProperties = {
 const cardNameStyle: CSSProperties = {
   fontSize: 18,
 };
+
 const menuButtonStyle: CSSProperties = {
   position: "absolute",
   top: 6,
@@ -379,6 +475,7 @@ const emptyStyle: CSSProperties = {
   color: "#777",
   textAlign: "center",
 };
+
 const houseStageStyle: CSSProperties = {
   width: "100%",
   padding: 0,
@@ -400,12 +497,12 @@ const roomStyle: CSSProperties = {
   aspectRatio: "9 / 16",
   margin: "0 auto",
   overflow: "hidden",
-  backgroundImage: 'url("/room/mofu-room.png")',
+  backgroundImage:
+    'url("/room/mofu-room.png")',
   backgroundSize: "cover",
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
 };
-
 
 const mofuStyle: CSSProperties = {
   position: "absolute",
@@ -424,6 +521,7 @@ const mofuImageStyle: CSSProperties = {
   objectFit: "contain",
   display: "block",
 };
+
 const deskHotspotStyle: CSSProperties = {
   position: "absolute",
   left: "4%",
@@ -435,6 +533,7 @@ const deskHotspotStyle: CSSProperties = {
   cursor: "pointer",
   zIndex: 4,
 };
+
 const bedHotspotStyle: CSSProperties = {
   position: "absolute",
   right: "4%",
@@ -446,6 +545,7 @@ const bedHotspotStyle: CSSProperties = {
   cursor: "pointer",
   zIndex: 4,
 };
+
 const puzzleSectionStyle: CSSProperties = {
   marginTop: 28,
   padding: 24,
@@ -473,6 +573,7 @@ const puzzleCloseButtonStyle: CSSProperties = {
   fontWeight: 700,
   cursor: "pointer",
 };
+
 const modalOverlayStyle: CSSProperties = {
   position: "fixed",
   inset: 0,
@@ -480,7 +581,8 @@ const modalOverlayStyle: CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   padding: 20,
-  background: "rgba(0, 0, 0, 0.45)",
+  background:
+    "rgba(0, 0, 0, 0.45)",
   zIndex: 1000,
 };
 
@@ -492,7 +594,8 @@ const modalContentStyle: CSSProperties = {
   padding: 24,
   borderRadius: 20,
   background: "#fff",
-  boxShadow: "0 20px 50px rgba(0, 0, 0, 0.2)",
+  boxShadow:
+    "0 20px 50px rgba(0, 0, 0, 0.2)",
 };
 
 const modalCloseButtonStyle: CSSProperties = {
