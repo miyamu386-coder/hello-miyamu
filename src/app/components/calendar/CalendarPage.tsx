@@ -506,17 +506,23 @@ export default function CalendarPage({
 
         <div style={calendarStyle}>
           {WEEKDAYS.map(
-            (weekday) => (
-              <div
-                key={weekday}
-                style={
-                  weekdayStyle
-                }
-              >
-                {weekday}
-              </div>
-            )
-          )}
+  (weekday, index) => (
+    <div
+      key={weekday}
+      style={{
+        ...weekdayStyle,
+        ...(index === 0
+          ? sundayHolidayNumberStyle
+          : {}),
+        ...(index === 6
+          ? saturdayNumberStyle
+          : {}),
+      }}
+    >
+      {weekday}
+    </div>
+  )
+)}
 
           {calendarDays.map(
             (day, index) => {
@@ -595,17 +601,25 @@ export default function CalendarPage({
     : {}),
 }}
                 >
-                  <span
-                    style={{
-                      ...dayNumberStyle,
+                <span
+  style={{
+    ...dayNumberStyle,
 
-                      ...(todayDate
-                        ? todayNumberStyle
-                        : {}),
-                    }}
-                  >
-                    {day}
-                  </span>
+    ...(getWeekdayFromISO(dateISO) === 0 || holiday
+      ? sundayHolidayNumberStyle
+      : {}),
+
+    ...(getWeekdayFromISO(dateISO) === 6 && !holiday
+      ? saturdayNumberStyle
+      : {}),
+
+    ...(todayDate
+      ? todayNumberStyle
+      : {}),
+  }}
+>
+  {day}
+</span>
                   {holiday && (
   <span style={holidayNameStyle}>
     {holiday.name}
@@ -862,6 +876,14 @@ export default function CalendarPage({
     </main>
   );
 }
+const sundayHolidayNumberStyle: CSSProperties = {
+  color: "#d64545",
+};
+
+const saturdayNumberStyle: CSSProperties = {
+  color: "#3f6fc1",
+};
+
 
 const pageStyle: CSSProperties = {
   minHeight: "100vh",
@@ -879,12 +901,16 @@ const containerStyle: CSSProperties = {
 };
 
 const dayNumberStyle: CSSProperties = {
+  position: "absolute",
+  top: 4,
+  left: 5,
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
   minWidth: 24,
   minHeight: 24,
-  fontSize: 15,
+  fontSize: 17,
+  fontWeight: 700,
 };
 
 const todayNumberStyle: CSSProperties = {
@@ -965,7 +991,9 @@ const calendarStyle: CSSProperties = {
   display: "grid",
   gridTemplateColumns:
     "repeat(7, minmax(0, 1fr))",
-  gap: 6,
+  gap: 0,
+  borderTop: "1px solid #d1d5db",
+  borderLeft: "1px solid #d1d5db",
 };
 
 const weekdayStyle: CSSProperties = {
@@ -976,18 +1004,25 @@ const weekdayStyle: CSSProperties = {
 };
 
 const emptyDayStyle: CSSProperties = {
-  aspectRatio: "1 / 1",
+  minHeight: 120,
+  borderRight: "1px solid #d1d5db",
+  borderBottom: "1px solid #d1d5db",
+  background: "#f7f7f8",
 };
 
 const dayButtonStyle: CSSProperties = {
   position: "relative",
-  aspectRatio: "1 / 1",
-  padding: 4,
-  border: "1px solid #dce7df",
-  borderRadius: 12,
+  minHeight: 120,
+  padding: "6px 4px",
+  border: "none",
+  borderRight: "1px solid #d1d5db",
+  borderBottom: "1px solid #d1d5db",
+  borderRadius: 0,
   background: "#fff",
   cursor: "pointer",
   fontSize: 15,
+  textAlign: "left",
+  verticalAlign: "top",
 };
 
 const selectedDayStyle: CSSProperties = {
