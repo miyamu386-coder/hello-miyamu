@@ -103,7 +103,7 @@ const healthSummaries = cards
       (
         card.name === "体重表" ||
         card.name === "食事量" ||
-        card.name === "筋トレ量" ||
+        card.name === "筋トレ" ||
         card.name === "睡眠時間" ||
         card.name === "水分量"
       )
@@ -111,19 +111,35 @@ const healthSummaries = cards
   .map((card) => {
     const logs = getLogsByCard(card.id);
 
-    const total = logs.reduce(
-      (sum, log) =>
-        sum +
-        (
-          typeof log === "object" &&
-          log !== null &&
-          "hours" in log &&
-          typeof log.hours === "number"
-            ? log.hours
-            : 0
-        ),
-      0
-    );
+   const total = logs.reduce(
+  (sum, log) => {
+    if (
+      typeof log !== "object" ||
+      log === null ||
+      !("hours" in log) ||
+      typeof log.hours !== "number"
+    ) {
+      return sum;
+    }
+
+    if (
+      card.name === "筋トレ" &&
+      "trainingId" in log &&
+      log.trainingId
+    ) {
+      const sets =
+        "trainingSets" in log &&
+        typeof log.trainingSets === "number"
+          ? log.trainingSets
+          : 1;
+
+      return sum + log.hours * sets;
+    }
+
+    return sum + log.hours;
+  },
+  0
+);
 
    const value =
   card.name === "体重表" && logs.length > 0
@@ -136,6 +152,74 @@ return {
   count: logs.length,
 };
   });
+const trainingCard = cards.find(
+  (card) =>
+    card.category === "life" &&
+    card.name === "筋トレ"
+);
+const trainingLogs = trainingCard
+  ? getLogsByCard(trainingCard.id)
+  : [];
+  const trainingTotals = {
+  squat: 0,
+  "push-up": 0,
+  crunch: 0,
+  plank: 0,
+  lunge: 0,
+};
+trainingLogs.forEach((log) => {
+  if (
+    typeof log !== "object" ||
+    log === null ||
+    !("trainingId" in log) ||
+    typeof log.trainingId !== "string" ||
+    !(log.trainingId in trainingTotals) ||
+    !("hours" in log) ||
+    typeof log.hours !== "number"
+  ) {
+    return;
+  }
+
+  const sets =
+    "trainingSets" in log &&
+    typeof log.trainingSets === "number"
+      ? log.trainingSets
+      : 1;
+
+  const trainingId =
+    log.trainingId as keyof typeof trainingTotals;
+
+  trainingTotals[trainingId] +=
+    log.hours * sets;
+});
+const trainingSummaryItems = [
+  {
+    id: "squat" as const,
+    name: "スクワット",
+    unit: "回",
+  },
+  {
+    id: "push-up" as const,
+    name: "腕立て伏せ",
+    unit: "回",
+  },
+  {
+    id: "crunch" as const,
+    name: "腹筋",
+    unit: "回",
+  },
+  {
+    id: "plank" as const,
+    name: "プランク",
+    unit: "秒",
+  },
+  {
+    id: "lunge" as const,
+    name: "ランジ",
+    unit: "回",
+  },
+];
+
   const lifeSummaries = cards
   .filter(
     (card) =>
@@ -143,7 +227,7 @@ return {
       !(
         card.name === "体重表" ||
         card.name === "食事量" ||
-        card.name === "筋トレ量" ||
+        card.name === "筋トレ" ||
         card.name === "睡眠時間" ||
         card.name === "水分量"
       )
@@ -489,6 +573,51 @@ if (page === "health") {
 </span>
     </div>
   ))
+)}
+{trainingCard && (
+  <div
+    style={{
+      marginTop: 20,
+      padding: 18,
+      borderRadius: 16,
+      border: "1px solid #d8e2dc",
+      background: "#fff",
+    }}
+  >
+    <div
+      style={{
+        marginBottom: 14,
+        fontSize: 18,
+        fontWeight: 800,
+      }}
+    >
+      💪 筋トレ内訳
+    </div>
+
+    <div
+      style={{
+        display: "grid",
+        gap: 10,
+      }}
+    >
+      {trainingSummaryItems.map((item) => (
+        <div
+          key={item.id}
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <strong>{item.name}</strong>
+
+          <span>
+            {trainingTotals[item.id]} {item.unit}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
 )}
 </div>
       </div>
