@@ -39,6 +39,8 @@ const mealTypeLabel = {
   dinner: "🌙 夕食",
   snack: "🍪 間食",
 } as const;
+const isTrainingLog = Boolean(log.trainingId);
+
 const {
   attributes,
   listeners,
@@ -166,14 +168,29 @@ const {
             />
           ) : (
             <span>
-  <b>
-    {unit === "時間"
-      ? log.hours.toFixed(1)
-      : Number.isInteger(log.hours)
-        ? log.hours
-        : log.hours.toFixed(1)}
-  </b>{" "}
-  {unit}
+  {isTrainingLog ? (
+    <>
+      <b>
+        {Number.isInteger(log.hours)
+          ? log.hours
+          : log.hours.toFixed(1)}
+      </b>{" "}
+      {log.trainingId === "plank" ? "秒" : "回"}
+      {" × "}
+      <b>{log.trainingSets ?? 1}</b> セット
+    </>
+  ) : (
+    <>
+      <b>
+        {unit === "時間"
+          ? log.hours.toFixed(1)
+          : Number.isInteger(log.hours)
+            ? log.hours
+            : log.hours.toFixed(1)}
+      </b>{" "}
+      {unit}
+    </>
+  )}
 </span>
           )}
         </div>

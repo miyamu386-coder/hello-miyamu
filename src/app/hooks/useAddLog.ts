@@ -12,7 +12,10 @@ import type { MealType } from "../components/DiaryInputForm";
 type UseAddLogProps = {
   logs: Log[];
   dateISO: string;
+  cardName: string;
   hoursInput: string;
+  setTrainingSets: Dispatch<SetStateAction<string>>;
+  trainingSets: string;
   setHoursInput: Dispatch<SetStateAction<string>>;
   setLogs: Dispatch<SetStateAction<Log[]>>;
   hoursRef: RefObject<HTMLInputElement | null>;
@@ -20,13 +23,17 @@ type UseAddLogProps = {
   setMealText?: Dispatch<SetStateAction<string>>;
   showAddedToast: () => void;
   mealType?: MealType;
+ 
 };
 
 export function useAddLog({
   logs,
   dateISO,
+  cardName,
   hoursInput,
+  trainingSets,
   setHoursInput,
+  setTrainingSets,
   setLogs,
   hoursRef,
   mealText,
@@ -34,6 +41,14 @@ export function useAddLog({
   showAddedToast,
   mealType,
 }: UseAddLogProps) {
+const trainingIdMap: Record<string, string> = {
+  スクワット: "squat",
+  腕立て伏せ: "push-up",
+  腹筋: "crunch",
+  プランク: "plank",
+  ランジ: "lunge",
+};
+
   const inputPreviewHours = useMemo(() => {
     if (!hoursInput.trim()) {
       return 0;
@@ -55,8 +70,9 @@ export function useAddLog({
   }, [hoursInput, dateISO]);
 
   const addLog = () => {
-    const hours = parseHours(hoursInput);
-
+  const hours = parseHours(hoursInput);
+  const sets = Number(trainingSets);
+  const trainingId = trainingIdMap[cardName];
     if (!Number.isFinite(hours) || hours <= 0) {
       return;
     }
@@ -84,6 +100,12 @@ export function useAddLog({
   ...(mealType
     ? { mealType }
     : {}),
+  ...(trainingId
+    ? {
+        trainingId,
+        trainingSets: Number.isFinite(sets) && sets > 0 ? sets : 1,
+      }
+    : {}),
 };
 
     setLogs((prev) => {
@@ -101,6 +123,7 @@ export function useAddLog({
     });
 
     setHoursInput("");
+    // まだ setTrainingSets は受け取ってないので次で追加
     setMealText?.("");
 
     requestAnimationFrame(() => {

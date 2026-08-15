@@ -19,8 +19,10 @@ type Props = {
   hoursRef: RefObject<HTMLInputElement | null>;
   onDateChange: (value: string) => void;
   onHoursChange: (value: string) => void;
+  onTrainingSetsChange: (value: string) => void;
   onMealTextChange: (value: string) => void;
   onMealTypeChange: (value: MealType) => void;
+  trainingSets: string;
 };
 
 export default function DiaryInputForm({
@@ -28,12 +30,14 @@ export default function DiaryInputForm({
   unit,
   dateISO,
   hoursInput,
+  trainingSets,
   mealText,
   mealType,
   inputPreviewHours,
   hoursRef,
   onDateChange,
   onHoursChange,
+  onTrainingSetsChange,
   onMealTextChange,
   onMealTypeChange,
 }: Props) {
@@ -137,6 +141,18 @@ const calculateMealKcal = () => {
 
   onHoursChange(String(totalKcal));
 };
+const trainingIds = [
+  "スクワット",
+  "腕立て伏せ",
+  "腹筋",
+  "プランク",
+  "ランジ",
+];
+
+const isTrainingCard = trainingIds.includes(cardName);
+
+const isPlank = cardName === "プランク";
+
 
 const placeholder =
   unit === "時間"
@@ -363,6 +379,65 @@ const placeholder =
 </details>
   </div>
 )}
+{isTrainingCard && (
+  <div
+    style={{
+      marginBottom: 14,
+      textAlign: "center",
+      fontSize: 14,
+      fontWeight: 700,
+      color: "#56605a",
+    }}
+  >
+    {isPlank ? "秒数とセット数を入力" : "回数とセット数を入力"}
+  </div>
+)}
+
+{isTrainingCard && (
+  <div
+    style={{
+      marginTop: 12,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+    }}
+  >
+    <input
+      type="number"
+      inputMode="numeric"
+      min="1"
+      value={trainingSets}
+      placeholder="例：3"
+      onChange={(event) =>
+        onTrainingSetsChange(event.target.value)
+      }
+      style={{
+        width: 120,
+        height: 52,
+        borderRadius: 16,
+        border: "1px solid #cad8cf",
+        background: "#fff",
+        padding: "0 14px",
+        textAlign: "center",
+        fontSize: 22,
+        fontWeight: 800,
+        outline: "none",
+      }}
+    />
+
+    <span
+      style={{
+        fontSize: 18,
+        fontWeight: 700,
+        color: "#56605a",
+      }}
+    >
+      セット
+    </span>
+  </div>
+)}
+
       <div
         style={{
           display: "flex",
@@ -394,15 +469,19 @@ const placeholder =
           }}
         />
 
-        <span
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: "#56605a",
-          }}
-        >
-          {unit}
-        </span>
+       <span
+  style={{
+    fontSize: 18,
+    fontWeight: 700,
+    color: "#56605a",
+  }}
+>
+  {isTrainingCard
+    ? isPlank
+      ? "秒"
+      : "回"
+    : unit}
+</span>
       </div>
 
       {inputPreviewHours > 0 && (
@@ -414,7 +493,12 @@ const placeholder =
             color: "#78817c",
           }}
         >
-          入力中：{inputPreviewHours} {unit}
+        入力中：{inputPreviewHours}{" "}
+{isTrainingCard
+  ? isPlank
+    ? "秒"
+    : "回"
+  : unit}
         </div>
       )}
 

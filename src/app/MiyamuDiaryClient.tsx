@@ -60,7 +60,8 @@ export default function MiyamuDiaryClient() {
   const { logs, setLogs } = useMonthlyLogs(storageKey);
   
   const [hoursInput, setHoursInput] = useState<string>("");
-  const [mealText, setMealText] = useState("");
+const [trainingSets, setTrainingSets] = useState<string>("");
+const [mealText, setMealText] = useState("");
   const [mealType, setMealType] =
   useState<MealType>("breakfast");
   const [showInput, setShowInput] = useState(false);
@@ -125,8 +126,11 @@ const {
 } = useAddLog({
   logs,
   dateISO,
+  cardName: selectedCard?.name ?? "",
   hoursInput,
   setHoursInput,
+  trainingSets,
+  setTrainingSets,
   setLogs,
   hoursRef,
   mealText,
@@ -349,6 +353,8 @@ const deleteCardLogs = (cardId: string) => {
   onHoursChange={setHoursInput}
   onMealTextChange={setMealText}
   onMealTypeChange={setMealType}
+  trainingSets={trainingSets}
+onTrainingSetsChange={setTrainingSets}
 />
 
     <AddLogButton
