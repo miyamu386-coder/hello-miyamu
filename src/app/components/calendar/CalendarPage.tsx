@@ -887,14 +887,14 @@ const saturdayNumberStyle: CSSProperties = {
 
 const pageStyle: CSSProperties = {
   minHeight: "100vh",
-  padding: 20,
+  padding: "clamp(8px, 3vw, 20px)",
   background: "#f5f6f7",
 };
 
 const containerStyle: CSSProperties = {
   width: "min(720px, 100%)",
   margin: "0 auto",
-  padding: 20,
+  padding: "clamp(10px, 4vw, 20px)",
   boxSizing: "border-box",
   borderRadius: 20,
   background: "#fff",
@@ -902,33 +902,33 @@ const containerStyle: CSSProperties = {
 
 const dayNumberStyle: CSSProperties = {
   position: "absolute",
-  top: 4,
-  left: 5,
+  top: 3,
+  left: 4,
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  minWidth: 24,
-  minHeight: 24,
-  fontSize: 17,
+  minWidth: "clamp(20px, 5vw, 24px)",
+  minHeight: "clamp(20px, 5vw, 24px)",
+  fontSize: "clamp(13px, 3.8vw, 17px)",
   fontWeight: 700,
 };
 
 const todayNumberStyle: CSSProperties = {
-  minWidth: 31,
-  minHeight: 31,
+  minWidth: "clamp(25px, 6vw, 31px)",
+  minHeight: "clamp(25px, 6vw, 31px)",
   borderRadius: 999,
   background: "#4f7c5b",
   color: "#fff",
-  fontSize: 19,
+  fontSize: "clamp(14px, 4vw, 19px)",
   fontWeight: 800,
 };
 
 const scheduleIconStyle: CSSProperties = {
   position: "absolute",
   left: "50%",
-  bottom: 16,
-  transform: "translateX(-50%)",
-  fontSize: 14,
+  top: "50%",
+  transform: "translate(-50%, -25%)",
+  fontSize: "clamp(11px, 3vw, 14px)",
   lineHeight: 1,
 };
 
@@ -1004,7 +1004,7 @@ const weekdayStyle: CSSProperties = {
 };
 
 const emptyDayStyle: CSSProperties = {
-  minHeight: 120,
+  minHeight: "clamp(64px, 13vw, 120px)",
   borderRight: "1px solid #d1d5db",
   borderBottom: "1px solid #d1d5db",
   background: "#f7f7f8",
@@ -1012,8 +1012,8 @@ const emptyDayStyle: CSSProperties = {
 
 const dayButtonStyle: CSSProperties = {
   position: "relative",
-  minHeight: 120,
-  padding: "6px 4px",
+  minHeight: "clamp(64px, 13vw, 120px)",
+  padding: "4px 2px",
   border: "none",
   borderRight: "1px solid #d1d5db",
   borderBottom: "1px solid #d1d5db",
