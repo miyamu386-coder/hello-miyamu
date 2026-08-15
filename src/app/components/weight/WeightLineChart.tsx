@@ -16,7 +16,9 @@ type Props = {
 };
 
 export default function WeightLineChart({ logs }: Props) {
-  const chartData = logs.map((log) => ({
+  const chartData = [...logs]
+  .sort((a, b) => a.date.localeCompare(b.date))
+  .map((log) => ({
     date: log.date.slice(5).replace("-", "/"),
     weight: log.hours,
   }));

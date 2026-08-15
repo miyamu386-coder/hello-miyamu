@@ -636,6 +636,48 @@ if (page === "health") {
     scrollbarWidth: "none",
   }}
 >
+  {/* 食事量 */}
+  <div
+    style={{
+      minWidth: "100%",
+      scrollSnapAlign: "start",
+      boxSizing: "border-box",
+    }}
+  >
+    <div
+      style={{
+        padding: 18,
+        borderRadius: 16,
+        border: "1px solid #d8e2dc",
+        background: "#fff",
+      }}
+    >
+      <div
+        style={{
+          marginBottom: 14,
+          fontSize: 18,
+          fontWeight: 800,
+        }}
+      >
+        🍚 食事量推移
+      </div>
+
+      {foodDailyLogs.length > 0 ? (
+        <FoodLineChart logs={foodDailyLogs} />
+      ) : (
+        <div
+          style={{
+            padding: 24,
+            textAlign: "center",
+            color: "#777",
+          }}
+        >
+          今月の食事記録はありません
+        </div>
+      )}
+    </div>
+  </div>
+
   {/* 体重 */}
   <div
     style={{
@@ -729,58 +771,6 @@ if (page === "health") {
       </div>
     </div>
   </div>
-    {/* 食事量 */}
-  <div
-    style={{
-      minWidth: "100%",
-      scrollSnapAlign: "start",
-      boxSizing: "border-box",
-    }}
-  >
-    <div
-      style={{
-        padding: 18,
-        borderRadius: 16,
-        border: "1px solid #d8e2dc",
-        background: "#fff",
-      }}
-    >
-      <div
-        style={{
-          marginBottom: 14,
-          fontSize: 18,
-          fontWeight: 800,
-        }}
-      >
-        🍚 食事量推移
-      </div>
-
-      {foodDailyLogs.length > 0 ? (
-        <FoodLineChart logs={foodDailyLogs} />
-      ) : (
-        <div
-          style={{
-            padding: 24,
-            textAlign: "center",
-            color: "#777",
-          }}
-        >
-          今月の食事記録はありません
-        </div>
-      )}
-    </div>
-  </div>
-</div>
-
-<div
-  style={{
-    marginTop: 12,
-    textAlign: "center",
-    color: "#89918c",
-    fontSize: 13,
-  }}
->
-  ← 横にスワイプ →
 </div>
    
 </div>
