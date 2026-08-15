@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import WeightLineChart from "../weight/WeightLineChart";
 import type { DiaryCard } from "../DiaryHome";
 
 type Props = {
@@ -219,6 +220,16 @@ const trainingSummaryItems = [
     unit: "回",
   },
 ];
+const weightCard = cards.find(
+  (card) =>
+    card.category === "life" &&
+    card.name === "体重表"
+);
+
+const weightLogs = weightCard
+  ? getLogsByCard(weightCard.id)
+  : [];
+
 
   const lifeSummaries = cards
   .filter(
@@ -573,6 +584,29 @@ if (page === "health") {
 </span>
     </div>
   ))
+)}
+{weightLogs.length > 0 && (
+  <div
+    style={{
+      marginTop: 20,
+      padding: 18,
+      borderRadius: 16,
+      border: "1px solid #d8e2dc",
+      background: "#fff",
+    }}
+  >
+    <div
+      style={{
+        marginBottom: 14,
+        fontSize: 18,
+        fontWeight: 800,
+      }}
+    >
+      📈 体重推移
+    </div>
+
+    <WeightLineChart logs={weightLogs} />
+  </div>
 )}
 {trainingCard && (
   <div
