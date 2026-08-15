@@ -99,12 +99,30 @@ const [mealText, setMealText] = useState("");
 
 
   /* 合計（選択中の月だけ） */
-  const total = useMemo(() => calcTotalHours(logs), [logs]);
+ const total = useMemo(
+  () =>
+    logs.reduce(
+      (sum, log) =>
+        sum +
+        (log.trainingId
+          ? log.hours * (log.trainingSets ?? 1)
+          : log.hours),
+      0
+    ),
+  [logs]
+);
   const todayTotal = useMemo(
   () =>
     logs
       .filter((log) => log.date === dateISO)
-      .reduce((sum, log) => sum + log.hours, 0),
+      .reduce(
+        (sum, log) =>
+          sum +
+          (log.trainingId
+            ? log.hours * (log.trainingSets ?? 1)
+            : log.hours),
+        0
+      ),
   [logs, dateISO]
 );
 const {
