@@ -13,6 +13,7 @@ type TrainingMenu = {
   target: string;
   description: string;
   image: string;
+  recommended: string;
 };
 type TrainingDetail = TrainingMenu & {
   steps: string[];
@@ -21,75 +22,80 @@ type TrainingDetail = TrainingMenu & {
 
 const trainingMenus: TrainingDetail[] = [
   {
-  id: "squat",
-  name: "スクワット",
-  target: "脚・お尻",
-  description: "下半身を中心に鍛える基本メニュー。",
-  image: "/mofu-training-squat.png",
-  steps: [
-    "足を肩幅くらいに開く",
-    "背中を丸めずに腰をゆっくり落とす",
-    "太ももが床と平行になるくらいまでしゃがむ",
-    "かかとで床を押すように元の姿勢へ戻る",
-  ],
-  point: "膝とつま先は同じ方向を意識しろよ🐾",
-},
+    id: "squat",
+    name: "スクワット",
+    target: "脚・お尻",
+    description: "下半身を中心に鍛える基本メニュー。",
+    image: "/mofu-training-squat.png",
+    recommended: "10〜15回 × 2〜3セット",
+    steps: [
+      "足を肩幅くらいに開く",
+      "背中を丸めずに腰をゆっくり落とす",
+      "太ももが床と平行になるくらいまでしゃがむ",
+      "かかとで床を押すように元の姿勢へ戻る",
+    ],
+    point: "膝とつま先は同じ方向を意識しろよ🐾",
+  },
   {
-  id: "push-up",
-  name: "腕立て伏せ",
-  target: "胸・腕",
-  description: "胸や腕を中心に鍛える基本メニュー。",
-  image: "/mofu-training-pushup.png",
-  steps: [
-    "手を肩幅より少し広めについて体を一直線にする",
-    "肘を曲げながら胸をゆっくり床へ近づける",
-    "腰が落ちたり上がったりしないように姿勢を保つ",
-    "床を押して元の姿勢へ戻る",
-  ],
-  point: "頭からかかとまで一直線を意識しろよ🐾",
-},
-{
-  id: "crunch",
-  name: "腹筋",
-  target: "お腹",
-  description: "腹部を中心に鍛えるメニュー。",
-  image: "/mofu-training-crunch.png",
-  steps: [
-    "仰向けになって膝を曲げる",
-    "手は頭の後ろか胸の前に置く",
-    "お腹を縮めるように上半身をゆっくり起こす",
-    "反動を使わずゆっくり元へ戻る",
-  ],
-  point: "首で起き上がるんじゃなくて腹で丸まれよ🐾",
-},
-{
-  id: "plank",
-  name: "プランク",
-  target: "体幹",
-  description: "姿勢を維持しながら体幹を鍛えるメニュー。",
-  image: "/mofu-training-plank.png",
-  steps: [
-    "肘を肩の真下について前腕を床につける",
-    "つま先を立てて体を持ち上げる",
-    "頭からかかとまで一直線を意識する",
-    "お腹に力を入れたまま姿勢を維持する",
-  ],
-  point: "腰を上げすぎても落としすぎてもダメだぞ🐾",
-},
-{
-  id: "lunge",
-  name: "ランジ",
-  target: "脚・お尻",
-  description: "左右の脚を使って下半身を鍛えるメニュー。",
-  image: "/mofu-training-lunge.png",
-  steps: [
-    "まっすぐ立った状態から片脚を前へ踏み出す",
-    "前後の膝を曲げながら腰を真下へ落とす",
-    "前脚の膝がつま先と同じ方向を向くようにする",
-    "前脚で床を押して元の姿勢へ戻る",
-  ],
-  point: "前に突っ込むんじゃなくて真下に沈めよ🐾",
-},
+    id: "push-up",
+    name: "腕立て伏せ",
+    target: "胸・腕",
+    description: "胸や腕を中心に鍛える基本メニュー。",
+    image: "/mofu-training-pushup.png",
+    recommended: "8〜12回 × 2〜3セット",
+    steps: [
+      "手を肩幅より少し広めについて体を一直線にする",
+      "肘を曲げながら胸をゆっくり床へ近づける",
+      "腰が落ちたり上がったりしないように姿勢を保つ",
+      "床を押して元の姿勢へ戻る",
+    ],
+    point: "頭からかかとまで一直線を意識しろよ🐾",
+  },
+  {
+    id: "crunch",
+    name: "腹筋",
+    target: "お腹",
+    description: "腹部を中心に鍛えるメニュー。",
+    image: "/mofu-training-crunch.png",
+    recommended: "10〜15回 × 2〜3セット",
+    steps: [
+      "仰向けになって膝を曲げる",
+      "手は頭の後ろか胸の前に置く",
+      "お腹を縮めるように上半身をゆっくり起こす",
+      "反動を使わずゆっくり元へ戻る",
+    ],
+    point: "首で起き上がるんじゃなくて腹で丸まれよ🐾",
+  },
+  {
+    id: "plank",
+    name: "プランク",
+    target: "体幹",
+    description: "姿勢を維持しながら体幹を鍛えるメニュー。",
+    image: "/mofu-training-plank.png",
+    recommended: "20〜30秒 × 2〜3セット",
+    steps: [
+      "肘を肩の真下について前腕を床につける",
+      "つま先を立てて体を持ち上げる",
+      "頭からかかとまで一直線を意識する",
+      "お腹に力を入れたまま姿勢を維持する",
+    ],
+    point: "腰を上げすぎても落としすぎてもダメだぞ🐾",
+  },
+  {
+    id: "lunge",
+    name: "ランジ",
+    target: "脚・お尻",
+    description: "左右の脚を使って下半身を鍛えるメニュー。",
+    image: "/mofu-training-lunge.png",
+    recommended: "左右8〜12回 × 2〜3セット",
+    steps: [
+      "まっすぐ立った状態から片脚を前へ踏み出す",
+      "前後の膝を曲げながら腰を真下へ落とす",
+      "前脚の膝がつま先と同じ方向を向くようにする",
+      "前脚で床を押して元の姿勢へ戻る",
+    ],
+    point: "前に突っ込むんじゃなくて真下に沈めよ🐾",
+  },
 ];
 
 export default function TrainingPage({
@@ -122,11 +128,15 @@ export default function TrainingPage({
           </h2>
 
           <span style={targetStyle}>
-            {selectedTraining.target}
-          </span>
-        </div>
+  {selectedTraining.target}
+</span>
 
-        <div style={detailBoxStyle}>
+<div style={detailRecommendedStyle}>
+  推奨：{selectedTraining.recommended}
+</div>
+</div>
+
+<div style={detailBoxStyle}>
           <h3 style={detailHeadingStyle}>
             やり方
           </h3>
@@ -217,12 +227,16 @@ export default function TrainingPage({
             </span>
 
             <span style={descriptionStyle}>
-              {training.description}
-            </span>
+  {training.description}
+</span>
 
-            <span style={openTextStyle}>
-              メニューを見る →
-            </span>
+<span style={recommendedStyle}>
+  推奨：{training.recommended}
+</span>
+
+<span style={openTextStyle}>
+  メニューを見る →
+</span>
           </button>
         ))}
       </div>
@@ -414,4 +428,22 @@ const recordButtonStyle: CSSProperties = {
   fontSize: 16,
   fontWeight: 700,
   cursor: "pointer",
+};
+
+const recommendedStyle: CSSProperties = {
+  padding: "6px 10px",
+  borderRadius: 10,
+  background: "#f6f3ed",
+  color: "#555",
+  fontSize: 12,
+  fontWeight: 700,
+};
+
+const detailRecommendedStyle: CSSProperties = {
+  padding: "8px 14px",
+  borderRadius: 12,
+  background: "#f6f3ed",
+  color: "#555",
+  fontSize: 14,
+  fontWeight: 700,
 };
