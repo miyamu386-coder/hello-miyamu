@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import WeightLineChart from "../weight/WeightLineChart";
+import FoodLineChart from "../food/FoodLineChart";
 import type { DiaryCard } from "../DiaryHome";
 
 type Props = {
@@ -266,6 +267,45 @@ const weightLogs = weightCard
       count: logs.length,
     };
   });
+const foodCard = cards.find(
+  (card) =>
+    card.category === "life" &&
+    card.name === "食事量"
+);
+
+const foodLogs = foodCard
+  ? getLogsByCard(foodCard.id)
+  : [];
+  const foodDailyMap = new Map<string, number>();
+
+foodLogs.forEach((log) => {
+  if (
+    typeof log !== "object" ||
+    log === null ||
+    !("date" in log) ||
+    typeof log.date !== "string" ||
+    !("hours" in log) ||
+    typeof log.hours !== "number"
+  ) {
+    return;
+  }
+
+  foodDailyMap.set(
+    log.date,
+    (foodDailyMap.get(log.date) ?? 0) + log.hours
+  );
+});
+
+const foodDailyLogs = Array.from(
+  foodDailyMap.entries()
+)
+  .map(([date, hours]) => ({
+    id: `food-${date}`,
+    date,
+    hours,
+  }))
+  .sort((a, b) => a.date.localeCompare(b.date));
+
 const topWork = workSummaries.reduce<
   (typeof workSummaries)[number] | null
 >((top, item) => {
@@ -585,74 +625,164 @@ if (page === "health") {
     </div>
   ))
 )}
-{weightLogs.length > 0 && (
+<div
+  style={{
+    display: "flex",
+    overflowX: "auto",
+    scrollSnapType: "x mandatory",
+    WebkitOverflowScrolling: "touch",
+    gap: 16,
+    marginTop: 20,
+    scrollbarWidth: "none",
+  }}
+>
+  {/* 体重 */}
   <div
     style={{
-      marginTop: 20,
-      padding: 18,
-      borderRadius: 16,
-      border: "1px solid #d8e2dc",
-      background: "#fff",
+      minWidth: "100%",
+      scrollSnapAlign: "start",
+      boxSizing: "border-box",
     }}
   >
     <div
       style={{
-        marginBottom: 14,
-        fontSize: 18,
-        fontWeight: 800,
+        padding: 18,
+        borderRadius: 16,
+        border: "1px solid #d8e2dc",
+        background: "#fff",
       }}
     >
-      📈 体重推移
-    </div>
+      <div
+        style={{
+          marginBottom: 14,
+          fontSize: 18,
+          fontWeight: 800,
+        }}
+      >
+        📈 体重推移
+      </div>
 
-    <WeightLineChart logs={weightLogs} />
-  </div>
-)}
-{trainingCard && (
-  <div
-    style={{
-      marginTop: 20,
-      padding: 18,
-      borderRadius: 16,
-      border: "1px solid #d8e2dc",
-      background: "#fff",
-    }}
-  >
-    <div
-      style={{
-        marginBottom: 14,
-        fontSize: 18,
-        fontWeight: 800,
-      }}
-    >
-      💪 筋トレ内訳
-    </div>
-
-    <div
-      style={{
-        display: "grid",
-        gap: 10,
-      }}
-    >
-      {trainingSummaryItems.map((item) => (
+      {weightLogs.length > 0 ? (
+        <WeightLineChart logs={weightLogs} />
+      ) : (
         <div
-          key={item.id}
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            padding: 24,
+            textAlign: "center",
+            color: "#777",
           }}
         >
-          <strong>{item.name}</strong>
-
-          <span>
-            {trainingTotals[item.id]} {item.unit}
-          </span>
+          今月の体重記録はありません
         </div>
-      ))}
+      )}
     </div>
   </div>
-)}
+
+  {/* 筋トレ */}
+  <div
+    style={{
+      minWidth: "100%",
+      scrollSnapAlign: "start",
+      boxSizing: "border-box",
+    }}
+  >
+    <div
+      style={{
+        padding: 18,
+        borderRadius: 16,
+        border: "1px solid #d8e2dc",
+        background: "#fff",
+      }}
+    >
+      <div
+        style={{
+          marginBottom: 14,
+          fontSize: 18,
+          fontWeight: 800,
+        }}
+      >
+        💪 筋トレ内訳
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gap: 10,
+        }}
+      >
+        {trainingSummaryItems.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <strong>{item.name}</strong>
+
+            <span>
+              {trainingTotals[item.id]} {item.unit}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+    {/* 食事量 */}
+  <div
+    style={{
+      minWidth: "100%",
+      scrollSnapAlign: "start",
+      boxSizing: "border-box",
+    }}
+  >
+    <div
+      style={{
+        padding: 18,
+        borderRadius: 16,
+        border: "1px solid #d8e2dc",
+        background: "#fff",
+      }}
+    >
+      <div
+        style={{
+          marginBottom: 14,
+          fontSize: 18,
+          fontWeight: 800,
+        }}
+      >
+        🍚 食事量推移
+      </div>
+
+      {foodDailyLogs.length > 0 ? (
+        <FoodLineChart logs={foodDailyLogs} />
+      ) : (
+        <div
+          style={{
+            padding: 24,
+            textAlign: "center",
+            color: "#777",
+          }}
+        >
+          今月の食事記録はありません
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
+<div
+  style={{
+    marginTop: 12,
+    textAlign: "center",
+    color: "#89918c",
+    fontSize: 13,
+  }}
+>
+  ← 横にスワイプ →
+</div>
+   
 </div>
       </div>
     </main>
