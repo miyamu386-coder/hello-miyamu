@@ -72,43 +72,90 @@ export default function DiaryHome({
     onSelect(targetCard);
   };
 
-  const trainingNames: Record<string, string> = {
-    squat: "スクワット",
-    "push-up": "腕立て伏せ",
-    crunch: "腹筋",
-    plank: "プランク",
-    lunge: "ランジ",
-  };
+  const exerciseRecords: Record<
+  string,
+  {
+    name: string;
+    cardName: "筋トレ" | "ストレッチ";
+  }
+> = {
+  squat: {
+    name: "スクワット",
+    cardName: "筋トレ",
+  },
+  "push-up": {
+    name: "腕立て伏せ",
+    cardName: "筋トレ",
+  },
+  crunch: {
+    name: "腹筋",
+    cardName: "筋トレ",
+  },
+  plank: {
+    name: "プランク",
+    cardName: "筋トレ",
+  },
+  lunge: {
+    name: "ランジ",
+    cardName: "筋トレ",
+  },
 
-  const openTrainingRecord = (
-    trainingId: string
-  ) => {
-    const trainingName =
-      trainingNames[trainingId];
+  "stretch-neck": {
+    name: "首・肩",
+    cardName: "ストレッチ",
+  },
+  "stretch-chest": {
+    name: "胸・肩",
+    cardName: "ストレッチ",
+  },
+  "stretch-back": {
+    name: "背中",
+    cardName: "ストレッチ",
+  },
+  "stretch-hip": {
+    name: "股関節",
+    cardName: "ストレッチ",
+  },
+  "stretch-hamstring": {
+    name: "もも裏",
+    cardName: "ストレッチ",
+  },
+  "stretch-calf": {
+    name: "ふくらはぎ",
+    cardName: "ストレッチ",
+  },
+};
 
-    const trainingCard = cards.find(
-      (card) => card.name === "筋トレ"
+const openExerciseRecord = (
+  exerciseId: string
+) => {
+  const exercise =
+    exerciseRecords[exerciseId];
+
+  if (!exercise) {
+    window.alert(
+      "運動メニューが見つかりません"
     );
+    return;
+  }
 
-    if (!trainingName) {
-      window.alert(
-        "筋トレメニューが見つかりません"
-      );
-      return;
-    }
+  const exerciseCard = cards.find(
+    (card) =>
+      card.name === exercise.cardName
+  );
 
-    if (!trainingCard) {
-      window.alert(
-        "「筋トレ」カードが見つかりません"
-      );
-      return;
-    }
+  if (!exerciseCard) {
+    window.alert(
+      `「${exercise.cardName}」カードが見つかりません`
+    );
+    return;
+  }
 
-    onSelect({
-      ...trainingCard,
-      name: trainingName,
-    });
-  };
+  onSelect({
+    ...exerciseCard,
+    name: exercise.name,
+  });
+};
 
   if (isBookOpen) {
     return (
@@ -131,19 +178,19 @@ export default function DiaryHome({
     );
   }
 
-  if (isTrainingOpen) {
-    return (
-      <TrainingPage
-        onBack={() =>
-          setIsTrainingOpen(false)
-        }
-        onSelectTraining={(trainingId) => {
-          setIsTrainingOpen(false);
-          openTrainingRecord(trainingId);
-        }}
-      />
-    );
-  }
+if (isTrainingOpen) {
+  return (
+    <TrainingPage
+      onBack={() =>
+        setIsTrainingOpen(false)
+      }
+      onSelectExercise={(exerciseId) => {
+        setIsTrainingOpen(false);
+        openExerciseRecord(exerciseId);
+      }}
+    />
+  );
+}
 
   return (
     <section>

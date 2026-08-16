@@ -8,7 +8,7 @@ import {
 
 type Props = {
   onBack: () => void;
-  onSelectTraining: (trainingId: string) => void;
+  onSelectExercise: (exerciseId: string) => void;
 };
 
 type ExerciseMenu = {
@@ -198,7 +198,7 @@ const stretchMenus: ExerciseDetail[] = [
 
 export default function TrainingPage({
   onBack,
-  onSelectTraining,
+  onSelectExercise,
 }: Props) {
 const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -387,7 +387,7 @@ const handlePointerUp = (
           type="button"
           style={recordButtonStyle}
           onClick={() =>
-            onSelectTraining(
+            onSelectExercise(
               selectedExercise.id
             )
           }
@@ -477,11 +477,14 @@ const handlePointerUp = (
                 <ExerciseCard
                   key={exercise.id}
                   exercise={exercise}
-                  onClick={() =>
-                    setSelectedExercise(
-                      exercise
-                    )
-                  }
+                 onClick={() => {
+  if (didDragRef.current) {
+    didDragRef.current = false;
+    return;
+  }
+
+  setSelectedExercise(exercise);
+}}
                 />
               )
             )}
