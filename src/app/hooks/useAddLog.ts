@@ -41,12 +41,19 @@ export function useAddLog({
   showAddedToast,
   mealType,
 }: UseAddLogProps) {
-const trainingIdMap: Record<string, string> = {
+const exerciseIdMap: Record<string, string> = {
   スクワット: "squat",
   腕立て伏せ: "push-up",
   腹筋: "crunch",
   プランク: "plank",
   ランジ: "lunge",
+
+  "首・肩": "stretch-neck",
+  "胸・肩": "stretch-chest",
+  背中: "stretch-back",
+  股関節: "stretch-hip",
+  もも裏: "stretch-hamstring",
+  ふくらはぎ: "stretch-calf",
 };
 
   const inputPreviewHours = useMemo(() => {
@@ -72,7 +79,7 @@ const trainingIdMap: Record<string, string> = {
   const addLog = () => {
   const hours = parseHours(hoursInput);
   const sets = Number(trainingSets);
-  const trainingId = trainingIdMap[cardName];
+  const trainingId = exerciseIdMap[cardName];
     if (!Number.isFinite(hours) || hours <= 0) {
       return;
     }

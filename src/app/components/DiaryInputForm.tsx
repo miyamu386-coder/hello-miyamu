@@ -141,17 +141,38 @@ const calculateMealKcal = () => {
 
   onHoursChange(String(totalKcal));
 };
-const trainingIds = [
+const exerciseNames = [
   "スクワット",
   "腕立て伏せ",
   "腹筋",
   "プランク",
   "ランジ",
+  "首・肩",
+  "胸・肩",
+  "背中",
+  "股関節",
+  "もも裏",
+  "ふくらはぎ",
 ];
 
-const isTrainingCard = trainingIds.includes(cardName);
+const stretchNames = [
+  "首・肩",
+  "胸・肩",
+  "背中",
+  "股関節",
+  "もも裏",
+  "ふくらはぎ",
+];
 
-const isPlank = cardName === "プランク";
+const isExerciseCard =
+  exerciseNames.includes(cardName);
+
+const isStretchCard =
+  stretchNames.includes(cardName);
+
+const isTimedExercise =
+  cardName === "プランク" ||
+  isStretchCard;
 
 
 const placeholder =
@@ -379,7 +400,7 @@ const placeholder =
 </details>
   </div>
 )}
-{isTrainingCard && (
+{isExerciseCard && (
   <div
     style={{
       marginBottom: 14,
@@ -389,11 +410,13 @@ const placeholder =
       color: "#56605a",
     }}
   >
-    {isPlank ? "秒数とセット数を入力" : "回数とセット数を入力"}
+    {isTimedExercise
+      ? "秒数とセット数を入力"
+      : "回数とセット数を入力"}
   </div>
 )}
 
-{isTrainingCard && (
+{isExerciseCard && (
   <div
     style={{
       marginTop: 12,
@@ -476,11 +499,11 @@ const placeholder =
     color: "#56605a",
   }}
 >
-  {isTrainingCard
-    ? isPlank
-      ? "秒"
-      : "回"
-    : unit}
+ {isExerciseCard
+  ? isTimedExercise
+    ? "秒"
+    : "回"
+  : unit}
 </span>
       </div>
 
@@ -494,8 +517,8 @@ const placeholder =
           }}
         >
         入力中：{inputPreviewHours}{" "}
-{isTrainingCard
-  ? isPlank
+{isExerciseCard
+  ? isTimedExercise
     ? "秒"
     : "回"
   : unit}
