@@ -7,7 +7,44 @@ import type {
 
 const STORAGE_KEY = "miyamu-diary-cards";
 
-const createDefaultCards = (): DiaryCard[] => [];
+const createDefaultCards = (): DiaryCard[] => [
+  {
+    id: "default-food",
+    name: "食事量",
+    category: "life",
+    unit: "kcal",
+  },
+  {
+    id: "default-weight",
+    name: "体重表",
+    category: "life",
+    unit: "kg",
+  },
+  {
+    id: "default-training",
+    name: "筋トレ",
+    category: "life",
+    unit: "回数",
+  },
+  {
+    id: "default-stretch",
+    name: "ストレッチ",
+    category: "life",
+    unit: "回数",
+  },
+  {
+    id: "default-sleep",
+    name: "睡眠時間",
+    category: "life",
+    unit: "時間",
+  },
+  {
+    id: "default-water",
+    name: "水分量",
+    category: "life",
+    unit: "回数",
+  },
+];
 
 export function useDiaryCards() {
   const [cards, setCards] = useState<DiaryCard[]>([]);
@@ -15,15 +52,28 @@ export function useDiaryCards() {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
 
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as DiaryCard[];
-        setCards(parsed);
-        return;
-      } catch {
-        // 保存データが壊れていた場合は初期カードを使用
-      }
-    }
+   if (saved) {
+  try {
+    const parsed = JSON.parse(saved) as DiaryCard[];
+    const defaults = createDefaultCards();
+
+    const merged = [
+      ...parsed,
+      ...defaults.filter(
+        (defaultCard) =>
+          !parsed.some(
+            (card) =>
+              card.name === defaultCard.name
+          )
+      ),
+    ];
+
+    setCards(merged);
+    return;
+  } catch {
+    // 保存データが壊れていた場合は初期カードを使用
+  }
+}
 
     setCards(createDefaultCards());
   }, []);

@@ -106,6 +106,7 @@ const healthSummaries = cards
         card.name === "体重表" ||
         card.name === "食事量" ||
         card.name === "筋トレ" ||
+        card.name === "ストレッチ" ||
         card.name === "睡眠時間" ||
         card.name === "水分量"
       )
@@ -232,7 +233,7 @@ const weightLogs = weightCard
   : [];
 
 
-  const lifeSummaries = cards
+ const lifeSummaries = cards
   .filter(
     (card) =>
       card.category === "life" &&
@@ -240,6 +241,7 @@ const weightLogs = weightCard
         card.name === "体重表" ||
         card.name === "食事量" ||
         card.name === "筋トレ" ||
+        card.name === "ストレッチ" ||
         card.name === "睡眠時間" ||
         card.name === "水分量"
       )
