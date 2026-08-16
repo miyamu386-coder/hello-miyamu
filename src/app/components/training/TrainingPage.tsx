@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 
 type Props = {
   onBack: () => void;
   onSelectTraining: (trainingId: string) => void;
 };
 
-type TrainingMenu = {
+type ExerciseMenu = {
   id: string;
   name: string;
   target: string;
@@ -15,12 +19,13 @@ type TrainingMenu = {
   image: string;
   recommended: string;
 };
-type TrainingDetail = TrainingMenu & {
+
+type ExerciseDetail = ExerciseMenu & {
   steps: string[];
   point: string;
 };
 
-const trainingMenus: TrainingDetail[] = [
+const trainingMenus: ExerciseDetail[] = [
   {
     id: "squat",
     name: "スクワット",
@@ -98,18 +103,234 @@ const trainingMenus: TrainingDetail[] = [
   },
 ];
 
+const stretchMenus: ExerciseDetail[] = [
+  {
+    id: "stretch-neck",
+    name: "首・肩",
+    target: "首・肩",
+    description: "首から肩まわりをゆっくり伸ばすストレッチ。",
+    image: "/mofu-stretch-neck.png",
+    recommended: "左右20〜30秒",
+    steps: [
+      "背筋を伸ばして座るか立つ",
+      "片手を頭の横に軽く添える",
+      "頭をゆっくり横へ倒す",
+      "首の横が伸びた位置で姿勢を保つ",
+    ],
+    point: "力ずくで引っ張るなよ。重さを乗せるくらいで十分だ🐾",
+  },
+  {
+    id: "stretch-chest",
+    name: "胸・肩",
+    target: "胸・肩",
+    description: "胸を開いて肩まわりを伸ばすストレッチ。",
+    image: "/mofu-stretch-chest.png",
+    recommended: "20〜30秒 × 2回",
+    steps: [
+      "背筋を伸ばして立つ",
+      "両手を体の後ろで組む",
+      "肩甲骨を寄せるように胸を開く",
+      "無理のない位置で姿勢を保つ",
+    ],
+    point: "腰を反らすんじゃなくて胸を開けよ🐾",
+  },
+  {
+    id: "stretch-back",
+    name: "背中",
+    target: "背中",
+    description: "背中全体をゆっくり伸ばすストレッチ。",
+    image: "/mofu-stretch-back.png",
+    recommended: "20〜30秒 × 2回",
+    steps: [
+      "両手を体の前で組む",
+      "手のひらを前へ押し出す",
+      "背中を軽く丸める",
+      "肩甲骨の間が伸びる位置で姿勢を保つ",
+    ],
+    point: "肩に力を入れすぎず、背中を広げる感じだぞ🐾",
+  },
+  {
+    id: "stretch-hip",
+    name: "股関節",
+    target: "股関節・お尻",
+    description: "股関節まわりをほぐして動かしやすくする。",
+    image: "/mofu-stretch-hip.png",
+    recommended: "左右20〜30秒",
+    steps: [
+      "床に座って片脚を前に曲げる",
+      "反対側の脚を後ろへ伸ばす",
+      "背筋を伸ばしたまま上体を前へ倒す",
+      "お尻から股関節が伸びる位置で保つ",
+    ],
+    point: "痛いところまで攻めなくていい。気持ちいい範囲で止めろよ🐾",
+  },
+  {
+    id: "stretch-hamstring",
+    name: "もも裏",
+    target: "太もも裏",
+    description: "太ももの裏側をゆっくり伸ばすストレッチ。",
+    image: "/mofu-stretch-hamstring.png",
+    recommended: "左右20〜30秒",
+    steps: [
+      "片脚を前へ伸ばす",
+      "反対側の膝を軽く曲げる",
+      "背筋を伸ばしたまま股関節から前へ倒れる",
+      "太ももの裏が伸びる位置で姿勢を保つ",
+    ],
+    point: "背中を丸めて無理やり届かせなくていいぞ🐾",
+  },
+  {
+    id: "stretch-calf",
+    name: "ふくらはぎ",
+    target: "ふくらはぎ",
+    description: "ふくらはぎから足首まわりを伸ばす。",
+    image: "/mofu-stretch-calf.png",
+    recommended: "左右20〜30秒",
+    steps: [
+      "壁に両手をつく",
+      "片脚を後ろへ引く",
+      "後ろ脚のかかとを床につける",
+      "前脚へ体重を移しながらふくらはぎを伸ばす",
+    ],
+    point: "後ろ脚のかかとを浮かせないのがコツだぞ🐾",
+  },
+];
+
 export default function TrainingPage({
   onBack,
   onSelectTraining,
 }: Props) {
-    const [selectedTraining, setSelectedTraining] =
-  useState<TrainingDetail | null>(null);
-    if (selectedTraining) {
+const scrollRef = useRef<HTMLDivElement>(null);
+
+const dragStartXRef = useRef(0);
+const dragStartScrollLeftRef = useRef(0);
+const isDraggingRef = useRef(false);
+const didDragRef = useRef(false);
+
+const [selectedExercise, setSelectedExercise] =
+  useState<ExerciseDetail | null>(null);
+
+const [currentPage, setCurrentPage] =
+  useState(0);
+
+const handleScroll = () => {
+  const container = scrollRef.current;
+
+  if (!container) {
+    return;
+  }
+
+  const pageWidth = container.clientWidth;
+
+  if (pageWidth === 0) {
+    return;
+  }
+
+  const nextPage = Math.round(
+    container.scrollLeft / pageWidth
+  );
+
+  setCurrentPage(
+    Math.max(0, Math.min(1, nextPage))
+  );
+};
+
+const handlePointerDown = (
+  event: React.PointerEvent<HTMLDivElement>
+) => {
+  const container = scrollRef.current;
+
+  if (!container) {
+    return;
+  }
+
+  isDraggingRef.current = true;
+  didDragRef.current = false;
+
+  dragStartXRef.current = event.clientX;
+  dragStartScrollLeftRef.current =
+    container.scrollLeft;
+
+  container.setPointerCapture(
+    event.pointerId
+  );
+};
+
+const handlePointerMove = (
+  event: React.PointerEvent<HTMLDivElement>
+) => {
+  const container = scrollRef.current;
+
+  if (
+    !container ||
+    !isDraggingRef.current
+  ) {
+    return;
+  }
+
+  const distance =
+    event.clientX -
+    dragStartXRef.current;
+
+  if (Math.abs(distance) > 6) {
+    didDragRef.current = true;
+  }
+
+  container.scrollLeft =
+    dragStartScrollLeftRef.current -
+    distance;
+};
+
+const handlePointerUp = (
+  event: React.PointerEvent<HTMLDivElement>
+) => {
+  const container = scrollRef.current;
+
+  if (!container) {
+    return;
+  }
+
+  isDraggingRef.current = false;
+
+  if (
+    container.hasPointerCapture(
+      event.pointerId
+    )
+  ) {
+    container.releasePointerCapture(
+      event.pointerId
+    );
+  }
+
+  const pageWidth = container.clientWidth;
+
+  if (pageWidth === 0) {
+    return;
+  }
+
+  const nextPage = Math.round(
+    container.scrollLeft / pageWidth
+  );
+
+  const safePage = Math.max(
+    0,
+    Math.min(1, nextPage)
+  );
+
+  container.scrollTo({
+    left: safePage * pageWidth,
+    behavior: "smooth",
+  });
+
+  setCurrentPage(safePage);
+};
+
+  if (selectedExercise) {
     return (
       <section style={pageStyle}>
         <button
           type="button"
-          onClick={() => setSelectedTraining(null)}
+          onClick={() => setSelectedExercise(null)}
           style={backButtonStyle}
         >
           ← メニューへ戻る
@@ -117,42 +338,48 @@ export default function TrainingPage({
 
         <div style={detailHeaderStyle}>
           <img
-            src={selectedTraining.image}
-            alt={`${selectedTraining.name}モフ`}
+            src={selectedExercise.image}
+            alt={`${selectedExercise.name}モフ`}
             draggable={false}
             style={detailImageStyle}
           />
 
           <h2 style={detailTitleStyle}>
-            {selectedTraining.name}
+            {selectedExercise.name}
           </h2>
 
           <span style={targetStyle}>
-  {selectedTraining.target}
-</span>
+            {selectedExercise.target}
+          </span>
 
-<div style={detailRecommendedStyle}>
-  推奨：{selectedTraining.recommended}
-</div>
-</div>
+          <div style={detailRecommendedStyle}>
+            推奨：{selectedExercise.recommended}
+          </div>
+        </div>
 
-<div style={detailBoxStyle}>
+        <div style={detailBoxStyle}>
           <h3 style={detailHeadingStyle}>
             やり方
           </h3>
 
           <ol style={stepsStyle}>
-            {selectedTraining.steps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
+            {selectedExercise.steps.map(
+              (step) => (
+                <li key={step}>
+                  {step}
+                </li>
+              )
+            )}
           </ol>
         </div>
 
         <div style={pointBoxStyle}>
-          <strong>モフのポイント🐾</strong>
+          <strong>
+            モフのポイント🐾
+          </strong>
 
           <div style={pointTextStyle}>
-            {selectedTraining.point}
+            {selectedExercise.point}
           </div>
         </div>
 
@@ -160,7 +387,9 @@ export default function TrainingPage({
           type="button"
           style={recordButtonStyle}
           onClick={() =>
-            onSelectTraining(selectedTraining.id)
+            onSelectTraining(
+              selectedExercise.id
+            )
           }
         >
           記録する
@@ -168,7 +397,6 @@ export default function TrainingPage({
       </section>
     );
   }
-
 
   return (
     <section style={pageStyle}>
@@ -181,66 +409,151 @@ export default function TrainingPage({
           ← 部屋へ戻る
         </button>
 
-        <h2 style={titleStyle}>筋トレメニュー</h2>
+        <h2 style={titleStyle}>
+          {currentPage === 0
+            ? "筋トレメニュー"
+            : "ストレッチ"}
+        </h2>
       </div>
 
       <div style={mofuBoxStyle}>
         <img
-  src="/mofu-training.png"
-  alt="トレーニングモフ"
-  draggable={false}
-  style={trainingMofuStyle}
-/>
+          src="/mofu-training.png"
+          alt="トレーニングモフ"
+          draggable={false}
+          style={trainingMofuStyle}
+        />
 
         <div>
           <strong style={mofuTitleStyle}>
-            今日はどこ鍛えるんだ？
+            {currentPage === 0
+              ? "今日はどこ鍛えるんだ？"
+              : "今日はどこ伸ばすんだ？"}
           </strong>
 
           <div style={mofuTextStyle}>
-            無理せず続けろよ🐾
+            {currentPage === 0
+              ? "無理せず続けろよ🐾"
+              : "痛いところまで伸ばすなよ🐾"}
           </div>
         </div>
       </div>
 
-      <div style={gridStyle}>
-        {trainingMenus.map((training) => (
-          <button
-            key={training.id}
-            type="button"
-            style={cardStyle}
-            onClick={() => setSelectedTraining(training)}
-          >
-<img
-  src={training.image}
-  alt={`${training.name}モフ`}
-  draggable={false}
-  style={trainingImageStyle}
-/>
+      
+        <div
+  ref={scrollRef}
+  onScroll={handleScroll}
+  onPointerDown={handlePointerDown}
+  onPointerMove={handlePointerMove}
+  onPointerUp={handlePointerUp}
+  onPointerCancel={handlePointerUp}
+  style={swiperStyle}
+>
+        <div style={slideStyle}>
+          <div style={gridStyle}>
+            {trainingMenus.map(
+              (exercise) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                 onClick={() => {
+  if (didDragRef.current) {
+    didDragRef.current = false;
+    return;
+  }
 
-            <strong style={nameStyle}>
-              {training.name}
-            </strong>
+  setSelectedExercise(exercise);
+}}
+                />
+              )
+            )}
+          </div>
+        </div>
 
-            <span style={targetStyle}>
-              {training.target}
-            </span>
+        <div style={slideStyle}>
+          <div style={gridStyle}>
+            {stretchMenus.map(
+              (exercise) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  onClick={() =>
+                    setSelectedExercise(
+                      exercise
+                    )
+                  }
+                />
+              )
+            )}
+          </div>
+        </div>
+      </div>
 
-            <span style={descriptionStyle}>
-  {training.description}
-</span>
-
-<span style={recommendedStyle}>
-  推奨：{training.recommended}
-</span>
-
-<span style={openTextStyle}>
-  メニューを見る →
-</span>
-          </button>
+      <div style={indicatorStyle}>
+        {[0, 1].map((index) => (
+          <span
+            key={index}
+            style={{
+              width:
+                currentPage === index
+                  ? 22
+                  : 8,
+              height: 8,
+              borderRadius: 999,
+              background:
+                currentPage === index
+                  ? "#4f7c5b"
+                  : "#c8c8c8",
+              transition:
+                "width 0.2s ease",
+            }}
+          />
         ))}
       </div>
     </section>
+  );
+}
+
+function ExerciseCard({
+  exercise,
+  onClick,
+}: {
+  exercise: ExerciseDetail;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      style={cardStyle}
+      onClick={onClick}
+    >
+      <img
+        src={exercise.image}
+        alt={`${exercise.name}モフ`}
+        draggable={false}
+        style={trainingImageStyle}
+      />
+
+      <strong style={nameStyle}>
+        {exercise.name}
+      </strong>
+
+      <span style={targetStyle}>
+        {exercise.target}
+      </span>
+
+      <span style={descriptionStyle}>
+        {exercise.description}
+      </span>
+
+      <span style={recommendedStyle}>
+        推奨：{exercise.recommended}
+      </span>
+
+      <span style={openTextStyle}>
+        メニューを見る →
+      </span>
+    </button>
   );
 }
 
@@ -250,6 +563,7 @@ const pageStyle: CSSProperties = {
   margin: "0 auto",
   padding: "20px 16px 40px",
   boxSizing: "border-box",
+  overflow: "hidden",
 };
 
 const headerStyle: CSSProperties = {
@@ -293,7 +607,6 @@ const trainingMofuStyle: CSSProperties = {
   flexShrink: 0,
 };
 
-
 const mofuTitleStyle: CSSProperties = {
   display: "block",
   marginBottom: 4,
@@ -305,9 +618,33 @@ const mofuTextStyle: CSSProperties = {
   color: "#666",
 };
 
+const swiperStyle: CSSProperties = {
+  display: "flex",
+  width: "100%",
+  maxWidth: "100%",
+  overflowX: "auto",
+  overflowY: "hidden",
+  scrollSnapType: "x mandatory",
+  WebkitOverflowScrolling: "touch",
+  scrollbarWidth: "none",
+  overscrollBehaviorX: "contain",
+  touchAction: "pan-x pan-y",
+  cursor: "grab",
+  userSelect: "none",
+};
+
+const slideStyle: CSSProperties = {
+  flex: "0 0 100%",
+  width: "100%",
+  scrollSnapAlign: "start",
+  scrollSnapStop: "always",
+  boxSizing: "border-box",
+};
+
 const gridStyle: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gridTemplateColumns:
+    "repeat(2, minmax(0, 1fr))",
   gap: 12,
 };
 
@@ -324,7 +661,8 @@ const cardStyle: CSSProperties = {
   background: "#ffffff",
   cursor: "pointer",
   textAlign: "center",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+  boxShadow:
+    "0 4px 12px rgba(0,0,0,0.05)",
 };
 
 const trainingImageStyle: CSSProperties = {
@@ -363,6 +701,14 @@ const openTextStyle: CSSProperties = {
   fontWeight: 700,
   color: "#4f7c5b",
 };
+
+const indicatorStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "center",
+  gap: 8,
+  marginTop: 16,
+};
+
 const detailHeaderStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",

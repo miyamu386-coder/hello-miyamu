@@ -123,7 +123,7 @@ const trainingIdMap: Record<string, string> = {
     });
 
     setHoursInput("");
-    // まだ setTrainingSets は受け取ってないので次で追加
+    setTrainingSets("");
     setMealText?.("");
 
     requestAnimationFrame(() => {
