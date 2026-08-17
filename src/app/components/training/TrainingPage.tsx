@@ -187,7 +187,7 @@ const stretchMenus: ExerciseDetail[] = [
   image: "/mofu-stretch-calf.png",
   recommended: "左右20〜30秒",
   steps: [
-    "壁に両手をつき、片脚を後ろへ引く",
+    "片脚を後ろへ引く",
     "後ろ脚の膝を伸ばし、かかとを床につける",
     "つま先をまっすぐ前に向ける",
     "前脚の膝をゆっくり曲げる",
