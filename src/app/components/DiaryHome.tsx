@@ -9,6 +9,7 @@ export type DiaryCategory = "work" | "life";
 export type DiaryUnit =
   | "時間"
   | "分"
+  | "秒"
   | "回数"
   | "kcal"
   | "kg";
@@ -151,9 +152,15 @@ const openExerciseRecord = (
     return;
   }
 
+  const isStretch =
+    exerciseId.startsWith("stretch-");
+
   onSelect({
     ...exerciseCard,
     name: exercise.name,
+    unit: isStretch
+      ? "秒"
+      : exerciseCard.unit,
   });
 };
 
@@ -367,24 +374,25 @@ function DiaryCardSection({
 
             const unitInput =
               window.prompt(
-                "単位を入力してください（時間・分・回数・kcal・kg）",
+                "単位を入力してください（時間・分・秒・回数・kcal・kg）",
                 category === "work"
                   ? "時間"
                   : "kcal"
               );
 
             if (
-              unitInput !== "時間" &&
-              unitInput !== "分" &&
-              unitInput !== "回数" &&
-              unitInput !== "kcal" &&
-              unitInput !== "kg"
-            ) {
-              window.alert(
-                "単位は「時間」「分」「回数」「kcal」「kg」から入力してください"
-              );
-              return;
-            }
+  unitInput !== "時間" &&
+  unitInput !== "分" &&
+  unitInput !== "秒" &&
+  unitInput !== "回数" &&
+  unitInput !== "kcal" &&
+  unitInput !== "kg"
+) {
+window.alert(
+  "単位は「時間」「分」「秒」「回数」「kcal」「kg」から入力してください"
+);
+  return;
+}
 
             onAddCard(
               category,

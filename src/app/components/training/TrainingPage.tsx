@@ -180,20 +180,22 @@ const stretchMenus: ExerciseDetail[] = [
     point: "背中を丸めて無理やり届かせなくていいぞ🐾",
   },
   {
-    id: "stretch-calf",
-    name: "ふくらはぎ",
-    target: "ふくらはぎ",
-    description: "ふくらはぎから足首まわりを伸ばす。",
-    image: "/mofu-stretch-calf.png",
-    recommended: "左右20〜30秒",
-    steps: [
-      "壁に両手をつく",
-      "片脚を後ろへ引く",
-      "後ろ脚のかかとを床につける",
-      "前脚へ体重を移しながらふくらはぎを伸ばす",
-    ],
-    point: "後ろ脚のかかとを浮かせないのがコツだぞ🐾",
-  },
+  id: "stretch-calf",
+  name: "ふくらはぎ",
+  target: "ふくらはぎ",
+  description: "ふくらはぎから足首まわりを伸ばす。",
+  image: "/mofu-stretch-calf.png",
+  recommended: "左右20〜30秒",
+  steps: [
+    "壁に両手をつき、片脚を後ろへ引く",
+    "後ろ脚の膝を伸ばし、かかとを床につける",
+    "つま先をまっすぐ前に向ける",
+    "前脚の膝をゆっくり曲げる",
+    "ふくらはぎの伸びを感じた位置で20〜30秒保つ",
+    "反対側も同じように行う",
+  ],
+  point: "後ろ脚のかかとを浮かせず、つま先をまっすぐ向けろよ🐾",
+},
 ];
 
 export default function TrainingPage({
