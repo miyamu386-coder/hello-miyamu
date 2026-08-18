@@ -34,15 +34,22 @@ export default function BackupButton({
       const lowerKey = key.toLowerCase();
 
       const isDiaryLog =
-        key.startsWith(storageKeyBase);
+  key.startsWith(storageKeyBase);
 
-      const isDiaryCard =
-        lowerKey.includes("diary") &&
-        lowerKey.includes("card");
+const isDiaryCard =
+  lowerKey.includes("diary") &&
+  lowerKey.includes("card");
 
-      if (!isDiaryLog && !isDiaryCard) {
-        continue;
-      }
+const isCalendarSchedule =
+  key === "miyamu_diary_schedules_v1";
+
+if (
+  !isDiaryLog &&
+  !isDiaryCard &&
+  !isCalendarSchedule
+) {
+  continue;
+}
 
       const raw = localStorage.getItem(key);
 
