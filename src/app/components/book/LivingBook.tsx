@@ -157,8 +157,6 @@ export default function LivingBook({
     "食事量",
     "筋トレ",
     "ストレッチ",
-    "睡眠時間",
-    "水分量",
   ];
 
   const healthSummaries = cards
