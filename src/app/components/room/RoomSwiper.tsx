@@ -172,6 +172,9 @@ export default function RoomSwiper({
     isMofuJumping,
     setIsMofuJumping,
   ] = useState(false);
+  const [mofuTapCount, setMofuTapCount] =
+    useState(0);
+  
 
   const showMessageForFourSeconds =
     () => {
@@ -274,6 +277,18 @@ export default function RoomSwiper({
   }, []);
 
   const mofuMessage = useMemo(() => {
+    if (mofuTapCount >= 8) {
+  return "触りすぎだ…";
+}
+
+if (mofuTapCount >= 4) {
+  return "なんだ？";
+}
+
+if (mofuTapCount >= 1) {
+  return "……ん？";
+}
+
     const today = new Date();
 
     const tomorrow =
@@ -422,9 +437,10 @@ export default function RoomSwiper({
 
     return "今日は何しようかな〜🐾";
   }, [
-    schedules,
-    currentRoomIndex,
-  ]);
+  schedules,
+  currentRoomIndex,
+  mofuTapCount,
+]);
 
   const handleScroll = () => {
     const container =
@@ -470,8 +486,10 @@ export default function RoomSwiper({
     });
   };
 
-  const handleMofuClick = () => {
-    showMessageForFourSeconds();
+const handleMofuClick = () => {
+  setMofuTapCount((count) => count + 1);
+
+  showMessageForFourSeconds();
 
     setIsMofuJumping(false);
 
@@ -497,6 +515,8 @@ export default function RoomSwiper({
         }, 600);
     });
   };
+
+
 
   return (
     <section
@@ -779,35 +799,36 @@ export default function RoomSwiper({
               }}
             >
               {showMofuMessage && (
-                <div
-                  style={{
-                    position:
-                      "absolute",
-                    bottom: "105%",
-                    left: "50%",
-                    transform:
-                      "translateX(-50%)",
-                    width: 220,
-                    padding:
-                      "8px 10px",
-                    borderRadius:
-                      12,
-                    background:
-                      "white",
-                    boxShadow:
-                      "0 2px 8px rgba(0,0,0,0.15)",
-                    fontSize: 13,
-                    lineHeight: 1.5,
-                    textAlign:
-                      "center",
-                    color: "#333",
-                    pointerEvents:
-                      "none",
-                  }}
-                >
-                  {mofuMessage}
-                </div>
-              )}
+  <div
+    style={{
+      position: "absolute",
+      bottom: "105%",
+      left: "50%",
+      transform:
+        "translateX(-50%)",
+      width: "fit-content",
+      minWidth: 70,
+      maxWidth: 150,
+      padding:
+        "5px 8px",
+      borderRadius:
+        10,
+      background:
+        "white",
+      boxShadow:
+        "0 2px 8px rgba(0,0,0,0.15)",
+      fontSize: 12,
+      lineHeight: 1.5,
+      textAlign:
+        "center",
+      color: "#333",
+      pointerEvents:
+        "none",
+    }}
+  >
+    {mofuMessage}
+  </div>
+)}
 
               <div
                 style={{
