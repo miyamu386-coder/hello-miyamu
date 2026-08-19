@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import WeightLineChart from "../weight/WeightLineChart";
 import FoodLineChart from "../food/FoodLineChart";
+import { useEffect, useState } from "react";
+import { HealthKit } from "../../lib/healthkit";
 import type { DiaryCard } from "../DiaryHome";
 
 type Props = {
@@ -30,6 +31,29 @@ export default function LivingBook({
 
   const [bookYm, setBookYm] =
     useState(currentYm);
+  const [steps, setSteps] =
+    useState<number | null>(null);
+  useEffect(() => {
+  if (page !== "healthcare") {
+    return;
+  }
+
+  const loadSteps = async () => {
+    try {
+      await HealthKit.requestAuthorization();
+
+      const result =
+        await HealthKit.getSteps();
+
+      setSteps(result.steps);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  void loadSteps();
+      }, [page]);
+
 
   const moveBookMonth = (diff: number) => {
     const [year, month] = bookYm
@@ -1124,12 +1148,16 @@ export default function LivingBook({
               marginTop: 20,
             }}
           >
-            <HealthcareItem
-              icon="👟"
-              title="歩数"
-              value="未連携"
-              description="1日の歩数を表示予定"
-            />
+           <HealthcareItem
+             icon="👟"
+             title="歩数"
+             value={
+             steps === null
+             ? "読み込み中"
+             : `${steps.toLocaleString()} 歩`
+             }
+             description="今日の歩数"
+          />
 
             <HealthcareItem
               icon="😴"

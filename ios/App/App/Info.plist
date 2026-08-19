@@ -25,7 +25,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>みやむDiaryで歩数、睡眠、体重などの健康データを表示・記録するために使用します。</string>
+	<string>みやむDiaryで歩数、睡眠、心拍などの健康データを表示・記録するために使用します。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
