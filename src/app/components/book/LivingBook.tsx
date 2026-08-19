@@ -33,6 +33,12 @@ export default function LivingBook({
     useState(currentYm);
   const [steps, setSteps] =
     useState<number | null>(null);
+  const [sleepHours, setSleepHours] =
+    useState<number | null>(null);
+  const [heartRate, setHeartRate] =
+    useState<number | null>(null);
+
+
   useEffect(() => {
   if (page !== "healthcare") {
     return;
@@ -46,6 +52,16 @@ export default function LivingBook({
         await HealthKit.getSteps();
 
       setSteps(result.steps);
+      const sleepResult =
+        await HealthKit.getSleep();
+
+     setSleepHours(sleepResult.hours);
+
+     const heartRateResult =
+        await HealthKit.getHeartRate();
+
+setHeartRate(heartRateResult.bpm);
+
     } catch (error) {
       console.error(error);
     }
@@ -1136,9 +1152,7 @@ export default function LivingBook({
               lineHeight: 1.7,
             }}
           >
-            Apple
-            Healthなどの健康データ連携用ページです。
-            現在は連携機能の土台を準備中です。
+            Apple Healthの歩数・睡眠・心拍データを表示します。
           </p>
 
           <div
@@ -1162,16 +1176,24 @@ export default function LivingBook({
             <HealthcareItem
               icon="😴"
               title="睡眠"
-              value="未連携"
-              description="睡眠時間・睡眠記録を表示予定"
-            />
+              value={
+              sleepHours === null || sleepHours === 0
+              ? "データなし"
+              : `${sleepHours.toFixed(1)} 時間`
+             }
+              description="直近24時間の睡眠時間"
+          />
 
-            <HealthcareItem
-              icon="❤️"
-              title="心拍"
-              value="未連携"
-              description="心拍数データを表示予定"
-            />
+           <HealthcareItem
+             icon="❤️"
+             title="心拍"
+             value={
+             heartRate === null
+             ? "データなし"
+            : `${Math.round(heartRate)} bpm`
+           }
+            description="最新の心拍数"
+          />
           </div>
 
           <div
@@ -1187,9 +1209,8 @@ export default function LivingBook({
               lineHeight: 1.7,
             }}
           >
-            Apple Watch /
-            HealthKit連携は今後実装予定です。
-            現時点ではデータの読み込みは行いません。
+            HealthKitから歩数・睡眠・心拍データを読み込みます。
+            データが記録されていない項目は「データなし」と表示されます。
           </div>
         </div>
       </main>
