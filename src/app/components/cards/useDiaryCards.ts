@@ -32,18 +32,6 @@ const createDefaultCards = (): DiaryCard[] => [
     category: "life",
     unit: "回数",
   },
-  {
-    id: "default-sleep",
-    name: "睡眠時間",
-    category: "life",
-    unit: "時間",
-  },
-  {
-    id: "default-water",
-    name: "水分量",
-    category: "life",
-    unit: "回数",
-  },
 ];
 
 export function useDiaryCards() {
@@ -54,7 +42,11 @@ export function useDiaryCards() {
 
    if (saved) {
   try {
-    const parsed = JSON.parse(saved) as DiaryCard[];
+    const parsed = (JSON.parse(saved) as DiaryCard[]).filter(
+  (card) =>
+    card.id !== "default-sleep" &&
+    card.id !== "default-water"
+);
     const defaults = createDefaultCards();
 
     const merged = [
