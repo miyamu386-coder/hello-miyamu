@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 type RepeatType =
   | "none"
@@ -17,10 +22,33 @@ type ScheduleItem = {
   weekdays?: number[];
 };
 
+type RoomId =
+  | "living-kitchen"
+  | "workroom"
+  | "conditioning-room";
+
+type MofuAction =
+  | "idle"
+  | "living"
+  | "living-walk"
+  | "work-pc"
+  | "work-book"
+  | "training"
+  | "stretch";
+
 type Room = {
-  id: string;
+  id: RoomId;
   name: string;
   image: string;
+  mofuActions: MofuAction[];
+};
+
+type MofuRoomState = {
+  tapCount: number;
+  isJumping: boolean;
+  action: MofuAction;
+  x: number;
+  y: number;
 };
 
 type Props = {
@@ -119,17 +147,32 @@ const rooms: Room[] = [
     id: "living-kitchen",
     name: "リビングキッチン",
     image: "/room/mofu-room.png",
+   mofuActions: [
+  "idle",
+  "living",
+  "living-walk",
+],
   },
   {
     id: "workroom",
     name: "仕事部屋",
     image: "/room/mofu-workroom.png",
+    mofuActions: [
+      "idle",
+      "work-pc",
+      "work-book",
+    ],
   },
   {
     id: "conditioning-room",
     name: "コンディショニングルーム",
     image:
       "/room/mohu-ConditioningRoom.png",
+    mofuActions: [
+      "idle",
+      "training",
+      "stretch",
+    ],
   },
 ];
 
@@ -164,56 +207,83 @@ export default function RoomSwiper({
   ] = useState<ScheduleItem[]>([]);
 
   const [
-    showMofuMessage,
-    setShowMofuMessage,
-  ] = useState(false);
+  showMofuMessageRoom,
+  setShowMofuMessageRoom,
+] = useState<RoomId | null>(null);
 
-  const [
-    isMofuJumping,
-    setIsMofuJumping,
-  ] = useState(false);
-  const [mofuTapCount, setMofuTapCount] =
-    useState(0);
-  
+const [
+  mofuStates,
+  setMofuStates,
+] = useState<
+  Record<RoomId, MofuRoomState>
+>({
+  "living-kitchen": {
+  tapCount: 0,
+  isJumping: false,
+  action: "idle",
+  x: 0,
+  y: 0,
+},
+workroom: {
+  tapCount: 0,
+  isJumping: false,
+  action: "idle",
+  x: 0,
+  y: 0,
+},
+"conditioning-room": {
+  tapCount: 0,
+  isJumping: false,
+  action: "idle",
+  x: 0,
+  y: 0,
+},
+});
 
-  const showMessageForFourSeconds =
-    () => {
-      setShowMofuMessage(true);
+  const showMessageForFourSeconds = (
+  roomId: RoomId
+) => {
+  setShowMofuMessageRoom(roomId);
 
-      if (
-        mofuMessageTimerRef.current !==
-        null
-      ) {
-        window.clearTimeout(
-          mofuMessageTimerRef.current
-        );
-      }
+  if (
+    mofuMessageTimerRef.current !==
+    null
+  ) {
+    window.clearTimeout(
+      mofuMessageTimerRef.current
+    );
+  }
 
+  mofuMessageTimerRef.current =
+    window.setTimeout(() => {
+      setShowMofuMessageRoom(null);
       mofuMessageTimerRef.current =
-        window.setTimeout(() => {
-          setShowMofuMessage(false);
-          mofuMessageTimerRef.current =
-            null;
-        }, 4000);
-    };
+        null;
+    }, 4000);
+};
 
   useEffect(() => {
-    showMessageForFourSeconds();
+  const currentRoom =
+    rooms[currentRoomIndex];
 
-    return () => {
-      if (
-        mofuMessageTimerRef.current !==
-        null
-      ) {
-        window.clearTimeout(
-          mofuMessageTimerRef.current
-        );
+  showMessageForFourSeconds(
+    currentRoom.id
+  );
 
-        mofuMessageTimerRef.current =
-          null;
-      }
-    };
-  }, [currentRoomIndex]);
+  return () => {
+    if (
+      mofuMessageTimerRef.current !==
+      null
+    ) {
+      window.clearTimeout(
+        mofuMessageTimerRef.current
+      );
+
+      mofuMessageTimerRef.current =
+        null;
+    }
+  };
+}, [currentRoomIndex]);
 
   useEffect(() => {
     const saved =
@@ -276,8 +346,29 @@ export default function RoomSwiper({
     };
   }, []);
 
+const currentRoom =
+  rooms[currentRoomIndex];
+
+const currentMofuState =
+  mofuStates[currentRoom.id];
+
+const mofuTapCount =
+  currentMofuState.tapCount;
+
   const mofuMessage = useMemo(() => {
-    if (mofuTapCount >= 8) {
+    if (mofuTapCount >= 50) {
+  return "…………💢";
+}
+
+if (mofuTapCount >= 30) {
+  return "おい…。";
+}
+
+if (mofuTapCount >= 20) {
+  return "かまいすぎだ…";
+}
+
+if (mofuTapCount >= 8) {
   return "触りすぎだ…";
 }
 
@@ -437,10 +528,13 @@ if (mofuTapCount >= 1) {
 
     return "今日は何しようかな〜🐾";
   }, [
-  schedules,
-  currentRoomIndex,
-  mofuTapCount,
-]);
+    schedules,
+    currentRoomIndex,
+    mofuTapCount,
+  ]);
+
+  const isShortMofuMessage =
+    mofuMessage.length <= 8;
 
   const handleScroll = () => {
     const container =
@@ -486,37 +580,86 @@ if (mofuTapCount >= 1) {
     });
   };
 
-const handleMofuClick = () => {
-  setMofuTapCount((count) => count + 1);
+  const handleMofuClick = (
+  roomId: RoomId
+) => {
+  setMofuStates((prev) => {
+  const nextTapCount =
+    prev[roomId].tapCount + 1;
 
-  showMessageForFourSeconds();
+  return {
+    ...prev,
+    [roomId]: {
+      ...prev[roomId],
+      tapCount: nextTapCount,
+      isJumping: false,
+      action:
+        roomId === "living-kitchen" &&
+        nextTapCount >= 12
+          ? "living-walk"
+          : prev[roomId].action,
+     x:
+  roomId === "living-kitchen"
+    ? nextTapCount >= 30
+      ? 170
+      : nextTapCount >= 20
+        ? 150
+        : nextTapCount >= 12
+          ? 80
+          : prev[roomId].x
+    : prev[roomId].x,
 
-    setIsMofuJumping(false);
-
-    if (
-      mofuJumpTimerRef.current !==
-      null
-    ) {
-      window.clearTimeout(
-        mofuJumpTimerRef.current
-      );
-    }
-
-    // 一度 false を挟んで、
-    // 連続タップでもジャンプを再発火させる
-    requestAnimationFrame(() => {
-      setIsMofuJumping(true);
-
-      mofuJumpTimerRef.current =
-        window.setTimeout(() => {
-          setIsMofuJumping(false);
-          mofuJumpTimerRef.current =
-            null;
-        }, 600);
-    });
+y:
+  roomId === "living-kitchen"
+    ? nextTapCount >= 30
+      ? -220
+      : nextTapCount >= 20
+        ? -70
+        : nextTapCount >= 12
+          ? 0
+          : prev[roomId].y
+    : prev[roomId].y,
+    },
   };
+});
 
+  showMessageForFourSeconds(
+    roomId
+  );
 
+  if (
+    mofuJumpTimerRef.current !==
+    null
+  ) {
+    window.clearTimeout(
+      mofuJumpTimerRef.current
+    );
+  }
+
+  requestAnimationFrame(() => {
+    setMofuStates((prev) => ({
+      ...prev,
+      [roomId]: {
+        ...prev[roomId],
+        isJumping: true,
+      },
+    }));
+
+    mofuJumpTimerRef.current =
+      window.setTimeout(() => {
+        setMofuStates((prev) => ({
+          ...prev,
+          [roomId]: {
+            ...prev[roomId],
+            isJumping: false,
+          },
+        }));
+
+        mofuJumpTimerRef.current =
+          null;
+      }, 600);
+  });
+};
 
   return (
     <section
@@ -784,51 +927,70 @@ const handleMofuClick = () => {
             )}
 
             <div
-              style={{
-                position:
-                  "absolute",
-                left: "50%",
-                bottom: "4%",
-                width: 95,
-                height: 135,
-                transform:
-                  "translateX(-50%)",
-                zIndex: 5,
-                pointerEvents:
-                  "auto",
-              }}
-            >
-              {showMofuMessage && (
-  <div
-    style={{
-      position: "absolute",
-      bottom: "105%",
-      left: "50%",
-      transform:
-        "translateX(-50%)",
-      width: "fit-content",
-      minWidth: 70,
-      maxWidth: 150,
-      padding:
-        "5px 8px",
-      borderRadius:
-        10,
-      background:
-        "white",
-      boxShadow:
-        "0 2px 8px rgba(0,0,0,0.15)",
-      fontSize: 12,
-      lineHeight: 1.5,
-      textAlign:
-        "center",
-      color: "#333",
-      pointerEvents:
-        "none",
-    }}
-  >
-    {mofuMessage}
-  </div>
-)}
+  style={{
+    position: "absolute",
+    left: "50%",
+    bottom: "4%",
+    width: 95,
+    height: 135,
+    transform: `
+     translateX(calc(-50% + ${mofuStates[room.id].x}px))
+     translateY(${mofuStates[room.id].y}px)
+     `,
+    transition: "transform 0.6s ease",
+    zIndex: 5,
+    pointerEvents: "auto",
+  }}
+>
+              {showMofuMessageRoom === room.id &&
+               room.id === currentRoom.id && (
+                <div
+                  style={{
+                    position:
+                      "absolute",
+                    bottom: "105%",
+                    left: "50%",
+                    transform:
+                      "translateX(-50%)",
+
+                    width:
+                      "max-content",
+                    minWidth: 90,
+                    maxWidth:
+                      "min(210px, 80vw)",
+
+                    padding:
+                      "8px 12px",
+                    borderRadius: 12,
+                    background:
+                      "white",
+                    boxShadow:
+                      "0 2px 8px rgba(0,0,0,0.15)",
+
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                    textAlign:
+                      "center",
+                    color: "#333",
+
+                    whiteSpace:
+                      isShortMofuMessage
+                        ? "nowrap"
+                        : "normal",
+
+                    overflowWrap:
+                      "break-word",
+
+                    boxSizing:
+                      "border-box",
+
+                    pointerEvents:
+                      "none",
+                  }}
+                >
+                  {mofuMessage}
+                </div>
+              )}
 
               <div
                 style={{
@@ -839,12 +1001,25 @@ const handleMofuClick = () => {
                 }}
               >
                 <img
-                  src="/mofu-normal.png"
+               src={
+                room.id === "living-kitchen"
+                ? mofuStates[room.id].tapCount >= 50
+                ? "/mofu-whiteeye.png"
+                : mofuStates[room.id].tapCount >= 30
+                ? "/mofu-sulking.png"
+                : mofuStates[room.id].tapCount >= 20
+                ? "/mofu-running.png"
+                : mofuStates[room.id].tapCount >= 12
+                ? "/mofu-walking.png"
+                : "/mofu-normal.png"
+                : "/mofu-normal.png"
+               }
+
                   alt="モフ"
                   draggable={false}
-                  onClick={
-                    handleMofuClick
-                  }
+                  onClick={() =>
+                  handleMofuClick(room.id)
+}
                   style={{
                     width: "100%",
                     height: "100%",
@@ -856,9 +1031,9 @@ const handleMofuClick = () => {
                     cursor:
                       "pointer",
                     animation:
-                      isMofuJumping
-                        ? "mofuJump 0.6s ease"
-                        : "none",
+                       mofuStates[room.id].isJumping
+                       ? "mofuJump 0.6s ease"
+                       : "none",
                   }}
                 />
               </div>
