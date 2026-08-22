@@ -224,11 +224,17 @@ export default function RoomSwiper({
 ] = useState<RoomId | null>(null);
 
 const [
+  showMofuFun,
+  setShowMofuFun,
+] = useState(false);
+
+const [
   mofuStates,
   setMofuStates,
 ] = useState<
   Record<RoomId, MofuRoomState>
 >({
+
   "living-kitchen": {
   tapCount: 0,
   isJumping: false,
@@ -628,7 +634,7 @@ if (mofuTapCount >= 1) {
       : nextTapCount >= 20
         ? 150
         : nextTapCount >= 12
-          ? 80
+          ? -135
           : prev[roomId].x
     : prev[roomId].x,
 
@@ -846,7 +852,6 @@ y:
                 />
               </>
             )}
-
             {room.id ===
               "workroom" && (
               <>
@@ -874,29 +879,77 @@ y:
                 />
 
                 <button
-                  type="button"
-                  aria-label="本棚を開く"
-                  onClick={
-                    onOpenPuzzle
+                 type="button"
+                 aria-label="モフのお楽しみコーナー"
+                 onClick={() =>
+                  setShowMofuFun(true)
                   }
-                  style={{
-                    position:
-                      "absolute",
-                    left: "42%",
-                    top: "13%",
-                    width: "32%",
-                    height: "46%",
+                 style={{
+                position: "absolute",
+                left: "43%",
+                top: "29%",
+                width: "5%",
+                height: "5%",
                     padding: 0,
                     border: "none",
-                    background:
-                      "transparent",
+                    background: "transparent",
                     cursor:
                       "pointer",
                     zIndex: 4,
                   }}
                 />
               </>
-            )}
+             )} 
+              {room.id === "workroom" &&
+  showMofuFun && (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 40,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0,0,0,0.25)",
+        padding: 24,
+      }}
+    >
+      <div
+        style={{
+          width: "min(320px, 88%)",
+          padding: "24px 20px",
+          borderRadius: 20,
+          background: "white",
+          textAlign: "center",
+          color: "#333",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            marginBottom: 12,
+          }}
+        >
+          🐾 モフのお楽しみコーナー
+        </div>
+
+        <div
+          style={{
+            fontSize: 15,
+            lineHeight: 1.8,
+          }}
+        >
+          モフの暇つぶしコンテンツを
+          <br />
+          順次公開予定！
+          <br />
+          お楽しみに🐾
+        </div>
+      </div>
+    </div>
+  )}
+            
 
             {room.id ===
               "conditioning-room" && (
@@ -990,7 +1043,11 @@ y:
      translateX(calc(-50% + ${mofuStates[room.id].x}px))
      translateY(${mofuStates[room.id].y}px)
      `,
-    transition: "transform 0.6s ease",
+    transition:
+  room.id === "living-kitchen" &&
+  mofuStates[room.id].tapCount >= 12
+    ? "transform 1.8s linear"
+    : "transform 0.6s ease",
     zIndex: 5,
     pointerEvents: "auto",
   }}
