@@ -202,6 +202,9 @@ export default function RoomSwiper({
 
   const mofuJumpTimerRef =
     useRef<number | null>(null);
+  const mofuNpcTimerRef =
+    useRef<number | null>(null);
+
 
   const [
     currentRoomIndex,
@@ -313,6 +316,84 @@ useEffect(() => {
     window.clearInterval(timer);
   };
 }, []);
+useEffect(() => {
+  const roomId: RoomId =
+    "living-kitchen";
+
+  const scheduleNextMove = () => {
+    const waitTime =
+      3000 + Math.random() * 4000;
+
+    mofuNpcTimerRef.current =
+      window.setTimeout(() => {
+        setMofuStates((prev) => {
+          const current =
+            prev[roomId];
+
+          // タップ逃走モード中は
+          // NPC自律移動をしない
+          if (current.tapCount >= 12) {
+            return prev;
+          }
+
+          // 左右どちらかへ移動
+          const nextX =
+           current.x >= 0
+           ? -120
+           : 120;
+
+          return {
+            ...prev,
+            [roomId]: {
+              ...current,
+              action: "living-walk",
+              x: nextX,
+              y: 0,
+            },
+          };
+        });
+
+        // 歩行時間
+        mofuNpcTimerRef.current =
+          window.setTimeout(() => {
+            setMofuStates((prev) => {
+              const current =
+                prev[roomId];
+
+              if (
+                current.tapCount >= 12
+              ) {
+                return prev;
+              }
+
+              return {
+                ...prev,
+                [roomId]: {
+                  ...current,
+                  action: "idle",
+                },
+              };
+            });
+
+            scheduleNextMove();
+          }, 1800);
+      }, waitTime);
+  };
+
+  scheduleNextMove();
+
+  return () => {
+    if (
+      mofuNpcTimerRef.current !==
+      null
+    ) {
+      window.clearTimeout(
+        mofuNpcTimerRef.current
+      );
+    }
+  };
+}, []);
+
 
   useEffect(() => {
     const saved =
@@ -734,19 +815,15 @@ y:
               alt={room.name}
               draggable={false}
               style={{
-                width: "100%",
-                height: "100%",
-                display: "block",
-                objectFit:
-                  room.id ===
-                    "workroom" ||
-                  room.id ===
-                    "conditioning-room"
-                    ? "contain"
-                    : "cover",
-                objectPosition:
-                  "center",
-                userSelect: "none",
+  width: "100%",
+  height: "100%",
+  objectFit: "contain",
+  display: "block",
+  userSelect: "none",
+  cursor: "pointer",
+
+  
+
                 background:
                   room.id ===
                   "workroom"
@@ -1043,9 +1120,11 @@ y:
      translateX(calc(-50% + ${mofuStates[room.id].x}px))
      translateY(${mofuStates[room.id].y}px)
      `,
-    transition:
+ transition:
   room.id === "living-kitchen" &&
-  mofuStates[room.id].tapCount >= 12
+  mofuStates[room.id].action ===
+    "living-walk"
+    
     ? "transform 1.8s linear"
     : "transform 0.6s ease",
     zIndex: 5,
@@ -1102,56 +1181,82 @@ y:
                 </div>
               )}
 
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  animation:
-                    "mofuFloat 3s ease-in-out infinite",
-                }}
-              >
-                <img
-               src={
-                room.id === "living-kitchen"
-                ? mofuStates[room.id].tapCount >= 50
-                ? "/mofu-whiteeye.png"
-                : mofuStates[room.id].tapCount >= 30
-                ? "/mofu-sulking.png"
-                : mofuStates[room.id].tapCount >= 20
-                ? "/mofu-running.png"
-                : mofuStates[room.id].tapCount >= 12
-                ? mofuWalkFrames[mofuWalkFrameIndex]
-                : "/mofu-normal.png"
-                : "/mofu-normal.png"
-               }
+             <div
+  style={{
+    width: "100%",
+    height: "100%",
+    transform:
+      room.id === "living-kitchen" &&
+      mofuStates[room.id].action ===
+        "living-walk" &&
+      mofuStates[room.id].x > 0
+        ? "scaleX(-1)"
+        : "scaleX(1)",
+  }}
+>
+ <div
+  style={{
+    width: "100%",
+    height: "100%",
+    animation:
+      "mofuFloat 3s ease-in-out infinite",
 
-                  alt="モフ"
-                  draggable={false}
-                  onClick={() =>
-                  handleMofuClick(room.id)
-}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit:
-                      "contain",
-                    display: "block",
-                    userSelect:
-                      "none",
-                    cursor:
-                      "pointer",
-                    animation:
-  mofuStates[room.id].isJumping
-    ? "mofuJump 0.6s ease"
-    : room.id === "living-kitchen" &&
-        mofuStates[room.id].tapCount >= 12 &&
-        mofuStates[room.id].tapCount < 50
-      ? "mofuWalk 0.35s linear infinite"
-      : "none",
-                  }}
-                />
-                           </div>
-            </div>
+    scale:
+      room.id === "living-kitchen" &&
+      mofuStates[room.id].action ===
+        "living-walk"
+        ? "1.65"
+        : "1",
+  }}
+>
+  <img
+    src={
+      room.id === "living-kitchen"
+        ? mofuStates[room.id].tapCount >= 50
+          ? "/mofu-whiteeye.png"
+          : mofuStates[room.id].tapCount >= 30
+            ? "/mofu-sulking.png"
+            : mofuStates[room.id].tapCount >= 20
+              ? "/mofu-running.png"
+              : mofuStates[room.id].tapCount >= 12 ||
+                  mofuStates[room.id].action ===
+                    "living-walk"
+                ? mofuWalkFrames[
+                    mofuWalkFrameIndex
+                  ]
+                : "/mofu-normal.png"
+        : "/mofu-normal.png"
+    }
+    alt="モフ"
+    draggable={false}
+    onClick={() =>
+      handleMofuClick(room.id)
+    }
+    style={{
+      width: "100%",
+      height: "100%",
+      objectFit: "contain",
+      display: "block",
+      userSelect: "none",
+      cursor: "pointer",
+
+      animation:
+        mofuStates[room.id].isJumping
+          ? "mofuJump 0.6s ease"
+          : room.id === "living-kitchen" &&
+              mofuStates[room.id].tapCount < 50 &&
+              (
+                mofuStates[room.id].tapCount >= 12 ||
+                mofuStates[room.id].action ===
+                  "living-walk"
+              )
+            ? "mofuWalk 0.35s linear infinite"
+            : "none",
+    }}
+  />
+</div>
+</div>
+</div>
           )}
 
           </div>
