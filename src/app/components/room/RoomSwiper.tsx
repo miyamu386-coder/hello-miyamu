@@ -31,6 +31,7 @@ type MofuAction =
   | "idle"
   | "living"
   | "living-walk"
+  | "work-walk"
   | "work-pc"
   | "work-book"
   | "training"
@@ -154,15 +155,16 @@ const rooms: Room[] = [
 ],
   },
   {
-    id: "workroom",
-    name: "仕事部屋",
-    image: "/room/mofu-workroom.png",
-    mofuActions: [
-      "idle",
-      "work-pc",
-      "work-book",
-    ],
-  },
+  id: "workroom",
+  name: "仕事部屋",
+  image: "/room/mofu-workroom.png",
+  mofuActions: [
+    "idle",
+    "work-walk",
+    "work-pc",
+    "work-book",
+  ],
+},
   {
     id: "conditioning-room",
     name: "コンディショニングルーム",
@@ -180,8 +182,17 @@ const mofuWalkFrames = [
   "/mofu-walk-1.png",
   "/mofu-walk-2.png",
   "/mofu-walk-3.png",
-  "/mofu-walk-4.png",
 ];
+const mofuWorkWalkFrames = [
+  "/mofu-work-walk-1.png",
+  "/mofu-work-walk-2.png",
+  "/mofu-work-walk-3.png",
+  "/mofu-work-walk-4.png",
+];
+const WORK_PC_POSITION = {
+  x: -120,
+  y: -220,
+};
 
 export default function RoomSwiper({
   onOpenKitchen,
@@ -204,7 +215,8 @@ export default function RoomSwiper({
     useRef<number | null>(null);
   const mofuNpcTimerRef =
     useRef<number | null>(null);
-
+  const workMofuNpcTimerRef =
+    useRef<number | null>(null);
 
   const [
     currentRoomIndex,
@@ -389,6 +401,63 @@ useEffect(() => {
     ) {
       window.clearTimeout(
         mofuNpcTimerRef.current
+      );
+    }
+  };
+}, []);
+
+useEffect(() => {
+  const roomId: RoomId =
+    "workroom";
+
+  const scheduleNextMove = () => {
+    const waitTime =
+      3000 + Math.random() * 4000;
+
+    workMofuNpcTimerRef.current =
+      window.setTimeout(() => {
+        setMofuStates((prev) => {
+          const current =
+            prev[roomId];
+
+          return {
+            ...prev,
+            [roomId]: {
+              ...current,
+              action: "work-walk",
+              x: WORK_PC_POSITION.x,
+              y: WORK_PC_POSITION.y,
+            },
+          };
+        });
+
+        workMofuNpcTimerRef.current =
+  window.setTimeout(() => {
+    setMofuStates((prev) => {
+      const current =
+        prev[roomId];
+
+      return {
+        ...prev,
+        [roomId]: {
+          ...current,
+          action: "work-pc",
+        },
+      };
+    });
+  }, 1800);
+      }, waitTime);
+  };
+
+  scheduleNextMove();
+
+  return () => {
+    if (
+      workMofuNpcTimerRef.current !==
+      null
+    ) {
+      window.clearTimeout(
+        workMofuNpcTimerRef.current
       );
     }
   };
@@ -1120,11 +1189,17 @@ y:
      translateX(calc(-50% + ${mofuStates[room.id].x}px))
      translateY(${mofuStates[room.id].y}px)
      `,
- transition:
-  room.id === "living-kitchen" &&
-  mofuStates[room.id].action ===
-    "living-walk"
-    
+transition:
+  (
+    room.id === "living-kitchen" &&
+    mofuStates[room.id].action ===
+      "living-walk"
+  ) ||
+  (
+    room.id === "workroom" &&
+    mofuStates[room.id].action ===
+      "work-walk"
+  )
     ? "transform 1.8s linear"
     : "transform 0.6s ease",
     zIndex: 5,
@@ -1186,12 +1261,15 @@ y:
     width: "100%",
     height: "100%",
     transform:
-      room.id === "living-kitchen" &&
-      mofuStates[room.id].action ===
-        "living-walk" &&
-      mofuStates[room.id].x > 0
-        ? "scaleX(-1)"
-        : "scaleX(1)",
+  (
+    mofuStates[room.id].action ===
+      "living-walk" ||
+    mofuStates[room.id].action ===
+      "work-walk"
+  ) &&
+  mofuStates[room.id].x > 0
+    ? "scaleX(-1)"
+    : "scaleX(1)",
   }}
 >
  <div
@@ -1202,11 +1280,13 @@ y:
       "mofuFloat 3s ease-in-out infinite",
 
     scale:
-      room.id === "living-kitchen" &&
       mofuStates[room.id].action ===
         "living-walk"
         ? "1.65"
-        : "1",
+        : mofuStates[room.id].action ===
+            "work-walk"
+          ? "1.35"
+          : "1",
   }}
 >
   <img
@@ -1225,7 +1305,18 @@ y:
                     mofuWalkFrameIndex
                   ]
                 : "/mofu-normal.png"
-        : "/mofu-normal.png"
+        : room.id === "workroom"
+  ? mofuStates[room.id].action ===
+      "work-walk"
+    ? mofuWorkWalkFrames[
+        mofuWalkFrameIndex %
+          mofuWorkWalkFrames.length
+      ]
+    : mofuStates[room.id].action ===
+        "work-pc"
+      ? "/mofu-work-pc.png"
+      : "/mofu-normal.png"
+  : "/mofu-normal.png"
     }
     alt="モフ"
     draggable={false}
@@ -1241,17 +1332,24 @@ y:
       cursor: "pointer",
 
       animation:
-        mofuStates[room.id].isJumping
-          ? "mofuJump 0.6s ease"
-          : room.id === "living-kitchen" &&
-              mofuStates[room.id].tapCount < 50 &&
-              (
-                mofuStates[room.id].tapCount >= 12 ||
-                mofuStates[room.id].action ===
-                  "living-walk"
-              )
-            ? "mofuWalk 0.35s linear infinite"
-            : "none",
+  mofuStates[room.id].isJumping
+    ? "mofuJump 0.6s ease"
+    : (
+        room.id === "living-kitchen" &&
+        mofuStates[room.id].tapCount < 50 &&
+        (
+          mofuStates[room.id].tapCount >= 12 ||
+          mofuStates[room.id].action ===
+            "living-walk"
+        )
+      ) ||
+      (
+        room.id === "workroom" &&
+        mofuStates[room.id].action ===
+          "work-walk"
+      )
+      ? "mofuWalk 0.35s linear infinite"
+      : "none",
     }}
   />
 </div>
