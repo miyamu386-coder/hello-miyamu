@@ -190,9 +190,14 @@ const mofuWorkWalkFrames = [
   "/mofu-work-walk-4.png",
 ];
 const WORK_PC_POSITION = {
-  x: -120,
+  x: -80,
   y: -220,
 };
+const mofuCrunchFrames = [
+  "/mofu-crunch-1.png",
+  "/mofu-crunch-2.png",
+  "/mofu-crunch-3.png",
+];
 
 export default function RoomSwiper({
   onOpenKitchen,
@@ -226,6 +231,10 @@ export default function RoomSwiper({
   const [
   mofuWalkFrameIndex,
   setMofuWalkFrameIndex,
+] = useState(0);
+  const [
+  mofuCrunchFrameIndex,
+  setMofuCrunchFrameIndex,
 ] = useState(0);
 
   const [
@@ -328,6 +337,26 @@ useEffect(() => {
     window.clearInterval(timer);
   };
 }, []);
+useEffect(() => {
+  const crunchSequence = [0, 1, 2, 1];
+
+  let sequenceIndex = 0;
+
+  const timer = window.setInterval(() => {
+    sequenceIndex =
+      (sequenceIndex + 1) %
+      crunchSequence.length;
+
+    setMofuCrunchFrameIndex(
+      crunchSequence[sequenceIndex]
+    );
+  }, 250);
+
+  return () => {
+    window.clearInterval(timer);
+  };
+}, []);
+
 useEffect(() => {
   const roomId: RoomId =
     "living-kitchen";
@@ -773,10 +802,12 @@ if (mofuTapCount >= 1) {
       tapCount: nextTapCount,
       isJumping: false,
       action:
-        roomId === "living-kitchen" &&
+  roomId === "conditioning-room"
+    ? "training"
+    : roomId === "living-kitchen" &&
         nextTapCount >= 12
-          ? "living-walk"
-          : prev[roomId].action,
+      ? "living-walk"
+      : prev[roomId].action,
      x:
   roomId === "living-kitchen"
     ? nextTapCount >= 30
@@ -1183,12 +1214,31 @@ y:
     position: "absolute",
     left: "50%",
     bottom: "4%",
-    width: 95,
-    height: 135,
+    width:
+  room.id === "conditioning-room" &&
+  mofuStates[room.id].action === "training"
+    ? 190
+    : 95,
+
+height:
+  room.id === "conditioning-room" &&
+  mofuStates[room.id].action === "training"
+    ? 120
+    : 135,
     transform: `
-     translateX(calc(-50% + ${mofuStates[room.id].x}px))
-     translateY(${mofuStates[room.id].y}px)
-     `,
+  translateX(calc(-50% + ${
+    room.id === "conditioning-room" &&
+    mofuStates[room.id].action === "training"
+      ? 12
+      : mofuStates[room.id].x
+  }px))
+  translateY(${
+    room.id === "conditioning-room" &&
+    mofuStates[room.id].action === "training"
+      ? -165
+      : mofuStates[room.id].y
+  }px)
+`,
 transition:
   (
     room.id === "living-kitchen" &&
@@ -1272,12 +1322,14 @@ transition:
     : "scaleX(1)",
   }}
 >
- <div
+<div
   style={{
     width: "100%",
     height: "100%",
     animation:
-      "mofuFloat 3s ease-in-out infinite",
+  room.id === "conditioning-room"
+    ? "none"
+    : "mofuFloat 3s ease-in-out infinite",
 
     scale:
       mofuStates[room.id].action ===
@@ -1287,6 +1339,12 @@ transition:
             "work-walk"
           ? "1.35"
           : "1",
+
+    rotate:
+      room.id === "conditioning-room" &&
+      mofuStates[room.id].action === "training"
+        ? "-25deg"
+        : "0deg",
   }}
 >
   <img
@@ -1316,6 +1374,14 @@ transition:
         "work-pc"
       ? "/mofu-work-pc.png"
       : "/mofu-normal.png"
+
+  : room.id === "conditioning-room"
+  ? mofuStates[room.id].action === "training"
+    ? mofuCrunchFrames[
+        mofuCrunchFrameIndex
+      ]
+    : "/mofu-conditioning-idle.png"
+
   : "/mofu-normal.png"
     }
     alt="モフ"
