@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-
+import ConditioningMofu from "./ConditioningMofu";
 type RepeatType =
   | "none"
   | "weekly"
@@ -26,6 +26,9 @@ type RoomId =
   | "living-kitchen"
   | "workroom"
   | "conditioning-room";
+type MofuManagedRoomId =
+  | "living-kitchen"
+  | "workroom";
 
 type MofuAction =
   | "idle"
@@ -33,15 +36,13 @@ type MofuAction =
   | "living-walk"
   | "work-walk"
   | "work-pc"
-  | "work-book"
-  | "training"
-  | "stretch";
+  | "work-book";
 
 type Room = {
   id: RoomId;
   name: string;
-  image: string;
-  mofuActions: MofuAction[];
+  image?: string;
+  mofuActions?: MofuAction[];
 };
 
 type MofuRoomState = {
@@ -59,7 +60,6 @@ type Props = {
   onOpenPuzzle: () => void;
   onOpenBook: () => void;
   onOpenCalendar: () => void;
-  onOpenConditioning: () => void;
   onOpenTraining: () => void;
   onOpenWeight: () => void;
 };
@@ -166,16 +166,9 @@ const rooms: Room[] = [
   ],
 },
   {
-    id: "conditioning-room",
-    name: "コンディショニングルーム",
-    image:
-      "/room/mohu-ConditioningRoom.png",
-    mofuActions: [
-      "idle",
-      "training",
-      "stretch",
-    ],
-  },
+  id: "conditioning-room",
+  name: "コンディショニングルーム",
+},
 ];
 
 const mofuWalkFrames = [
@@ -193,11 +186,6 @@ const WORK_PC_POSITION = {
   x: -80,
   y: -220,
 };
-const mofuCrunchFrames = [
-  "/mofu-crunch-1.png",
-  "/mofu-crunch-2.png",
-  "/mofu-crunch-3.png",
-];
 
 export default function RoomSwiper({
   onOpenKitchen,
@@ -206,7 +194,6 @@ export default function RoomSwiper({
   onOpenPuzzle,
   onOpenBook,
   onOpenCalendar,
-  onOpenConditioning,
   onOpenTraining,
   onOpenWeight,
 }: Props) {
@@ -232,10 +219,6 @@ export default function RoomSwiper({
   mofuWalkFrameIndex,
   setMofuWalkFrameIndex,
 ] = useState(0);
-  const [
-  mofuCrunchFrameIndex,
-  setMofuCrunchFrameIndex,
-] = useState(0);
 
   const [
     schedules,
@@ -256,7 +239,7 @@ const [
   mofuStates,
   setMofuStates,
 ] = useState<
-  Record<RoomId, MofuRoomState>
+  Record<MofuManagedRoomId, MofuRoomState>
 >({
 
   "living-kitchen": {
@@ -273,15 +256,7 @@ workroom: {
   x: 0,
   y: 0,
 },
-"conditioning-room": {
-  tapCount: 0,
-  isJumping: false,
-  action: "idle",
-  x: 0,
-  y: 0,
-},
 });
-
   const showMessageForFourSeconds = (
   roomId: RoomId
 ) => {
@@ -337,28 +312,9 @@ useEffect(() => {
     window.clearInterval(timer);
   };
 }, []);
-useEffect(() => {
-  const crunchSequence = [0, 1, 2, 1];
-
-  let sequenceIndex = 0;
-
-  const timer = window.setInterval(() => {
-    sequenceIndex =
-      (sequenceIndex + 1) %
-      crunchSequence.length;
-
-    setMofuCrunchFrameIndex(
-      crunchSequence[sequenceIndex]
-    );
-  }, 250);
-
-  return () => {
-    window.clearInterval(timer);
-  };
-}, []);
 
 useEffect(() => {
-  const roomId: RoomId =
+  const roomId: MofuManagedRoomId =
     "living-kitchen";
 
   const scheduleNextMove = () => {
@@ -436,7 +392,7 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  const roomId: RoomId =
+  const roomId: MofuManagedRoomId =
     "workroom";
 
   const scheduleNextMove = () => {
@@ -557,11 +513,13 @@ useEffect(() => {
 const currentRoom =
   rooms[currentRoomIndex];
 
-const currentMofuState =
-  mofuStates[currentRoom.id];
-
 const mofuTapCount =
-  currentMofuState.tapCount;
+  currentRoom.id === "living-kitchen" ||
+  currentRoom.id === "workroom"
+    ? mofuStates[
+        currentRoom.id as MofuManagedRoomId
+      ].tapCount
+    : 0;
 
   const mofuMessage = useMemo(() => {
     if (mofuTapCount >= 50) {
@@ -715,25 +673,6 @@ if (mofuTapCount >= 1) {
         )
       ];
     }
-
-    if (
-      currentRoomIndex === 2
-    ) {
-      const messages = [
-        "ちゃんと自分の体もメンテしてるか？🐾",
-        "鍛えるのもいいが、休ませるのも忘れるなよ🐾",
-        "体重計から逃げても数字は変わらんぞ🐾",
-        "今日の調子くらい、自分で把握しとけよ🐾",
-      ];
-
-      return messages[
-        Math.floor(
-          Math.random() *
-            messages.length
-        )
-      ];
-    }
-
     return "今日は何しようかな〜🐾";
   }, [
     schedules,
@@ -789,11 +728,11 @@ if (mofuTapCount >= 1) {
   };
 
   const handleMofuClick = (
-  roomId: RoomId
+  roomId: MofuManagedRoomId
 ) => {
   setMofuStates((prev) => {
-  const nextTapCount =
-    prev[roomId].tapCount + 1;
+const nextTapCount =
+  prev[roomId].tapCount + 1;
 
   return {
     ...prev,
@@ -801,13 +740,11 @@ if (mofuTapCount >= 1) {
       ...prev[roomId],
       tapCount: nextTapCount,
       isJumping: false,
-      action:
-  roomId === "conditioning-room"
-    ? "training"
-    : roomId === "living-kitchen" &&
-        nextTapCount >= 12
-      ? "living-walk"
-      : prev[roomId].action,
+  action:
+  roomId === "living-kitchen" &&
+  nextTapCount >= 12
+    ? "living-walk"
+    : prev[roomId].action,
      x:
   roomId === "living-kitchen"
     ? nextTapCount >= 30
@@ -833,14 +770,14 @@ y:
   };
 });
 
-  showMessageForFourSeconds(
-    roomId
-  );
+showMessageForFourSeconds(
+  roomId
+);
 
-  if (
-    mofuJumpTimerRef.current !==
-    null
-  ) {
+if (
+  mofuJumpTimerRef.current !==
+  null
+) {
     window.clearTimeout(
       mofuJumpTimerRef.current
     );
@@ -894,8 +831,12 @@ y:
             "contain",
         }}
       >
-        {rooms.map((room) => (
-          <div
+       {rooms.map((room) => {
+  const managedRoomId =
+    room.id as MofuManagedRoomId;
+
+  return (
+    <div
             key={room.id}
             style={{
               position: "relative",
@@ -910,30 +851,25 @@ y:
               borderRadius: 20,
             }}
           >
-            <img
-              src={room.image}
-              alt={room.name}
-              draggable={false}
-              style={{
-  width: "100%",
-  height: "100%",
-  objectFit: "contain",
-  display: "block",
-  userSelect: "none",
-  cursor: "pointer",
-
-  
-
-                background:
-                  room.id ===
-                  "workroom"
-                    ? "#2b1c12"
-                    : room.id ===
-                        "conditioning-room"
-                      ? "#f3eadc"
-                      : "transparent",
-              }}
-            />
+            {room.image && (
+  <img
+    src={room.image}
+    alt={room.name}
+    draggable={false}
+    style={{
+      width: "100%",
+      height: "100%",
+      objectFit: "contain",
+      display: "block",
+      userSelect: "none",
+      cursor: "pointer",
+      background:
+        room.id === "workroom"
+          ? "#2b1c12"
+          : "transparent",
+    }}
+  />
+)}
 
             {room.id ===
               "living-kitchen" && (
@@ -1127,59 +1063,14 @@ y:
     </div>
   )}
             
-
-            {room.id ===
-              "conditioning-room" && (
-              <>
-                <button
-                  type="button"
-                  aria-label="筋トレメニューを開く"
-                  onClick={
-                    onOpenTraining
-                  }
-                  style={{
-                    position:
-                      "absolute",
-                    left: "36%",
-                    top: "56%",
-                    width: "30%",
-                    height: "20%",
-                    padding: 0,
-                    border: "none",
-                    background:
-                      "transparent",
-                    cursor:
-                      "pointer",
-                    zIndex: 4,
-                  }}
-                />
-
-                <button
-                  type="button"
-                  aria-label="体重表を開く"
-                  onClick={
-                    onOpenWeight
-                  }
-                  style={{
-                    position:
-                      "absolute",
-                    left: "43%",
-                    top: "31%",
-                    width: "14%",
-                    height: "9%",
-                    padding: 0,
-                    border: "none",
-                    background:
-                      "transparent",
-                    cursor:
-                      "pointer",
-                    zIndex: 4,
-                  }}
-                />
-              </>
-            )}
+ {room.id === "conditioning-room" && (
+  <ConditioningMofu
+    onOpenTraining={onOpenTraining}
+    onOpenWeight={onOpenWeight}
+  />
+)}
 {room.id === "living-kitchen" &&
-  mofuStates[room.id].tapCount >= 50 && (
+  mofuStates["living-kitchen"].tapCount >= 50 && (
     <div
       style={{
         position: "absolute",
@@ -1205,49 +1096,29 @@ y:
       />
     </div>
   )}
-  {!(
-  room.id === "living-kitchen" &&
-  mofuStates[room.id].tapCount >= 50
-) && (
+ {room.id !== "conditioning-room" &&
+ !(
+   room.id === "living-kitchen" &&
+   mofuStates["living-kitchen"].tapCount >= 50
+ ) && (
   <div
-    style={{
+  style={{
     position: "absolute",
     left: "50%",
     bottom: "4%",
-    width:
-  room.id === "conditioning-room" &&
-  mofuStates[room.id].action === "training"
-    ? 190
-    : 95,
-
-height:
-  room.id === "conditioning-room" &&
-  mofuStates[room.id].action === "training"
-    ? 120
-    : 135,
-    transform: `
-  translateX(calc(-50% + ${
-    room.id === "conditioning-room" &&
-    mofuStates[room.id].action === "training"
-      ? 12
-      : mofuStates[room.id].x
-  }px))
-  translateY(${
-    room.id === "conditioning-room" &&
-    mofuStates[room.id].action === "training"
-      ? -165
-      : mofuStates[room.id].y
-  }px)
+ transform: `
+  translateX(calc(-50% + ${mofuStates[managedRoomId].x}px))
+  translateY(${mofuStates[managedRoomId].y}px)
 `,
 transition:
   (
     room.id === "living-kitchen" &&
-    mofuStates[room.id].action ===
+    mofuStates[managedRoomId].action ===
       "living-walk"
   ) ||
   (
     room.id === "workroom" &&
-    mofuStates[room.id].action ===
+    mofuStates[managedRoomId].action ===
       "work-walk"
   )
     ? "transform 1.8s linear"
@@ -1312,42 +1183,32 @@ transition:
     height: "100%",
     transform:
   (
-    mofuStates[room.id].action ===
+    mofuStates[managedRoomId].action ===
       "living-walk" ||
-    mofuStates[room.id].action ===
+    mofuStates[managedRoomId].action ===
       "work-walk"
   ) &&
-  mofuStates[room.id].x > 0
+  mofuStates[managedRoomId].x > 0
     ? "scaleX(-1)"
     : "scaleX(1)",
   }}
 >
-<div
+ <div
   style={{
     width: "100%",
     height: "100%",
     animation:
-  room.id === "conditioning-room"
-    ? "none"
-    : "mofuFloat 3s ease-in-out infinite",
-
+      "mofuFloat 3s ease-in-out infinite",
     scale:
-      mofuStates[room.id].action ===
+      mofuStates[managedRoomId].action ===
         "living-walk"
         ? "1.65"
-        : mofuStates[room.id].action ===
+        : mofuStates[managedRoomId].action ===
             "work-walk"
           ? "1.35"
           : "1",
-
-    rotate:
-      room.id === "conditioning-room" &&
-      mofuStates[room.id].action === "training"
-        ? "-25deg"
-        : "0deg",
   }}
->
-  <img
+>  <img
     src={
       room.id === "living-kitchen"
         ? mofuStates[room.id].tapCount >= 50
@@ -1363,32 +1224,26 @@ transition:
                     mofuWalkFrameIndex
                   ]
                 : "/mofu-normal.png"
+
         : room.id === "workroom"
-  ? mofuStates[room.id].action ===
-      "work-walk"
-    ? mofuWorkWalkFrames[
-        mofuWalkFrameIndex %
-          mofuWorkWalkFrames.length
-      ]
-    : mofuStates[room.id].action ===
-        "work-pc"
-      ? "/mofu-work-pc.png"
-      : "/mofu-normal.png"
+          ? mofuStates[room.id].action ===
+              "work-walk"
+            ? mofuWorkWalkFrames[
+                mofuWalkFrameIndex %
+                  mofuWorkWalkFrames.length
+              ]
+            : mofuStates[room.id].action ===
+                "work-pc"
+              ? "/mofu-work-pc.png"
+              : "/mofu-normal.png"
 
-  : room.id === "conditioning-room"
-  ? mofuStates[room.id].action === "training"
-    ? mofuCrunchFrames[
-        mofuCrunchFrameIndex
-      ]
-    : "/mofu-conditioning-idle.png"
-
-  : "/mofu-normal.png"
+          : "/mofu-normal.png"
     }
     alt="モフ"
     draggable={false}
     onClick={() =>
-      handleMofuClick(room.id)
-    }
+  handleMofuClick(managedRoomId)
+}
     style={{
       width: "100%",
       height: "100%",
@@ -1396,35 +1251,36 @@ transition:
       display: "block",
       userSelect: "none",
       cursor: "pointer",
-
       animation:
-  mofuStates[room.id].isJumping
+  mofuStates[managedRoomId].isJumping
     ? "mofuJump 0.6s ease"
     : (
         room.id === "living-kitchen" &&
-        mofuStates[room.id].tapCount < 50 &&
+        mofuStates[managedRoomId].tapCount < 50 &&
         (
-          mofuStates[room.id].tapCount >= 12 ||
-          mofuStates[room.id].action ===
+          mofuStates[managedRoomId].tapCount >= 12 ||
+          mofuStates[managedRoomId].action ===
             "living-walk"
         )
       ) ||
       (
         room.id === "workroom" &&
-        mofuStates[room.id].action ===
+        mofuStates[managedRoomId].action ===
           "work-walk"
       )
       ? "mofuWalk 0.35s linear infinite"
       : "none",
     }}
   />
-</div>
+  </div>
+
 </div>
 </div>
           )}
 
-          </div>
-        ))}
+                   </div>
+        );
+      })}
       </div>
 
       <div

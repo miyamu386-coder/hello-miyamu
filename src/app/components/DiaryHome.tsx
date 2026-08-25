@@ -235,10 +235,6 @@ if (isTrainingOpen) {
             setIsBookOpen(false);
             setIsCalendarOpen(true);
           }}
-          onOpenConditioning={() => {
-            setIsPuzzleOpen(false);
-            setOpenCategory("life");
-          }}
           onOpenTraining={() => {
             setIsPuzzleOpen(false);
             setOpenCategory(null);
