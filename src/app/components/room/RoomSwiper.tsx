@@ -1,12 +1,15 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import ConditioningMofu from "./ConditioningMofu";
+import LivingRoom from "./LivingRoom";
+import WorkRoom from "./WorkRoom";
+import ConditioningRoom from "./ConditioningRoom";
 type RepeatType =
   | "none"
   | "weekly"
@@ -41,8 +44,6 @@ type MofuAction =
 type Room = {
   id: RoomId;
   name: string;
-  image?: string;
-  mofuActions?: MofuAction[];
 };
 
 type MofuRoomState = {
@@ -57,7 +58,6 @@ type Props = {
   onOpenKitchen: () => void;
   onOpenFridge: () => void;
   onOpenWork: () => void;
-  onOpenPuzzle: () => void;
   onOpenBook: () => void;
   onOpenCalendar: () => void;
   onOpenTraining: () => void;
@@ -147,28 +147,15 @@ const rooms: Room[] = [
   {
     id: "living-kitchen",
     name: "リビングキッチン",
-    image: "/room/mofu-room.png",
-   mofuActions: [
-  "idle",
-  "living",
-  "living-walk",
-],
   },
   {
-  id: "workroom",
-  name: "仕事部屋",
-  image: "/room/mofu-workroom.png",
-  mofuActions: [
-    "idle",
-    "work-walk",
-    "work-pc",
-    "work-book",
-  ],
-},
+    id: "workroom",
+    name: "仕事部屋",
+  },
   {
-  id: "conditioning-room",
-  name: "コンディショニングルーム",
-},
+    id: "conditioning-room",
+    name: "コンディショニングルーム",
+  },
 ];
 
 const mofuWalkFrames = [
@@ -182,16 +169,11 @@ const mofuWorkWalkFrames = [
   "/mofu-work-walk-3.png",
   "/mofu-work-walk-4.png",
 ];
-const WORK_PC_POSITION = {
-  x: -80,
-  y: -220,
-};
 
 export default function RoomSwiper({
   onOpenKitchen,
   onOpenFridge,
   onOpenWork,
-  onOpenPuzzle,
   onOpenBook,
   onOpenCalendar,
   onOpenTraining,
@@ -204,10 +186,6 @@ export default function RoomSwiper({
     useRef<number | null>(null);
 
   const mofuJumpTimerRef =
-    useRef<number | null>(null);
-  const mofuNpcTimerRef =
-    useRef<number | null>(null);
-  const workMofuNpcTimerRef =
     useRef<number | null>(null);
 
   const [
@@ -312,142 +290,6 @@ useEffect(() => {
     window.clearInterval(timer);
   };
 }, []);
-
-useEffect(() => {
-  const roomId: MofuManagedRoomId =
-    "living-kitchen";
-
-  const scheduleNextMove = () => {
-    const waitTime =
-      3000 + Math.random() * 4000;
-
-    mofuNpcTimerRef.current =
-      window.setTimeout(() => {
-        setMofuStates((prev) => {
-          const current =
-            prev[roomId];
-
-          // タップ逃走モード中は
-          // NPC自律移動をしない
-          if (current.tapCount >= 12) {
-            return prev;
-          }
-
-          // 左右どちらかへ移動
-          const nextX =
-           current.x >= 0
-           ? -120
-           : 120;
-
-          return {
-            ...prev,
-            [roomId]: {
-              ...current,
-              action: "living-walk",
-              x: nextX,
-              y: 0,
-            },
-          };
-        });
-
-        // 歩行時間
-        mofuNpcTimerRef.current =
-          window.setTimeout(() => {
-            setMofuStates((prev) => {
-              const current =
-                prev[roomId];
-
-              if (
-                current.tapCount >= 12
-              ) {
-                return prev;
-              }
-
-              return {
-                ...prev,
-                [roomId]: {
-                  ...current,
-                  action: "idle",
-                },
-              };
-            });
-
-            scheduleNextMove();
-          }, 1800);
-      }, waitTime);
-  };
-
-  scheduleNextMove();
-
-  return () => {
-    if (
-      mofuNpcTimerRef.current !==
-      null
-    ) {
-      window.clearTimeout(
-        mofuNpcTimerRef.current
-      );
-    }
-  };
-}, []);
-
-useEffect(() => {
-  const roomId: MofuManagedRoomId =
-    "workroom";
-
-  const scheduleNextMove = () => {
-    const waitTime =
-      3000 + Math.random() * 4000;
-
-    workMofuNpcTimerRef.current =
-      window.setTimeout(() => {
-        setMofuStates((prev) => {
-          const current =
-            prev[roomId];
-
-          return {
-            ...prev,
-            [roomId]: {
-              ...current,
-              action: "work-walk",
-              x: WORK_PC_POSITION.x,
-              y: WORK_PC_POSITION.y,
-            },
-          };
-        });
-
-        workMofuNpcTimerRef.current =
-  window.setTimeout(() => {
-    setMofuStates((prev) => {
-      const current =
-        prev[roomId];
-
-      return {
-        ...prev,
-        [roomId]: {
-          ...current,
-          action: "work-pc",
-        },
-      };
-    });
-  }, 1800);
-      }, waitTime);
-  };
-
-  scheduleNextMove();
-
-  return () => {
-    if (
-      workMofuNpcTimerRef.current !==
-      null
-    ) {
-      window.clearTimeout(
-        workMofuNpcTimerRef.current
-      );
-    }
-  };
-}, []);
-
 
   useEffect(() => {
     const saved =
@@ -726,6 +568,38 @@ if (mofuTapCount >= 1) {
       behavior: "smooth",
     });
   };
+  const handleLivingRoomStateChange =
+  useCallback(
+    (
+      updater: (
+        current: MofuRoomState
+      ) => MofuRoomState
+    ) => {
+      setMofuStates((prev) => ({
+        ...prev,
+        "living-kitchen": updater(
+          prev["living-kitchen"]
+        ),
+      }));
+    },
+    []
+  );
+const handleWorkRoomStateChange =
+  useCallback(
+    (
+      updater: (
+        current: MofuRoomState
+      ) => MofuRoomState
+    ) => {
+      setMofuStates((prev) => ({
+        ...prev,
+        workroom: updater(
+          prev.workroom
+        ),
+      }));
+    },
+    []
+  );
 
   const handleMofuClick = (
   roomId: MofuManagedRoomId
@@ -768,6 +642,7 @@ y:
     : prev[roomId].y,
     },
   };
+  
 });
 
 showMessageForFourSeconds(
@@ -831,11 +706,7 @@ if (
             "contain",
         }}
       >
-       {rooms.map((room) => {
-  const managedRoomId =
-    room.id as MofuManagedRoomId;
-
-  return (
+       {rooms.map((room) => (
     <div
             key={room.id}
             style={{
@@ -851,436 +722,63 @@ if (
               borderRadius: 20,
             }}
           >
-            {room.image && (
-  <img
-    src={room.image}
-    alt={room.name}
-    draggable={false}
-    style={{
-      width: "100%",
-      height: "100%",
-      objectFit: "contain",
-      display: "block",
-      userSelect: "none",
-      cursor: "pointer",
-      background:
-        room.id === "workroom"
-          ? "#2b1c12"
-          : "transparent",
-    }}
+            {room.id === "living-kitchen" && (
+  <LivingRoom
+    state={mofuStates["living-kitchen"]}
+    showMessage={
+      showMofuMessageRoom === "living-kitchen" &&
+      currentRoom.id === "living-kitchen"
+    }
+    message={mofuMessage}
+    isShortMessage={isShortMofuMessage}
+    walkFrame={
+      mofuWalkFrames[mofuWalkFrameIndex]
+    }
+    onMofuClick={() =>
+      handleMofuClick("living-kitchen")
+    }
+    onOpenKitchen={onOpenKitchen}
+    onOpenFridge={onOpenFridge}
+    onOpenBook={onOpenBook}
+    onOpenCalendar={onOpenCalendar}
+    onStateChange={handleLivingRoomStateChange}
   />
 )}
-
-            {room.id ===
-              "living-kitchen" && (
-              <>
-                <button
-                  type="button"
-                  aria-label="キッチンを開く"
-                  onClick={
-                    onOpenKitchen
-                  }
-                  style={{
-                    position:
-                      "absolute",
-                    left: "32%",
-                    top: "22%",
-                    width: "38%",
-                    height: "40%",
-                    border: "none",
-                    background:
-                      "transparent",
-                    cursor:
-                      "pointer",
-                    zIndex: 4,
-                  }}
-                />
-
-                <button
-                  type="button"
-                  aria-label="冷蔵庫を開く"
-                  onClick={
-                    onOpenFridge
-                  }
-                  style={{
-                    position:
-                      "absolute",
-                    right: "0%",
-                    top: "20%",
-                    width: "22%",
-                    height: "43%",
-                    border: "none",
-                    background:
-                      "transparent",
-                    cursor:
-                      "pointer",
-                    zIndex: 4,
-                  }}
-                />
-
-                <button
-                  type="button"
-                  aria-label="リビングの本を開く"
-                  onClick={
-                    onOpenBook
-                  }
-                  style={{
-                    position:
-                      "absolute",
-                    left: "61%",
-                    top: "64%",
-                    width: "18%",
-                    height: "10%",
-                    padding: 0,
-                    border: "none",
-                    background:
-                      "transparent",
-                    cursor:
-                      "pointer",
-                    zIndex: 10,
-                  }}
-                />
-
-                <button
-                  type="button"
-                  aria-label="予定表を開く"
-                  onClick={
-                    onOpenCalendar
-                  }
-                  style={{
-                    position:
-                      "absolute",
-                    left: "5%",
-                    top: "13%",
-                    width: "31%",
-                    height: "31%",
-                    padding: 0,
-                    border: "none",
-                    background:
-                      "transparent",
-                    cursor:
-                      "pointer",
-                    zIndex: 6,
-                  }}
-                />
-              </>
-            )}
-            {room.id ===
-              "workroom" && (
-              <>
-                <button
-                  type="button"
-                  aria-label="パソコンを開く"
-                  onClick={
-                    onOpenWork
-                  }
-                  style={{
-                    position:
-                      "absolute",
-                    left: "4%",
-                    top: "35%",
-                    width: "33%",
-                    height: "27%",
-                    padding: 0,
-                    border: "none",
-                    background:
-                      "transparent",
-                    cursor:
-                      "pointer",
-                    zIndex: 4,
-                  }}
-                />
-
-                <button
-                 type="button"
-                 aria-label="モフのお楽しみコーナー"
-                 onClick={() =>
-                  setShowMofuFun(true)
-                  }
-                 style={{
-                position: "absolute",
-                left: "43%",
-                top: "29%",
-                width: "5%",
-                height: "5%",
-                    padding: 0,
-                    border: "none",
-                    background: "transparent",
-                    cursor:
-                      "pointer",
-                    zIndex: 4,
-                  }}
-                />
-              </>
-             )} 
-              {room.id === "workroom" &&
-  showMofuFun && (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 40,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(0,0,0,0.25)",
-        padding: 24,
-      }}
-    >
-      <div
-        style={{
-          width: "min(320px, 88%)",
-          padding: "24px 20px",
-          borderRadius: 20,
-          background: "white",
-          textAlign: "center",
-          color: "#333",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 22,
-            fontWeight: 700,
-            marginBottom: 12,
-          }}
-        >
-          🐾 モフのお楽しみコーナー
-        </div>
-
-        <div
-          style={{
-            fontSize: 15,
-            lineHeight: 1.8,
-          }}
-        >
-          モフの暇つぶしコンテンツを
-          <br />
-          順次公開予定！
-          <br />
-          お楽しみに🐾
-        </div>
-      </div>
-    </div>
-  )}
+{room.id === "workroom" && (
+ <WorkRoom
+  onOpenWork={onOpenWork}
+  onOpenMofuFun={() =>
+    setShowMofuFun(true)
+  }
+  showMofuFun={showMofuFun}
+  state={mofuStates["workroom"]}
+  showMessage={
+    showMofuMessageRoom === "workroom" &&
+    currentRoom.id === "workroom"
+  }
+  message={mofuMessage}
+  isShortMessage={isShortMofuMessage}
+  walkFrame={
+    mofuWorkWalkFrames[
+      mofuWalkFrameIndex %
+        mofuWorkWalkFrames.length
+    ]
+  }
+  onMofuClick={() =>
+    handleMofuClick("workroom")
+  }
+  onStateChange={handleWorkRoomStateChange}
+/>
+)}
             
  {room.id === "conditioning-room" && (
-  <ConditioningMofu
+  <ConditioningRoom
     onOpenTraining={onOpenTraining}
     onOpenWeight={onOpenWeight}
   />
 )}
-{room.id === "living-kitchen" &&
-  mofuStates["living-kitchen"].tapCount >= 50 && (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(0,0,0,0.15)",
-        pointerEvents: "none",
-      }}
-    >
-      <img
-        src="/mofu-whiteeye.png"
-        alt="威嚇モフ"
-        draggable={false}
-        style={{
-          width: "95%",
-          height: "95%",
-          objectFit: "contain",
-          userSelect: "none",
-        }}
-      />
-    </div>
-  )}
- {room.id !== "conditioning-room" &&
- !(
-   room.id === "living-kitchen" &&
-   mofuStates["living-kitchen"].tapCount >= 50
- ) && (
-  <div
-  style={{
-    position: "absolute",
-    left: "50%",
-    bottom: "4%",
- transform: `
-  translateX(calc(-50% + ${mofuStates[managedRoomId].x}px))
-  translateY(${mofuStates[managedRoomId].y}px)
-`,
-transition:
-  (
-    room.id === "living-kitchen" &&
-    mofuStates[managedRoomId].action ===
-      "living-walk"
-  ) ||
-  (
-    room.id === "workroom" &&
-    mofuStates[managedRoomId].action ===
-      "work-walk"
-  )
-    ? "transform 1.8s linear"
-    : "transform 0.6s ease",
-    zIndex: 5,
-    pointerEvents: "auto",
-  }}
->
-              {showMofuMessageRoom === room.id &&
-               room.id === currentRoom.id && (
-                <div
-                  style={{
-                    position:
-                      "absolute",
-                    bottom: "105%",
-                    left: "50%",
-                    transform:
-                      "translateX(-50%)",
-
-                    width:
-                      "max-content",
-                    minWidth: 90,
-                    maxWidth:
-                      "min(210px, 80vw)",
-
-                    padding:
-                      "8px 12px",
-                    borderRadius: 12,
-                    background:
-                      "white",
-                    boxShadow:
-                      "0 2px 8px rgba(0,0,0,0.15)",
-
-                    fontSize: 12,
-                    lineHeight: 1.5,
-                    textAlign:
-                      "center",
-                    color: "#333",
-
-                    whiteSpace:
-                      isShortMofuMessage
-                        ? "nowrap"
-                        : "normal",
-
-                    overflowWrap:
-                      "break-word",
-
-                    boxSizing:
-                      "border-box",
-
-                    pointerEvents:
-                      "none",
-                  }}
-                >
-                  {mofuMessage}
-                </div>
-              )}
-
-             <div
-  style={{
-    width: "100%",
-    height: "100%",
-    transform:
-  (
-    mofuStates[managedRoomId].action ===
-      "living-walk" ||
-    mofuStates[managedRoomId].action ===
-      "work-walk"
-  ) &&
-  mofuStates[managedRoomId].x > 0
-    ? "scaleX(-1)"
-    : "scaleX(1)",
-  }}
->
- <div
-  style={{
-    width: "100%",
-    height: "100%",
-    animation:
-      "mofuFloat 3s ease-in-out infinite",
-    scale:
-      mofuStates[managedRoomId].action ===
-        "living-walk"
-        ? "1.65"
-        : mofuStates[managedRoomId].action ===
-            "work-walk"
-          ? "1.35"
-          : "1",
-  }}
->  <img
-    src={
-      room.id === "living-kitchen"
-        ? mofuStates[room.id].tapCount >= 50
-          ? "/mofu-whiteeye.png"
-          : mofuStates[room.id].tapCount >= 30
-            ? "/mofu-sulking.png"
-            : mofuStates[room.id].tapCount >= 20
-              ? "/mofu-running.png"
-              : mofuStates[room.id].tapCount >= 12 ||
-                  mofuStates[room.id].action ===
-                    "living-walk"
-                ? mofuWalkFrames[
-                    mofuWalkFrameIndex
-                  ]
-                : "/mofu-normal.png"
-
-        : room.id === "workroom"
-          ? mofuStates[room.id].action ===
-              "work-walk"
-            ? mofuWorkWalkFrames[
-                mofuWalkFrameIndex %
-                  mofuWorkWalkFrames.length
-              ]
-            : mofuStates[room.id].action ===
-                "work-pc"
-              ? "/mofu-work-pc.png"
-              : "/mofu-normal.png"
-
-          : "/mofu-normal.png"
-    }
-    alt="モフ"
-    draggable={false}
-    onClick={() =>
-  handleMofuClick(managedRoomId)
-}
-    style={{
-      width: "100%",
-      height: "100%",
-      objectFit: "contain",
-      display: "block",
-      userSelect: "none",
-      cursor: "pointer",
-      animation:
-  mofuStates[managedRoomId].isJumping
-    ? "mofuJump 0.6s ease"
-    : (
-        room.id === "living-kitchen" &&
-        mofuStates[managedRoomId].tapCount < 50 &&
-        (
-          mofuStates[managedRoomId].tapCount >= 12 ||
-          mofuStates[managedRoomId].action ===
-            "living-walk"
-        )
-      ) ||
-      (
-        room.id === "workroom" &&
-        mofuStates[managedRoomId].action ===
-          "work-walk"
-      )
-      ? "mofuWalk 0.35s linear infinite"
-      : "none",
-    }}
-  />
-  </div>
-
-</div>
-</div>
-          )}
-
-                   </div>
-        );
-      })}
+      </div>
+))}
       </div>
 
       <div
