@@ -220,10 +220,6 @@ if (isTrainingOpen) {
             setIsPuzzleOpen(false);
             setOpenCategory("work");
           }}
-          onOpenPuzzle={() => {
-            setOpenCategory(null);
-            setIsPuzzleOpen(true);
-          }}
           onOpenBook={() => {
             setOpenCategory(null);
             setIsPuzzleOpen(false);
