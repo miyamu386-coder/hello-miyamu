@@ -25,6 +25,8 @@ type Props = {
   cards: DiaryCard[];
   currentYm: string;
   storageKeyBase: string;
+  roomIndex: number;
+  onRoomChange: (index: number) => void;
   onSelect: (card: DiaryCard) => void;
   onAddCard: (
     category: DiaryCategory,
@@ -38,6 +40,8 @@ export default function DiaryHome({
   cards,
   currentYm,
   storageKeyBase,
+  roomIndex,
+  onRoomChange,
   onSelect,
   onAddCard,
   onEditCard,
@@ -49,8 +53,6 @@ export default function DiaryHome({
   const [isBookOpen, setIsBookOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isTrainingOpen, setIsTrainingOpen] = useState(false);
-  const [returnRoomIndex, setReturnRoomIndex] =
-  useState(0);
   const workCards = cards.filter(
     (card) => card.category === "work"
   );
@@ -208,8 +210,8 @@ if (isTrainingOpen) {
         </div>
 
         <RoomSwiper
-          initialRoomIndex={returnRoomIndex}
-          onRoomChange={setReturnRoomIndex}
+          initialRoomIndex={roomIndex}
+         onRoomChange={onRoomChange}
           onOpenKitchen={() => {
             setIsPuzzleOpen(false);
             setOpenCategory("life");

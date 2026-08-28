@@ -41,6 +41,10 @@ export default function MiyamuDiaryClient() {
    openHome,
    selectCard,
 } = useDiaryNavigation();
+const [
+  returnRoomIndex,
+  setReturnRoomIndex,
+] = useState(0);
 
   // 日付は自由に選択（過去月OK）
   const [dateISO, setDateISO] = useState<string>(todayISO());
@@ -225,10 +229,12 @@ const deleteCardLogs = (cardId: string) => {
   }}
 >
         
-        <DiaryHome
+      <DiaryHome
   cards={cards}
   currentYm={ym}
   storageKeyBase={STORAGE_KEY_BASE}
+  roomIndex={returnRoomIndex}
+  onRoomChange={setReturnRoomIndex}
   onSelect={selectCard}
   onAddCard={handleAddDiaryCard}
   onEditCard={setEditingCard}
@@ -312,7 +318,7 @@ const deleteCardLogs = (cardId: string) => {
     cursor: "pointer",
   }}
 >
-  ← ホームへ戻る
+  ← 部屋へ戻る
 </button>
 
 <DiaryHeader
