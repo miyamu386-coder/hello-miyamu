@@ -55,6 +55,8 @@ type MofuRoomState = {
 };
 
 type Props = {
+  initialRoomIndex: number;
+  onRoomChange: (index: number) => void;
   onOpenKitchen: () => void;
   onOpenFridge: () => void;
   onOpenWork: () => void;
@@ -171,6 +173,8 @@ const mofuWorkWalkFrames = [
 ];
 
 export default function RoomSwiper({
+  initialRoomIndex,
+  onRoomChange,
   onOpenKitchen,
   onOpenFridge,
   onOpenWork,
@@ -189,9 +193,9 @@ export default function RoomSwiper({
     useRef<number | null>(null);
 
   const [
-    currentRoomIndex,
-    setCurrentRoomIndex,
-  ] = useState(0);
+  currentRoomIndex,
+  setCurrentRoomIndex,
+] = useState(initialRoomIndex);
 
   const [
   mofuWalkFrameIndex,
@@ -549,7 +553,27 @@ if (mofuTapCount >= 1) {
     setCurrentRoomIndex(
       nextIndex
     );
+    onRoomChange(nextIndex);
   };
+
+  useEffect(() => {
+  const container = scrollRef.current;
+
+  if (!container) {
+    return;
+  }
+
+  container.scrollTo({
+    left:
+      container.clientWidth *
+      initialRoomIndex,
+    behavior: "auto",
+  });
+
+  setCurrentRoomIndex(
+    initialRoomIndex
+  );
+}, [initialRoomIndex]);
 
   const moveToRoom = (
     index: number

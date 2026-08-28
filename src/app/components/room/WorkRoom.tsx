@@ -199,6 +199,8 @@ useEffect(() => {
     position: "absolute",
     left: "50%",
     bottom: "4%",
+    width: 90,
+    height: 100,
     transform: `
       translateX(calc(-50% + ${state.x}px))
       translateY(${state.y}px)
