@@ -10,6 +10,7 @@ import {
 import LivingRoom from "./LivingRoom";
 import WorkRoom from "./WorkRoom";
 import ConditioningRoom from "./ConditioningRoom";
+import { getMofuMessage } from "../mofu/mofuMessages";
 type RepeatType =
   | "none"
   | "weekly"
@@ -368,163 +369,48 @@ const mofuTapCount =
     : 0;
 
   const mofuMessage = useMemo(() => {
-    if (mofuTapCount >= 50) {
-  return "…………💢";
-}
+  const today = new Date();
+  const tomorrow = new Date(today);
 
-if (mofuTapCount >= 30) {
-  return "おい…。";
-}
+  tomorrow.setDate(
+    today.getDate() + 1
+  );
 
-if (mofuTapCount >= 20) {
-  return "かまいすぎだ…";
-}
+  const todayISO =
+    toDateISO(today);
 
-if (mofuTapCount >= 8) {
-  return "触りすぎだ…";
-}
+  const tomorrowISO =
+    toDateISO(tomorrow);
 
-if (mofuTapCount >= 4) {
-  return "なんだ？";
-}
-
-if (mofuTapCount >= 1) {
-  return "……ん？";
-}
-
-    const today = new Date();
-
-    const tomorrow =
-      new Date(today);
-
-    tomorrow.setDate(
-      today.getDate() + 1
+  const todaySchedules =
+    schedules.filter(
+      (schedule) =>
+        scheduleMatchesDate(
+          schedule,
+          todayISO
+        )
     );
 
-    const todayISO =
-      toDateISO(today);
-
-    const tomorrowISO =
-      toDateISO(tomorrow);
-
-    const todaySchedules =
-      schedules.filter(
-        (schedule) =>
-          scheduleMatchesDate(
-            schedule,
-            todayISO
-          )
-      );
-
-    const tomorrowSchedules =
-      schedules.filter(
-        (schedule) =>
-          scheduleMatchesDate(
-            schedule,
-            tomorrowISO
-          )
-      );
-
-    const todayText =
-      todaySchedules
-        .map(
-          (schedule) =>
-            `${schedule.title} ${schedule.memo}`
+  const tomorrowSchedules =
+    schedules.filter(
+      (schedule) =>
+        scheduleMatchesDate(
+          schedule,
+          tomorrowISO
         )
-        .join(" ");
+    );
 
-    if (
-      currentRoomIndex === 0 &&
-      /誕生日|birthday/i.test(
-        todayText
-      )
-    ) {
-      return "今日は誕生日だね🎂 おめでとう！";
-    }
-
-    const formatScheduleTitles = (
-      items: ScheduleItem[]
-    ) => {
-      const visible =
-        items.slice(0, 2);
-
-      const titles = visible
-        .map(
-          (schedule) =>
-            `「${schedule.title}」`
-        )
-        .join("、");
-
-      const remaining =
-        items.length -
-        visible.length;
-
-      if (remaining > 0) {
-        return `${titles}ほか${remaining}件`;
-      }
-
-      return titles;
-    };
-
-    if (
-      currentRoomIndex === 0 &&
-      todaySchedules.length > 0
-    ) {
-      return `今日は${formatScheduleTitles(
-        todaySchedules
-      )}の予定があるよ🐾`;
-    }
-
-    if (
-      currentRoomIndex === 0 &&
-      tomorrowSchedules.length > 0
-    ) {
-      return `明日は${formatScheduleTitles(
-        tomorrowSchedules
-      )}の予定があるよ🐾`;
-    }
-
-    if (
-      currentRoomIndex === 0
-    ) {
-      const messages = [
-        "今日は予定なしか。たまにはのんびりするのも悪くないぞ🐾",
-        "暇なら冷蔵庫でも覗いてこい。何かあるだろ🐾",
-        "予定がない日くらい、好きに過ごせばいいんじゃないか？🐾",
-        "何もない日も立派な予定だ。俺は寝るけどな🐾",
-      ];
-
-      return messages[
-        Math.floor(
-          Math.random() *
-            messages.length
-        )
-      ];
-    }
-
-    if (
-      currentRoomIndex === 1
-    ) {
-      const messages = [
-        "さて、今日はどれだけ積むつもりだ？🐾",
-        "また作業か。好きだな、お前も🐾",
-        "無理して倒れたら意味ないぞ🐾",
-        "積むのはいいが、休むのも仕事だぞ🐾",
-      ];
-
-      return messages[
-        Math.floor(
-          Math.random() *
-            messages.length
-        )
-      ];
-    }
-    return "今日は何しようかな〜🐾";
-  }, [
-    schedules,
-    currentRoomIndex,
-    mofuTapCount,
-  ]);
+  return getMofuMessage({
+    roomId: currentRoom.id,
+    tapCount: mofuTapCount,
+    todaySchedules,
+    tomorrowSchedules,
+  });
+}, [
+  schedules,
+  currentRoom.id,
+  mofuTapCount,
+]);
 
   const isShortMofuMessage =
     mofuMessage.length <= 8;
