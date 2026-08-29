@@ -72,3 +72,16 @@ body {
     transform: translateY(0) rotate(0deg);
   }
 }
+@keyframes mofuSleepBreath {
+  0%,
+  100% {
+    transform: translateY(0) scaleX(1) scaleY(1);
+  }
+
+  50% {
+    transform:
+      translateY(-1px)
+      scaleX(1.015)
+      scaleY(1.04);
+  }
+}

@@ -212,6 +212,10 @@ export default function RoomSwiper({
   showMofuMessageRoom,
   setShowMofuMessageRoom,
 ] = useState<RoomId | null>(null);
+const [
+  wasLivingMofuSleeping,
+  setWasLivingMofuSleeping,
+] = useState(false);
 
 const [
   showMofuFun,
@@ -255,11 +259,13 @@ workroom: {
   }
 
   mofuMessageTimerRef.current =
-    window.setTimeout(() => {
-      setShowMofuMessageRoom(null);
-      mofuMessageTimerRef.current =
-        null;
-    }, 4000);
+  window.setTimeout(() => {
+    setShowMofuMessageRoom(null);
+    setWasLivingMofuSleeping(false);
+
+    mofuMessageTimerRef.current =
+      null;
+  }, 4000);
 };
 
   useEffect(() => {
@@ -401,15 +407,20 @@ const mofuTapCount =
     );
 
   return getMofuMessage({
-    roomId: currentRoom.id,
-    tapCount: mofuTapCount,
-    todaySchedules,
-    tomorrowSchedules,
-  });
+  roomId: currentRoom.id,
+  tapCount: mofuTapCount,
+  todaySchedules,
+  tomorrowSchedules,
+  wasSleeping:
+    currentRoom.id ===
+      "living-kitchen" &&
+    wasLivingMofuSleeping,
+});
 }, [
   schedules,
   currentRoom.id,
   mofuTapCount,
+  wasLivingMofuSleeping,
 ]);
 
   const isShortMofuMessage =
@@ -512,8 +523,14 @@ const handleWorkRoomStateChange =
   );
 
   const handleMofuClick = (
-  roomId: MofuManagedRoomId
+  roomId: MofuManagedRoomId,
+  wasSleeping = false
 ) => {
+  setWasLivingMofuSleeping(
+    roomId === "living-kitchen" &&
+      wasSleeping
+  );
+
   setMofuStates((prev) => {
 const nextTapCount =
   prev[roomId].tapCount + 1;
@@ -644,9 +661,12 @@ if (
     walkFrame={
       mofuWalkFrames[mofuWalkFrameIndex]
     }
-    onMofuClick={() =>
-      handleMofuClick("living-kitchen")
-    }
+    onMofuClick={(wasSleeping) =>
+  handleMofuClick(
+    "living-kitchen",
+    wasSleeping
+  )
+}
     onOpenKitchen={onOpenKitchen}
     onOpenFridge={onOpenFridge}
     onOpenBook={onOpenBook}

@@ -3,6 +3,7 @@
 import {
   useEffect,
   useRef,
+  useState,
 } from "react";
 
 type MofuAction =
@@ -12,6 +13,12 @@ type MofuAction =
   | "work-walk"
   | "work-pc"
   | "work-book";
+
+type LivingBehavior =
+  | "idle"
+  | "walk"
+  | "long-idle"
+  | "sleep";
 
 type MofuRoomState = {
   tapCount: number;
@@ -28,10 +35,12 @@ type Props = {
   isShortMessage: boolean;
   walkFrame: string;
 
-  onMofuClick: () => void;
+  onMofuClick: (
+  wasSleeping?: boolean
+) => void;
   onOpenKitchen: () => void;
   onOpenFridge: () => void;
-    onOpenBook: () => void;
+  onOpenBook: () => void;
   onOpenCalendar: () => void;
 
   onStateChange: (
@@ -40,6 +49,13 @@ type Props = {
     ) => MofuRoomState
   ) => void;
 };
+
+const livingMovePoints = [
+  { x: 0, y: 0 },        // 手前
+  { x: -120, y: -180 },  // 本棚前
+  { x: 0, y: -260 },     // キッチン前
+  { x: 120, y: -230 },   // 冷蔵庫方向
+];
 
 export default function LivingRoom({
   state,
@@ -50,60 +66,125 @@ export default function LivingRoom({
   onMofuClick,
   onOpenKitchen,
   onOpenFridge,
-    onOpenBook,
+  onOpenBook,
   onOpenCalendar,
   onStateChange,
 }: Props) {
   const mofuNpcTimerRef =
     useRef<number | null>(null);
 
+  const mofuMoveIndexRef =
+    useRef(0);
+
+  const lapStepRef =
+    useRef(0);
+
+  const mofuFacingRef =
+    useRef<"left" | "right">("left");
+
+  const [
+    livingBehavior,
+    setLivingBehavior,
+  ] = useState<LivingBehavior>("idle");
+
+  const [
+    wakeCount,
+    setWakeCount,
+  ] = useState(0);
+
   const isThreatening =
     state.tapCount >= 50;
 
-      useEffect(() => {
-    const scheduleNextMove = () => {
-      const waitTime =
-        3000 + Math.random() * 4000;
+  const isTapReacting =
+    state.tapCount >= 12;
+
+  useEffect(() => {
+    const startWalk = () => {
+      onStateChange((current) => {
+        if (current.tapCount >= 12) {
+          return current;
+        }
+
+        const nextIndex =
+          (mofuMoveIndexRef.current + 1) %
+          livingMovePoints.length;
+
+        const nextPoint =
+          livingMovePoints[nextIndex];
+
+        if (nextPoint.x > current.x) {
+          mofuFacingRef.current = "right";
+        } else if (
+          nextPoint.x < current.x
+        ) {
+          mofuFacingRef.current = "left";
+        }
+
+        mofuMoveIndexRef.current =
+          nextIndex;
+
+        return {
+          ...current,
+          action: "living-walk",
+          x: nextPoint.x,
+          y: nextPoint.y,
+        };
+      });
+
+      setLivingBehavior("walk");
 
       mofuNpcTimerRef.current =
         window.setTimeout(() => {
-          onStateChange((current) => {
-            if (current.tapCount >= 12) {
-              return current;
-            }
+          lapStepRef.current += 1;
 
-            const nextX =
-              current.x >= 0
-                ? -120
-                : 120;
+          // 4地点を一周したら昼寝
+          if (
+            lapStepRef.current >=
+            livingMovePoints.length
+          ) {
+            setLivingBehavior("sleep");
 
-            return {
+            onStateChange((current) => ({
               ...current,
-              action: "living-walk",
-              x: nextX,
-              y: 0,
-            };
-          });
+              action: "idle",
+            }));
+
+            // 昼寝中は次のタイマーを作らない
+            return;
+          }
+
+          // 一周途中の静止
+          const isLongIdle =
+            lapStepRef.current === 2;
+
+          setLivingBehavior(
+            isLongIdle
+              ? "long-idle"
+              : "idle"
+          );
+
+          onStateChange((current) => ({
+            ...current,
+            action: "idle",
+          }));
+
+          const idleTime =
+            isLongIdle
+              ? 10000
+              : 3000;
 
           mofuNpcTimerRef.current =
             window.setTimeout(() => {
-              onStateChange((current) => {
-                if (current.tapCount >= 12) {
-                  return current;
-                }
-
-                return {
-                  ...current,
-                  action: "idle",
-                };
-              });
-
-              scheduleNextMove();
-            }, 1800);
-        }, waitTime);
+              startWalk();
+            }, idleTime);
+        }, 1800);
     };
 
-    scheduleNextMove();
+    // 起床後は少し止まってから散歩開始
+    mofuNpcTimerRef.current =
+      window.setTimeout(() => {
+        startWalk();
+      }, 3000);
 
     return () => {
       if (
@@ -114,7 +195,49 @@ export default function LivingRoom({
         );
       }
     };
-  }, [onStateChange]);
+  }, [onStateChange, wakeCount]);
+
+  useEffect(() => {
+    if (!isTapReacting) {
+      return;
+    }
+
+    if (mofuNpcTimerRef.current !== null) {
+      window.clearTimeout(
+        mofuNpcTimerRef.current
+      );
+
+      mofuNpcTimerRef.current = null;
+    }
+
+    setLivingBehavior("idle");
+  }, [isTapReacting]);
+
+  const handleLivingMofuClick = () => {
+  const wasSleeping =
+    livingBehavior === "sleep";
+
+  if (wasSleeping) {
+      lapStepRef.current = 0;
+      mofuMoveIndexRef.current = 0;
+
+      setLivingBehavior("idle");
+
+      onStateChange((current) => ({
+        ...current,
+        action: "idle",
+        x: livingMovePoints[0].x,
+        y: livingMovePoints[0].y,
+      }));
+
+      setWakeCount(
+        (current) => current + 1
+      );
+    }
+
+    onMofuClick(wasSleeping);
+  };
+
   return (
     <>
       <img
@@ -236,14 +359,19 @@ export default function LivingRoom({
             bottom: "4%",
             width: 90,
             height: 100,
+
+            marginLeft: state.x,
+
             transform: `
-              translateX(calc(-50% + ${state.x}px))
+              translateX(-50%)
               translateY(${state.y}px)
             `,
+
             transition:
-              state.action === "living-walk"
-                ? "transform 1.8s linear"
-                : "transform 0.6s ease",
+              livingBehavior === "walk"
+                ? "margin-left 1.8s linear, transform 1.8s linear"
+                : "margin-left 0.6s ease, transform 0.6s ease",
+
             zIndex: 5,
             pointerEvents: "auto",
           }}
@@ -288,9 +416,8 @@ export default function LivingRoom({
               width: "100%",
               height: "100%",
               transform:
-                state.action ===
-                  "living-walk" &&
-                state.x > 0
+                mofuFacingRef.current ===
+                  "right"
                   ? "scaleX(-1)"
                   : "scaleX(1)",
             }}
@@ -299,13 +426,23 @@ export default function LivingRoom({
               style={{
                 width: "100%",
                 height: "100%",
+
                 animation:
-                  "mofuFloat 3s ease-in-out infinite",
+                  isTapReacting
+                    ? "none"
+                    : livingBehavior === "sleep"
+                      ? "mofuSleepBreath 3.2s ease-in-out infinite"
+                      : "mofuFloat 3s ease-in-out infinite",
+
                 scale:
-                  state.action ===
-                  "living-walk"
+                  isTapReacting ||
+                    livingBehavior === "walk"
                     ? "1.65"
-                    : "1",
+                    : livingBehavior === "sleep"
+                      ? "1.3"
+                      : "1",
+
+                transformOrigin: "center bottom",
               }}
             >
               <img
@@ -314,15 +451,21 @@ export default function LivingRoom({
                     ? "/mofu-sulking.png"
                     : state.tapCount >= 20
                       ? "/mofu-running.png"
-                      : state.tapCount >= 12 ||
-                          state.action ===
-                            "living-walk"
+                      : state.tapCount >= 12
                         ? walkFrame
-                        : "/mofu-normal.png"
+                        : livingBehavior ===
+                          "walk"
+                          ? walkFrame
+                          : livingBehavior ===
+                            "sleep"
+                            ? "/mofu-sleep.png"
+                            : "/mofu-normal.png"
                 }
                 alt="モフ"
                 draggable={false}
-                onClick={onMofuClick}
+                onClick={
+                  handleLivingMofuClick
+                }
                 style={{
                   width: "100%",
                   height: "100%",
@@ -330,13 +473,13 @@ export default function LivingRoom({
                   display: "block",
                   userSelect: "none",
                   cursor: "pointer",
+
                   animation:
                     state.isJumping
                       ? "mofuJump 0.6s ease"
-                      : state.tapCount >=
-                            12 ||
-                          state.action ===
-                            "living-walk"
+                      : state.tapCount >= 12 ||
+                        livingBehavior ===
+                        "walk"
                         ? "mofuWalk 0.35s linear infinite"
                         : "none",
                 }}

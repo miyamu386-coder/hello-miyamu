@@ -13,6 +13,7 @@ type GetMofuMessageParams = {
   tapCount: number;
   todaySchedules: MessageSchedule[];
   tomorrowSchedules: MessageSchedule[];
+  wasSleeping?: boolean;
 };
 
 const livingMessages = [
@@ -97,7 +98,15 @@ export const getMofuMessage = ({
   tapCount,
   todaySchedules,
   tomorrowSchedules,
+  wasSleeping = false,
 }: GetMofuMessageParams) => {
+  if (
+    roomId === "living-kitchen" &&
+    wasSleeping
+  ) {
+    return "起こすなよ…";
+  }
+
   const tapMessage =
     getTapMessage(tapCount);
 
