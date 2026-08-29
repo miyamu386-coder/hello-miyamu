@@ -7,6 +7,21 @@ type MessageSchedule = {
   title: string;
   memo: string;
 };
+type HealthMessageStatus =
+  | "low-steps"
+  | "short-sleep"
+  | "heart-rate"
+  | "no-data";
+
+const healthMessages: Record<
+  HealthMessageStatus,
+  string
+> = {
+  "low-steps": "今日はまだ静かだな",
+  "short-sleep": "……寝ろ",
+  "heart-rate": "ちゃんと動いてるな",
+  "no-data": "まだ何も聞いてないぞ",
+};
 
 type GetMofuMessageParams = {
   roomId: MofuMessageRoomId;
@@ -14,6 +29,7 @@ type GetMofuMessageParams = {
   todaySchedules: MessageSchedule[];
   tomorrowSchedules: MessageSchedule[];
   wasSleeping?: boolean;
+  healthStatus?: HealthMessageStatus;
 };
 
 const livingMessages = [
@@ -99,6 +115,7 @@ export const getMofuMessage = ({
   todaySchedules,
   tomorrowSchedules,
   wasSleeping = false,
+  healthStatus,
 }: GetMofuMessageParams) => {
   if (
     roomId === "living-kitchen" &&
@@ -111,10 +128,17 @@ export const getMofuMessage = ({
     getTapMessage(tapCount);
 
   if (tapMessage) {
-    return tapMessage;
-  }
+  return tapMessage;
+}
 
-  if (roomId === "living-kitchen") {
+if (
+  roomId === "living-kitchen" &&
+  healthStatus
+) {
+  return healthMessages[healthStatus];
+}
+
+if (roomId === "living-kitchen") {
     const todayText =
       todaySchedules
         .map(
