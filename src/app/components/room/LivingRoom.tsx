@@ -18,7 +18,9 @@ type LivingBehavior =
   | "idle"
   | "walk"
   | "long-idle"
-  | "sleep";
+  | "sleep"
+  | "yawn"
+  | "wake-stretch";
 
 type MofuRoomState = {
   tapCount: number;
@@ -36,8 +38,8 @@ type Props = {
   walkFrame: string;
 
   onMofuClick: (
-  wasSleeping?: boolean
-) => void;
+    wasSleeping?: boolean
+  ) => void;
   onOpenKitchen: () => void;
   onOpenFridge: () => void;
   onOpenBook: () => void;
@@ -53,8 +55,8 @@ type Props = {
 const livingMovePoints = [
   { x: 0, y: 0 },        // 手前
   { x: -120, y: -180 },  // 本棚前
-  { x: 0, y: -260 },     // キッチン前
-  { x: 120, y: -230 },   // 冷蔵庫方向
+  { x: 0, y: -230 },     // キッチン前
+  { x: 120, y: -215 },   // 冷蔵庫方向
 ];
 
 export default function LivingRoom({
@@ -214,25 +216,37 @@ export default function LivingRoom({
   }, [isTapReacting]);
 
   const handleLivingMofuClick = () => {
-  const wasSleeping =
-    livingBehavior === "sleep";
+    const wasSleeping =
+      livingBehavior === "sleep";
 
-  if (wasSleeping) {
+    if (wasSleeping) {
       lapStepRef.current = 0;
       mofuMoveIndexRef.current = 0;
 
-      setLivingBehavior("idle");
+      setLivingBehavior("yawn");
 
       onStateChange((current) => ({
         ...current,
         action: "idle",
-        x: livingMovePoints[0].x,
-        y: livingMovePoints[0].y,
       }));
 
-      setWakeCount(
-        (current) => current + 1
-      );
+      window.setTimeout(() => {
+        setLivingBehavior("wake-stretch");
+      }, 2000);
+
+      window.setTimeout(() => {
+        setLivingBehavior("idle");
+
+        onStateChange((current) => ({
+          ...current,
+          x: livingMovePoints[0].x,
+          y: livingMovePoints[0].y,
+        }));
+
+        setWakeCount(
+          (current) => current + 1
+        );
+      }, 4000);
     }
 
     onMofuClick(wasSleeping);
@@ -438,7 +452,9 @@ export default function LivingRoom({
                   isTapReacting ||
                     livingBehavior === "walk"
                     ? "1.65"
-                    : livingBehavior === "sleep"
+                    : livingBehavior === "sleep" ||
+                      livingBehavior === "yawn" ||
+                      livingBehavior === "wake-stretch"
                       ? "1.3"
                       : "1",
 
@@ -453,13 +469,15 @@ export default function LivingRoom({
                       ? "/mofu-running.png"
                       : state.tapCount >= 12
                         ? walkFrame
-                        : livingBehavior ===
-                          "walk"
+                        : livingBehavior === "walk"
                           ? walkFrame
-                          : livingBehavior ===
-                            "sleep"
+                          : livingBehavior === "sleep"
                             ? "/mofu-sleep.png"
-                            : "/mofu-normal.png"
+                            : livingBehavior === "yawn"
+                              ? "/mofu-yawn.png"
+                              : livingBehavior === "wake-stretch"
+                                ? "/mofu-wake-stretch.png"
+                                : "/mofu-normal.png"
                 }
                 alt="モフ"
                 draggable={false}
