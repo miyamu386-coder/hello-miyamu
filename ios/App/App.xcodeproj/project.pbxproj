@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -17,6 +17,11 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
 		A6BEA1843046C14C00FB0E19 /* Diary Watch App Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A6BEA17A3046C14C00FB0E19 /* Diary Watch App Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A6BEA1B2304736F500FB0E19 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BEA1AD304736F500FB0E19 /* ContentView.swift */; };
+		A6BEA1B3304736F500FB0E19 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BEA1B0304736F500FB0E19 /* HealthKitManager.swift */; };
+		A6BEA1B4304736F500FB0E19 /* Diary_Watch_AppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BEA1AF304736F500FB0E19 /* Diary_Watch_AppApp.swift */; };
+		A6BEA1B5304736F500FB0E19 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6BEA1AC304736F500FB0E19 /* Assets.xcassets */; };
+		A6BEA1B73047374200FB0E19 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BEA1B63047374200FB0E19 /* CalendarManager.swift */; };
 		A6C608F73035CAC9007A9F45 /* HealthKitPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C608F63035CAC9007A9F45 /* HealthKitPlugin.swift */; };
 		A6C608F93035D60E007A9F45 /* MyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C608F83035D60E007A9F45 /* MyViewController.swift */; };
 /* End PBXBuildFile section */
@@ -58,14 +63,17 @@
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		A6BEA17A3046C14C00FB0E19 /* Diary Watch App Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Diary Watch App Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A6BEA1AC304736F500FB0E19 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A6BEA1AD304736F500FB0E19 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A6BEA1AE304736F500FB0E19 /* Diary Watch App Watch App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Diary Watch App Watch App.entitlements"; sourceTree = "<group>"; };
+		A6BEA1AF304736F500FB0E19 /* Diary_Watch_AppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diary_Watch_AppApp.swift; sourceTree = "<group>"; };
+		A6BEA1B0304736F500FB0E19 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
+		A6BEA1B63047374200FB0E19 /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
+		A6BEA1B830473CC200FB0E19 /* Diary-Watch-App-Watch-App-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Diary-Watch-App-Watch-App-Info.plist"; sourceTree = SOURCE_ROOT; };
 		A6C608F530335378007A9F45 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		A6C608F63035CAC9007A9F45 /* HealthKitPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitPlugin.swift; sourceTree = "<group>"; };
 		A6C608F83035D60E007A9F45 /* MyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		A6BEA17B3046C14C00FB0E19 /* Diary Watch App Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Diary Watch App Watch App"; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		504EC3011FED79650016851F /* Frameworks */ = {
@@ -89,10 +97,10 @@
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
 			children = (
+				A6BEA1B1304736F500FB0E19 /* Diary Watch App Watch App */,
 				A6C608F63035CAC9007A9F45 /* HealthKitPlugin.swift */,
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
-				A6BEA17B3046C14C00FB0E19 /* Diary Watch App Watch App */,
 				504EC3051FED79650016851F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -122,6 +130,20 @@
 				50B271D01FEDC1A000F3C39B /* public */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		A6BEA1B1304736F500FB0E19 /* Diary Watch App Watch App */ = {
+			isa = PBXGroup;
+			children = (
+				A6BEA1B830473CC200FB0E19 /* Diary-Watch-App-Watch-App-Info.plist */,
+				A6BEA1AC304736F500FB0E19 /* Assets.xcassets */,
+				A6BEA1AD304736F500FB0E19 /* ContentView.swift */,
+				A6BEA1AE304736F500FB0E19 /* Diary Watch App Watch App.entitlements */,
+				A6BEA1AF304736F500FB0E19 /* Diary_Watch_AppApp.swift */,
+				A6BEA1B0304736F500FB0E19 /* HealthKitManager.swift */,
+				A6BEA1B63047374200FB0E19 /* CalendarManager.swift */,
+			);
+			path = "Diary Watch App Watch App";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -160,9 +182,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				A6BEA17B3046C14C00FB0E19 /* Diary Watch App Watch App */,
 			);
 			name = "Diary Watch App Watch App";
 			packageProductDependencies = (
@@ -230,6 +249,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6BEA1B5304736F500FB0E19 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +271,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6BEA1B2304736F500FB0E19 /* ContentView.swift in Sources */,
+				A6BEA1B73047374200FB0E19 /* CalendarManager.swift in Sources */,
+				A6BEA1B3304736F500FB0E19 /* HealthKitManager.swift in Sources */,
+				A6BEA1B4304736F500FB0E19 /* Diary_Watch_AppApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -452,6 +476,7 @@
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_ENTITLEMENTS = "Diary Watch App Watch App/Diary Watch App Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = QZVVRZ58W2;
@@ -459,7 +484,10 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Diary-Watch-App-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Diary Watch App";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "モフが今日の予定を確認するためにカレンダーを使用します。";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.mcc.diary;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -497,6 +525,7 @@
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_ENTITLEMENTS = "Diary Watch App Watch App/Diary Watch App Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = QZVVRZ58W2;
@@ -504,7 +533,10 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Diary-Watch-App-Watch-App-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Diary Watch App";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "モフが今日の予定を確認するためにカレンダーを使用します。";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.mcc.diary;
 				LD_RUNPATH_SEARCH_PATHS = (
