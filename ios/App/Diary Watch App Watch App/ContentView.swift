@@ -23,7 +23,7 @@ struct ContentView: View {
     @State private var isConcerned = false
     @State private var isSleepDeprived = false
     @State private var isYawning = false
-
+    @State private var isJumping = false
     // false = 歩数
     // true = 予定
     @State private var showScheduleNext = false
@@ -88,9 +88,34 @@ struct ContentView: View {
                     )
                     .offset(
                         x: mofuX,
-                        y: 35
+                        y: isJumping ? 15 : 35
+                    )
+                    .animation(
+                        .spring(
+                            response: 0.25,
+                            dampingFraction: 0.45
+                        ),
+                        value: isJumping
                     )
                     .onTapGesture {
+                        
+                        // --------------------
+
+                        // タップリアクション
+
+                        // --------------------
+
+                        isJumping = true
+
+                        DispatchQueue.main.asyncAfter(
+
+                            deadline: .now() + 0.25
+
+                        ) {
+
+                            isJumping = false
+
+                        }
 
                         // --------------------
                         // 予定を表示
