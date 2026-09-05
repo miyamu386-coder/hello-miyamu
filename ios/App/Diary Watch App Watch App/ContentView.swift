@@ -188,8 +188,7 @@ struct ContentView: View {
         }
 
         .task {
-
-            // --------------------
+        print("ContentView task started")            // --------------------
             // HealthKit
             // --------------------
 

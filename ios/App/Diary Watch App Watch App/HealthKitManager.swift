@@ -61,7 +61,8 @@ final class HealthKitManager: ObservableObject {
     }
 
     func fetchTodaySteps() async {
-
+      
+        print("fetchTodaySteps started")
         guard let stepType =
                 HKQuantityType.quantityType(
                     forIdentifier: .stepCount

@@ -488,6 +488,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Diary Watch App";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "モフが今日の予定を確認するためにカレンダーを使用します。";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "モフが歩数・心拍数・睡眠などの健康データを確認するために使用します。";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.mcc.diary;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -537,6 +538,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Diary Watch App";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "モフが今日の予定を確認するためにカレンダーを使用します。";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "モフが歩数・心拍数・睡眠などの健康データを確認するために使用します。";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.mcc.diary;
 				LD_RUNPATH_SEARCH_PATHS = (
