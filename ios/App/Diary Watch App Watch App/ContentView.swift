@@ -173,6 +173,8 @@ struct ContentView: View {
             await healthKit.fetchTodaySteps()
             await healthKit.fetchLatestHeartRate()
             await healthKit.fetchSleep()
+            
+            
 
             // --------------------
             // Calendar
@@ -282,6 +284,42 @@ struct ContentView: View {
 
             Task {
                 await healthKit.fetchLatestHeartRate()
+            }
+        }
+         
+        // --------------------
+        // 歩数更新
+        // --------------------
+
+        .onReceive(
+            Timer.publish(
+                every: 30,
+                on: .main,
+                in: .common
+            )
+            .autoconnect()
+        ) { _ in
+
+            Task {
+                await healthKit.fetchTodaySteps()
+            }
+        }
+        
+        // --------------------
+        // 睡眠更新
+        // --------------------
+
+        .onReceive(
+            Timer.publish(
+                every: 600,
+                on: .main,
+                in: .common
+            )
+            .autoconnect()
+        ) { _ in
+
+            Task {
+                await healthKit.fetchSleep()
             }
         }
 
