@@ -16,6 +16,8 @@ type RepeatType = "none" | "weekly" | "monthly" | "yearly";
 type ScheduleItem = {
   id: string;
   date: string;
+  startTime: string;
+  endTime: string;
   title: string;
   memo: string;
   repeat: RepeatType;
@@ -170,6 +172,12 @@ export default function CalendarPage({
   const [titleInput, setTitleInput] =
     useState("");
 
+  const [startTimeInput, setStartTimeInput] =
+    useState("");
+
+  const [endTimeInput, setEndTimeInput] =
+    useState("");
+
   const [memoInput, setMemoInput] =
     useState("");
 
@@ -200,8 +208,18 @@ export default function CalendarPage({
             parsed.map((schedule) => ({
               ...schedule,
 
-              // 旧データにはrepeatがないので
-              // 繰り返しなしとして扱う
+              startTime:
+                typeof schedule.startTime === "string"
+                  ? schedule.startTime
+                  : typeof schedule.time === "string"
+                    ? schedule.time
+                    : "",
+
+              endTime:
+                typeof schedule.endTime === "string"
+                  ? schedule.endTime
+                  : "",
+
               repeat:
                 schedule.repeat ??
                 "none",
@@ -292,12 +310,26 @@ export default function CalendarPage({
       () =>
         getSchedulesByDate(
           selectedDate
-        ).sort((a, b) =>
-          a.title.localeCompare(
+        ).sort((a, b) => {
+          if (a.startTime && b.startTime) {
+  return a.startTime.localeCompare(
+    b.startTime
+  );
+}
+
+if (a.startTime) {
+  return -1;
+}
+
+if (b.startTime) {
+  return 1;
+}
+
+          return a.title.localeCompare(
             b.title,
             "ja"
-          )
-        ),
+          );
+        }),
       [schedules, selectedDate]
     );
 
@@ -385,7 +417,7 @@ export default function CalendarPage({
 
     if (
       repeatInput ===
-        "weekly" &&
+      "weekly" &&
       weekdayInputs.length === 0
     ) {
       window.alert(
@@ -395,20 +427,20 @@ export default function CalendarPage({
       return;
     }
 
-    const newSchedule: ScheduleItem =
-      {
-        id: crypto.randomUUID(),
-        date: selectedDate,
-        title,
-        memo: memoInput.trim(),
-        repeat: repeatInput,
+   const newSchedule: ScheduleItem = {
+  id: crypto.randomUUID(),
+  date: selectedDate,
+  startTime: startTimeInput,
+  endTime: endTimeInput,
+  title,
+  memo: memoInput.trim(),
+  repeat: repeatInput,
 
-        weekdays:
-          repeatInput ===
-          "weekly"
-            ? weekdayInputs
-            : [],
-      };
+      weekdays:
+        repeatInput === "weekly"
+          ? weekdayInputs
+          : [],
+    };
 
     setSchedules(
       (current) => [
@@ -417,10 +449,12 @@ export default function CalendarPage({
       ]
     );
 
-    setTitleInput("");
-    setMemoInput("");
-    setRepeatInput("none");
-    setWeekdayInputs([]);
+   setTitleInput("");
+setStartTimeInput("");
+setEndTimeInput("");
+setMemoInput("");
+setRepeatInput("none");
+setWeekdayInputs([]);
   };
 
   const removeSchedule = (
@@ -433,10 +467,10 @@ export default function CalendarPage({
       );
 
     const message =
-  target?.repeat &&
-  target.repeat !== "none"
-    ? "この繰り返し予定をすべて削除しますか？"
-    : "この予定を削除しますか？";
+      target?.repeat &&
+        target.repeat !== "none"
+        ? "この繰り返し予定をすべて削除しますか？"
+        : "この予定を削除しますか？";
 
     const confirmed =
       window.confirm(message);
@@ -506,23 +540,23 @@ export default function CalendarPage({
 
         <div style={calendarStyle}>
           {WEEKDAYS.map(
-  (weekday, index) => (
-    <div
-      key={weekday}
-      style={{
-        ...weekdayStyle,
-        ...(index === 0
-          ? sundayHolidayNumberStyle
-          : {}),
-        ...(index === 6
-          ? saturdayNumberStyle
-          : {}),
-      }}
-    >
-      {weekday}
-    </div>
-  )
-)}
+            (weekday, index) => (
+              <div
+                key={weekday}
+                style={{
+                  ...weekdayStyle,
+                  ...(index === 0
+                    ? sundayHolidayNumberStyle
+                    : {}),
+                  ...(index === 6
+                    ? saturdayNumberStyle
+                    : {}),
+                }}
+              >
+                {weekday}
+              </div>
+            )
+          )}
 
           {calendarDays.map(
             (day, index) => {
@@ -558,16 +592,16 @@ export default function CalendarPage({
                 getSchedulesByDate(
                   dateISO
                 );
-                const holiday =
-               getHolidayByDate(dateISO);
+              const holiday =
+                getHolidayByDate(dateISO);
               const scheduleCount =
                 dateSchedules.length;
 
               const scheduleIcon =
                 scheduleCount > 0
                   ? getScheduleIcon(
-                      dateSchedules
-                    )
+                    dateSchedules
+                  )
                   : null;
 
               return (
@@ -581,77 +615,77 @@ export default function CalendarPage({
                   }
                   aria-label={
                     scheduleCount >
-                    0
+                      0
                       ? `${dateISO}、予定${scheduleCount}件`
                       : dateISO
                   }
-                 style={{
-  ...dayButtonStyle,
+                  style={{
+                    ...dayButtonStyle,
 
-  ...(holiday
-    ? holidayDayStyle
-    : {}),
+                    ...(holiday
+                      ? holidayDayStyle
+                      : {}),
 
-  ...(selected
-    ? selectedDayStyle
-    : {}),
+                    ...(selected
+                      ? selectedDayStyle
+                      : {}),
 
-  ...(todayDate
-    ? todayDayStyle
-    : {}),
-}}
+                    ...(todayDate
+                      ? todayDayStyle
+                      : {}),
+                  }}
                 >
-                <span
-  style={{
-    ...dayNumberStyle,
+                  <span
+                    style={{
+                      ...dayNumberStyle,
 
-    ...(getWeekdayFromISO(dateISO) === 0 || holiday
-      ? sundayHolidayNumberStyle
-      : {}),
+                      ...(getWeekdayFromISO(dateISO) === 0 || holiday
+                        ? sundayHolidayNumberStyle
+                        : {}),
 
-    ...(getWeekdayFromISO(dateISO) === 6 && !holiday
-      ? saturdayNumberStyle
-      : {}),
+                      ...(getWeekdayFromISO(dateISO) === 6 && !holiday
+                        ? saturdayNumberStyle
+                        : {}),
 
-    ...(todayDate
-      ? todayNumberStyle
-      : {}),
-  }}
->
-  {day}
-</span>
+                      ...(todayDate
+                        ? todayNumberStyle
+                        : {}),
+                    }}
+                  >
+                    {day}
+                  </span>
                   {holiday && (
-  <span style={holidayNameStyle}>
-    {holiday.name}
-  </span>
-)}
+                    <span style={holidayNameStyle}>
+                      {holiday.name}
+                    </span>
+                  )}
 
                   {scheduleCount >
                     0 && (
-                    <>
-                      <span
-                        aria-hidden="true"
-                        style={
-                          scheduleIconStyle
-                        }
-                      >
-                        {
-                          scheduleIcon
-                        }
-                      </span>
+                      <>
+                        <span
+                          aria-hidden="true"
+                          style={
+                            scheduleIconStyle
+                          }
+                        >
+                          {
+                            scheduleIcon
+                          }
+                        </span>
 
-                      <span
-                        aria-label={`予定${scheduleCount}件`}
-                        style={
-                          scheduleCountStyle
-                        }
-                      >
-                        {
-                          scheduleCount
-                        }
-                      </span>
-                    </>
-                  )}
+                        <span
+                          aria-label={`予定${scheduleCount}件`}
+                          style={
+                            scheduleCountStyle
+                          }
+                        >
+                          {
+                            scheduleCount
+                          }
+                        </span>
+                      </>
+                    )}
                 </button>
               );
             }
@@ -684,6 +718,45 @@ export default function CalendarPage({
               }
               style={inputStyle}
             />
+            <div style={timeRangeStyle}>
+              <label style={timeFieldStyle}>
+                <span style={timeLabelStyle}>
+                  開始
+                </span>
+
+                <input
+                  type="time"
+                  value={startTimeInput}
+                  onChange={(event) =>
+                    setStartTimeInput(
+                      event.target.value
+                    )
+                  }
+                  style={inputStyle}
+                />
+              </label>
+
+              <span style={timeSeparatorStyle}>
+                〜
+              </span>
+
+              <label style={timeFieldStyle}>
+                <span style={timeLabelStyle}>
+                  終了
+                </span>
+
+                <input
+                  type="time"
+                  value={endTimeInput}
+                  onChange={(event) =>
+                    setEndTimeInput(
+                      event.target.value
+                    )
+                  }
+                  style={inputStyle}
+                />
+              </label>
+            </div>
 
             <textarea
               value={memoInput}
@@ -699,74 +772,74 @@ export default function CalendarPage({
             />
 
             <select
-  value={repeatInput}
-  onChange={(event) =>
-    changeRepeat(
-      event.target.value as RepeatType
-    )
-  }
-  style={inputStyle}
->
-  <option value="none">
-    繰り返しなし
-  </option>
+              value={repeatInput}
+              onChange={(event) =>
+                changeRepeat(
+                  event.target.value as RepeatType
+                )
+              }
+              style={inputStyle}
+            >
+              <option value="none">
+                繰り返しなし
+              </option>
 
-  <option value="weekly">
-    毎週
-  </option>
+              <option value="weekly">
+                毎週
+              </option>
 
-  <option value="monthly">
-    毎月
-  </option>
+              <option value="monthly">
+                毎月
+              </option>
 
-  <option value="yearly">
-    毎年
-  </option>
-</select>
+              <option value="yearly">
+                毎年
+              </option>
+            </select>
 
             {repeatInput ===
               "weekly" && (
-              <div
-                style={
-                  weekdaySelectStyle
-                }
-              >
-                {WEEKDAYS.map(
-                  (
-                    label,
-                    index
-                  ) => {
-                    const checked =
-                      weekdayInputs.includes(
-                        index
-                      );
-
-                    return (
-                      <button
-                        key={
-                          label
-                        }
-                        type="button"
-                        onClick={() =>
-                          toggleWeekday(
-                            index
-                          )
-                        }
-                        style={{
-                          ...weekdayButtonStyle,
-
-                          ...(checked
-                            ? weekdayButtonSelectedStyle
-                            : {}),
-                        }}
-                      >
-                        {label}
-                      </button>
-                    );
+                <div
+                  style={
+                    weekdaySelectStyle
                   }
-                )}
-              </div>
-            )}
+                >
+                  {WEEKDAYS.map(
+                    (
+                      label,
+                      index
+                    ) => {
+                      const checked =
+                        weekdayInputs.includes(
+                          index
+                        );
+
+                      return (
+                        <button
+                          key={
+                            label
+                          }
+                          type="button"
+                          onClick={() =>
+                            toggleWeekday(
+                              index
+                            )
+                          }
+                          style={{
+                            ...weekdayButtonStyle,
+
+                            ...(checked
+                              ? weekdayButtonSelectedStyle
+                              : {}),
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+              )}
 
             <button
               type="button"
@@ -782,7 +855,7 @@ export default function CalendarPage({
           </div>
 
           {selectedSchedules.length >
-          0 ? (
+            0 ? (
             <div
               style={
                 scheduleListStyle
@@ -803,6 +876,23 @@ export default function CalendarPage({
                         minWidth: 0,
                       }}
                     >
+                     {schedule.startTime && (
+  <span
+    style={{
+      display: "block",
+      marginBottom: 4,
+      color: "#4f7c5b",
+      fontSize: 14,
+      fontWeight: 800,
+    }}
+  >
+    🕐 {schedule.startTime}
+    {schedule.endTime
+      ? ` 〜 ${schedule.endTime}`
+      : ""}
+  </span>
+)}
+
                       <strong
                         style={
                           scheduleTitleStyle
@@ -814,23 +904,22 @@ export default function CalendarPage({
                       </strong>
 
                       {schedule.repeat !== "none" && (
-  <p style={repeatLabelStyle}>
-    {schedule.repeat === "weekly" &&
-      `毎週 ${
-        schedule.weekdays
-          ?.map((weekday) => WEEKDAYS[weekday])
-          .join("・")
-      }曜日`}
+                        <p style={repeatLabelStyle}>
+                          {schedule.repeat === "weekly" &&
+                            `毎週 ${schedule.weekdays
+                              ?.map((weekday) => WEEKDAYS[weekday])
+                              .join("・")
+                            }曜日`}
 
-    {schedule.repeat === "monthly" &&
-      `毎月 ${Number(schedule.date.slice(8, 10))}日`}
+                          {schedule.repeat === "monthly" &&
+                            `毎月 ${Number(schedule.date.slice(8, 10))}日`}
 
-    {schedule.repeat === "yearly" &&
-      `毎年 ${Number(schedule.date.slice(5, 7))}月${Number(
-        schedule.date.slice(8, 10)
-      )}日`}
-  </p>
-)}
+                          {schedule.repeat === "yearly" &&
+                            `毎年 ${Number(schedule.date.slice(5, 7))}月${Number(
+                              schedule.date.slice(8, 10)
+                            )}日`}
+                        </p>
+                      )}
 
                       {schedule.memo && (
                         <p
@@ -1038,12 +1127,12 @@ const todayDayStyle: CSSProperties = {
 };
 
 const scheduleSectionStyle: CSSProperties =
-  {
-    marginTop: 24,
-    paddingTop: 20,
-    borderTop:
-      "1px solid #e2ebe5",
-  };
+{
+  marginTop: 24,
+  paddingTop: 20,
+  borderTop:
+    "1px solid #e2ebe5",
+};
 
 const sectionTitleStyle: CSSProperties = {
   margin: "0 0 16px",
@@ -1088,11 +1177,11 @@ const weekdayButtonStyle: CSSProperties = {
 };
 
 const weekdayButtonSelectedStyle: CSSProperties =
-  {
-    border: "1px solid #4f7c5b",
-    background: "#e9f2ec",
-    color: "#3f6849",
-  };
+{
+  border: "1px solid #4f7c5b",
+  background: "#e9f2ec",
+  color: "#3f6849",
+};
 
 const addButtonStyle: CSSProperties = {
   padding: "12px 16px",
@@ -1173,4 +1262,27 @@ const holidayNameStyle: CSSProperties = {
   overflow: "hidden",
   whiteSpace: "nowrap",
   textOverflow: "ellipsis",
+};
+const timeRangeStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr auto 1fr",
+  gap: 10,
+  alignItems: "end",
+};
+
+const timeFieldStyle: CSSProperties = {
+  display: "grid",
+  gap: 5,
+};
+
+const timeLabelStyle: CSSProperties = {
+  color: "#66706a",
+  fontSize: 13,
+  fontWeight: 700,
+};
+
+const timeSeparatorStyle: CSSProperties = {
+  paddingBottom: 13,
+  color: "#78817c",
+  fontWeight: 700,
 };

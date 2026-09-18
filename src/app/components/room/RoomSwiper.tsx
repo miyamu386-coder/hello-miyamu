@@ -25,6 +25,11 @@ type ScheduleItem = {
   repeat: RepeatType;
   weekdays?: number[];
 };
+type WeatherData = {
+  temperature: number;
+  weatherCode: number;
+  precipitationProbability: number;
+};
 
 type RoomId =
   | "living-kitchen"
@@ -194,14 +199,14 @@ export default function RoomSwiper({
     useRef<number | null>(null);
 
   const [
-  currentRoomIndex,
-  setCurrentRoomIndex,
-] = useState(initialRoomIndex);
+    currentRoomIndex,
+    setCurrentRoomIndex,
+  ] = useState(initialRoomIndex);
 
   const [
-  mofuWalkFrameIndex,
-  setMofuWalkFrameIndex,
-] = useState(0);
+    mofuWalkFrameIndex,
+    setMofuWalkFrameIndex,
+  ] = useState(0);
 
   const [
     schedules,
@@ -209,74 +214,148 @@ export default function RoomSwiper({
   ] = useState<ScheduleItem[]>([]);
 
   const [
-  showMofuMessageRoom,
-  setShowMofuMessageRoom,
-] = useState<RoomId | null>(null);
-const [
-  wasLivingMofuSleeping,
-  setWasLivingMofuSleeping,
-] = useState(false);
+    weather,
+    setWeather,
+  ] = useState<WeatherData | null>(null);
 
-const [
-  showMofuFun,
-  setShowMofuFun,
-] = useState(false);
-
-const [
-  mofuStates,
-  setMofuStates,
-] = useState<
-  Record<MofuManagedRoomId, MofuRoomState>
->({
-
-  "living-kitchen": {
-  tapCount: 0,
-  isJumping: false,
-  action: "idle",
-  x: 0,
-  y: 0,
-},
-workroom: {
-  tapCount: 0,
-  isJumping: false,
-  action: "idle",
-  x: 0,
-  y: 0,
-},
-});
-  const showMessageForFourSeconds = (
-  roomId: RoomId
-) => {
-  setShowMofuMessageRoom(roomId);
-
-  if (
-    mofuMessageTimerRef.current !==
-    null
-  ) {
-    window.clearTimeout(
-      mofuMessageTimerRef.current
-    );
-  }
-
-  mofuMessageTimerRef.current =
-  window.setTimeout(() => {
-    setShowMofuMessageRoom(null);
-    setWasLivingMofuSleeping(false);
-
-    mofuMessageTimerRef.current =
-      null;
-  }, 4000);
-};
+  const [
+    weatherError,
+    setWeatherError,
+  ] = useState<string | null>(null);
 
   useEffect(() => {
-  const currentRoom =
-    rooms[currentRoomIndex];
+    if (!navigator.geolocation) {
 
-  showMessageForFourSeconds(
-    currentRoom.id
-  );
+      console.warn(
+        "この端末では位置情報を利用できません"
+      );
+      return;
+    }
 
-  return () => {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const {
+          latitude,
+          longitude,
+        } = position.coords;
+
+        try {
+          const params =
+            new URLSearchParams({
+              latitude:
+                String(latitude),
+              longitude:
+                String(longitude),
+              current:
+                "temperature_2m,weather_code",
+              daily:
+                "precipitation_probability_max",
+              timezone: "auto",
+              forecast_days: "1",
+            });
+
+          const response =
+            await fetch(
+              `https://api.open-meteo.com/v1/forecast?${params.toString()}`
+            );
+
+          if (!response.ok) {
+            throw new Error(
+              "天気データ取得失敗"
+            );
+          }
+
+          const data =
+            await response.json();
+
+          setWeather({
+            temperature:
+              data.current
+                .temperature_2m,
+
+            weatherCode:
+              data.current
+                .weather_code,
+
+            precipitationProbability:
+              data.daily
+                .precipitation_probability_max[0],
+          });
+
+          console.log(
+            "現在地の天気",
+            {
+              latitude,
+              longitude,
+              weather: data,
+            }
+          );
+        } catch (error) {
+          console.error(
+            "天気データの取得に失敗しました",
+            error
+          );
+        }
+      },
+
+      (error) => {
+        console.warn(
+          "位置情報を取得できませんでした",
+          error
+        );
+      },
+
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge:
+          30 * 60 * 1000,
+      }
+    );
+  }, []);
+
+
+  const [
+    showMofuMessageRoom,
+    setShowMofuMessageRoom,
+  ] = useState<RoomId | null>(null);
+  const [
+    wasLivingMofuSleeping,
+    setWasLivingMofuSleeping,
+  ] = useState(false);
+
+  const [
+    showMofuFun,
+    setShowMofuFun,
+  ] = useState(false);
+
+  const [
+    mofuStates,
+    setMofuStates,
+  ] = useState<
+    Record<MofuManagedRoomId, MofuRoomState>
+  >({
+
+    "living-kitchen": {
+      tapCount: 0,
+      isJumping: false,
+      action: "idle",
+      x: 0,
+      y: 0,
+    },
+    workroom: {
+      tapCount: 0,
+      isJumping: false,
+      action: "idle",
+      x: 0,
+      y: 0,
+    },
+  });
+  const showMessageForFourSeconds = (
+    roomId: RoomId
+  ) => {
+    setShowMofuMessageRoom(roomId);
+
     if (
       mofuMessageTimerRef.current !==
       null
@@ -284,23 +363,51 @@ workroom: {
       window.clearTimeout(
         mofuMessageTimerRef.current
       );
-
-      mofuMessageTimerRef.current =
-        null;
     }
-  };
-}, [currentRoomIndex]);
-useEffect(() => {
-  const timer = window.setInterval(() => {
-    setMofuWalkFrameIndex((index) =>
-      (index + 1) % mofuWalkFrames.length
-    );
-  }, 180);
 
-  return () => {
-    window.clearInterval(timer);
+    mofuMessageTimerRef.current =
+      window.setTimeout(() => {
+        setShowMofuMessageRoom(null);
+        setWasLivingMofuSleeping(false);
+
+        mofuMessageTimerRef.current =
+          null;
+      }, 4000);
   };
-}, []);
+
+  useEffect(() => {
+    const currentRoom =
+      rooms[currentRoomIndex];
+
+    showMessageForFourSeconds(
+      currentRoom.id
+    );
+
+    return () => {
+      if (
+        mofuMessageTimerRef.current !==
+        null
+      ) {
+        window.clearTimeout(
+          mofuMessageTimerRef.current
+        );
+
+        mofuMessageTimerRef.current =
+          null;
+      }
+    };
+  }, [currentRoomIndex]);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setMofuWalkFrameIndex((index) =>
+        (index + 1) % mofuWalkFrames.length
+      );
+    }, 180);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
 
   useEffect(() => {
     const saved =
@@ -363,65 +470,65 @@ useEffect(() => {
     };
   }, []);
 
-const currentRoom =
-  rooms[currentRoomIndex];
+  const currentRoom =
+    rooms[currentRoomIndex];
 
-const mofuTapCount =
-  currentRoom.id === "living-kitchen" ||
-  currentRoom.id === "workroom"
-    ? mofuStates[
+  const mofuTapCount =
+    currentRoom.id === "living-kitchen" ||
+      currentRoom.id === "workroom"
+      ? mofuStates[
         currentRoom.id as MofuManagedRoomId
       ].tapCount
-    : 0;
+      : 0;
 
   const mofuMessage = useMemo(() => {
-  const today = new Date();
-  const tomorrow = new Date(today);
+    const today = new Date();
+    const tomorrow = new Date(today);
 
-  tomorrow.setDate(
-    today.getDate() + 1
-  );
-
-  const todayISO =
-    toDateISO(today);
-
-  const tomorrowISO =
-    toDateISO(tomorrow);
-
-  const todaySchedules =
-    schedules.filter(
-      (schedule) =>
-        scheduleMatchesDate(
-          schedule,
-          todayISO
-        )
+    tomorrow.setDate(
+      today.getDate() + 1
     );
 
-  const tomorrowSchedules =
-    schedules.filter(
-      (schedule) =>
-        scheduleMatchesDate(
-          schedule,
-          tomorrowISO
-        )
-    );
+    const todayISO =
+      toDateISO(today);
 
-  return getMofuMessage({
-  roomId: currentRoom.id,
-  tapCount: mofuTapCount,
-  todaySchedules,
-  tomorrowSchedules,
-  wasSleeping:
-    currentRoom.id ===
-      "living-kitchen" &&
+    const tomorrowISO =
+      toDateISO(tomorrow);
+
+    const todaySchedules =
+      schedules.filter(
+        (schedule) =>
+          scheduleMatchesDate(
+            schedule,
+            todayISO
+          )
+      );
+
+    const tomorrowSchedules =
+      schedules.filter(
+        (schedule) =>
+          scheduleMatchesDate(
+            schedule,
+            tomorrowISO
+          )
+      );
+
+    return getMofuMessage({
+      roomId: currentRoom.id,
+      tapCount: mofuTapCount,
+      todaySchedules,
+      tomorrowSchedules,
+      wasSleeping:
+        currentRoom.id ===
+        "living-kitchen" &&
+        wasLivingMofuSleeping,
+    });
+  }, [
+    schedules,
+    currentRoom.id,
+    mofuTapCount,
     wasLivingMofuSleeping,
-});
-}, [
-  schedules,
-  currentRoom.id,
-  mofuTapCount,
-  wasLivingMofuSleeping,
-]);
+  ]);
 
   const isShortMofuMessage =
     mofuMessage.length <= 8;
@@ -444,7 +551,7 @@ const mofuTapCount =
     const nextIndex =
       Math.round(
         container.scrollLeft /
-          roomWidth
+        roomWidth
       );
 
     setCurrentRoomIndex(
@@ -454,23 +561,23 @@ const mofuTapCount =
   };
 
   useEffect(() => {
-  const container = scrollRef.current;
+    const container = scrollRef.current;
 
-  if (!container) {
-    return;
-  }
+    if (!container) {
+      return;
+    }
 
-  container.scrollTo({
-    left:
-      container.clientWidth *
-      initialRoomIndex,
-    behavior: "auto",
-  });
+    container.scrollTo({
+      left:
+        container.clientWidth *
+        initialRoomIndex,
+      behavior: "auto",
+    });
 
-  setCurrentRoomIndex(
-    initialRoomIndex
-  );
-}, [initialRoomIndex]);
+    setCurrentRoomIndex(
+      initialRoomIndex
+    );
+  }, [initialRoomIndex]);
 
   const moveToRoom = (
     index: number
@@ -490,125 +597,125 @@ const mofuTapCount =
     });
   };
   const handleLivingRoomStateChange =
-  useCallback(
-    (
-      updater: (
-        current: MofuRoomState
-      ) => MofuRoomState
-    ) => {
-      setMofuStates((prev) => ({
-        ...prev,
-        "living-kitchen": updater(
-          prev["living-kitchen"]
-        ),
-      }));
-    },
-    []
-  );
-const handleWorkRoomStateChange =
-  useCallback(
-    (
-      updater: (
-        current: MofuRoomState
-      ) => MofuRoomState
-    ) => {
-      setMofuStates((prev) => ({
-        ...prev,
-        workroom: updater(
-          prev.workroom
-        ),
-      }));
-    },
-    []
-  );
-
-  const handleMofuClick = (
-  roomId: MofuManagedRoomId,
-  wasSleeping = false
-) => {
-  setWasLivingMofuSleeping(
-    roomId === "living-kitchen" &&
-      wasSleeping
-  );
-
-  setMofuStates((prev) => {
-const nextTapCount =
-  prev[roomId].tapCount + 1;
-
-  return {
-    ...prev,
-    [roomId]: {
-      ...prev[roomId],
-      tapCount: nextTapCount,
-      isJumping: false,
-  action:
-  roomId === "living-kitchen" &&
-  nextTapCount >= 12
-    ? "living-walk"
-    : prev[roomId].action,
-     x:
-  roomId === "living-kitchen"
-    ? nextTapCount >= 30
-      ? 170
-      : nextTapCount >= 20
-        ? 150
-        : nextTapCount >= 12
-          ? -135
-          : prev[roomId].x
-    : prev[roomId].x,
-
-y:
-  roomId === "living-kitchen"
-    ? nextTapCount >= 30
-      ? -220
-      : nextTapCount >= 20
-        ? -70
-        : nextTapCount >= 12
-          ? 0
-          : prev[roomId].y
-    : prev[roomId].y,
-    },
-  };
-  
-});
-
-showMessageForFourSeconds(
-  roomId
-);
-
-if (
-  mofuJumpTimerRef.current !==
-  null
-) {
-    window.clearTimeout(
-      mofuJumpTimerRef.current
-    );
-  }
-
-  requestAnimationFrame(() => {
-    setMofuStates((prev) => ({
-      ...prev,
-      [roomId]: {
-        ...prev[roomId],
-        isJumping: true,
-      },
-    }));
-
-    mofuJumpTimerRef.current =
-      window.setTimeout(() => {
+    useCallback(
+      (
+        updater: (
+          current: MofuRoomState
+        ) => MofuRoomState
+      ) => {
         setMofuStates((prev) => ({
           ...prev,
-          [roomId]: {
-            ...prev[roomId],
-            isJumping: false,
-          },
+          "living-kitchen": updater(
+            prev["living-kitchen"]
+          ),
         }));
+      },
+      []
+    );
+  const handleWorkRoomStateChange =
+    useCallback(
+      (
+        updater: (
+          current: MofuRoomState
+        ) => MofuRoomState
+      ) => {
+        setMofuStates((prev) => ({
+          ...prev,
+          workroom: updater(
+            prev.workroom
+          ),
+        }));
+      },
+      []
+    );
 
-        mofuJumpTimerRef.current =
-          null;
-      }, 600);
-  });
-};
+  const handleMofuClick = (
+    roomId: MofuManagedRoomId,
+    wasSleeping = false
+  ) => {
+    setWasLivingMofuSleeping(
+      roomId === "living-kitchen" &&
+      wasSleeping
+    );
+
+    setMofuStates((prev) => {
+      const nextTapCount =
+        prev[roomId].tapCount + 1;
+
+      return {
+        ...prev,
+        [roomId]: {
+          ...prev[roomId],
+          tapCount: nextTapCount,
+          isJumping: false,
+          action:
+            roomId === "living-kitchen" &&
+              nextTapCount >= 12
+              ? "living-walk"
+              : prev[roomId].action,
+          x:
+            roomId === "living-kitchen"
+              ? nextTapCount >= 30
+                ? 170
+                : nextTapCount >= 20
+                  ? 150
+                  : nextTapCount >= 12
+                    ? -135
+                    : prev[roomId].x
+              : prev[roomId].x,
+
+          y:
+            roomId === "living-kitchen"
+              ? nextTapCount >= 30
+                ? -220
+                : nextTapCount >= 20
+                  ? -70
+                  : nextTapCount >= 12
+                    ? 0
+                    : prev[roomId].y
+              : prev[roomId].y,
+        },
+      };
+
+    });
+
+    showMessageForFourSeconds(
+      roomId
+    );
+
+    if (
+      mofuJumpTimerRef.current !==
+      null
+    ) {
+      window.clearTimeout(
+        mofuJumpTimerRef.current
+      );
+    }
+
+    requestAnimationFrame(() => {
+      setMofuStates((prev) => ({
+        ...prev,
+        [roomId]: {
+          ...prev[roomId],
+          isJumping: true,
+        },
+      }));
+
+      mofuJumpTimerRef.current =
+        window.setTimeout(() => {
+          setMofuStates((prev) => ({
+            ...prev,
+            [roomId]: {
+              ...prev[roomId],
+              isJumping: false,
+            },
+          }));
+
+          mofuJumpTimerRef.current =
+            null;
+        }, 600);
+    });
+  };
 
   return (
     <section
@@ -618,23 +725,41 @@ if (
       }}
     >
       <div
+        style={{
+          padding: "8px 12px",
+          textAlign: "center",
+          fontSize: 14,
+          fontWeight: 700,
+          color: "#4f7c5b",
+          background: "#f4f8f5",
+        }}
+      >
+        {weather ? (
+          <>
+            🌤️ 現在 {weather.temperature}℃
+            ・降水確率{" "}
+            {weather.precipitationProbability}%
+          </>
+        ) : (
+          <>🌤️ 天気データ取得中...</>
+        )}
+      </div>
+
+      <div
         ref={scrollRef}
         onScroll={handleScroll}
         style={{
           display: "flex",
           width: "100%",
           overflowX: "auto",
-          scrollSnapType:
-            "x mandatory",
-          WebkitOverflowScrolling:
-            "touch",
+          scrollSnapType: "x mandatory",
+          WebkitOverflowScrolling: "touch",
           scrollbarWidth: "none",
-          overscrollBehaviorX:
-            "contain",
+          overscrollBehaviorX: "contain",
         }}
       >
-       {rooms.map((room) => (
-    <div
+        {rooms.map((room) => (
+          <div
             key={room.id}
             style={{
               position: "relative",
@@ -650,65 +775,65 @@ if (
             }}
           >
             {room.id === "living-kitchen" && (
-  <LivingRoom
-    state={mofuStates["living-kitchen"]}
-    showMessage={
-      showMofuMessageRoom === "living-kitchen" &&
-      currentRoom.id === "living-kitchen"
-    }
-    message={mofuMessage}
-    isShortMessage={isShortMofuMessage}
-    walkFrame={
-      mofuWalkFrames[mofuWalkFrameIndex]
-    }
-    onMofuClick={(wasSleeping) =>
-  handleMofuClick(
-    "living-kitchen",
-    wasSleeping
-  )
-}
-    onOpenKitchen={onOpenKitchen}
-    onOpenFridge={onOpenFridge}
-    onOpenBook={onOpenBook}
-    onOpenCalendar={onOpenCalendar}
-    onStateChange={handleLivingRoomStateChange}
-  />
-)}
-{room.id === "workroom" && (
- <WorkRoom
-  onOpenWork={onOpenWork}
-  onOpenMofuFun={() =>
-    setShowMofuFun(true)
-  }
-  showMofuFun={showMofuFun}
-  state={mofuStates["workroom"]}
-  showMessage={
-    showMofuMessageRoom === "workroom" &&
-    currentRoom.id === "workroom"
-  }
-  message={mofuMessage}
-  isShortMessage={isShortMofuMessage}
-  walkFrame={
-    mofuWorkWalkFrames[
-      mofuWalkFrameIndex %
-        mofuWorkWalkFrames.length
-    ]
-  }
-  onMofuClick={() =>
-    handleMofuClick("workroom")
-  }
-  onStateChange={handleWorkRoomStateChange}
-/>
-)}
-            
- {room.id === "conditioning-room" && (
-  <ConditioningRoom
-    onOpenTraining={onOpenTraining}
-    onOpenWeight={onOpenWeight}
-  />
-)}
-      </div>
-))}
+              <LivingRoom
+                state={mofuStates["living-kitchen"]}
+                showMessage={
+                  showMofuMessageRoom === "living-kitchen" &&
+                  currentRoom.id === "living-kitchen"
+                }
+                message={mofuMessage}
+                isShortMessage={isShortMofuMessage}
+                walkFrame={
+                  mofuWalkFrames[mofuWalkFrameIndex]
+                }
+                onMofuClick={(wasSleeping) =>
+                  handleMofuClick(
+                    "living-kitchen",
+                    wasSleeping
+                  )
+                }
+                onOpenKitchen={onOpenKitchen}
+                onOpenFridge={onOpenFridge}
+                onOpenBook={onOpenBook}
+                onOpenCalendar={onOpenCalendar}
+                onStateChange={handleLivingRoomStateChange}
+              />
+            )}
+            {room.id === "workroom" && (
+              <WorkRoom
+                onOpenWork={onOpenWork}
+                onOpenMofuFun={() =>
+                  setShowMofuFun(true)
+                }
+                showMofuFun={showMofuFun}
+                state={mofuStates["workroom"]}
+                showMessage={
+                  showMofuMessageRoom === "workroom" &&
+                  currentRoom.id === "workroom"
+                }
+                message={mofuMessage}
+                isShortMessage={isShortMofuMessage}
+                walkFrame={
+                  mofuWorkWalkFrames[
+                  mofuWalkFrameIndex %
+                  mofuWorkWalkFrames.length
+                  ]
+                }
+                onMofuClick={() =>
+                  handleMofuClick("workroom")
+                }
+                onStateChange={handleWorkRoomStateChange}
+              />
+            )}
+
+            {room.id === "conditioning-room" && (
+              <ConditioningRoom
+                onOpenTraining={onOpenTraining}
+                onOpenWeight={onOpenWeight}
+              />
+            )}
+          </div>
+        ))}
       </div>
 
       <div
@@ -732,7 +857,7 @@ if (
               style={{
                 width:
                   currentRoomIndex ===
-                  index
+                    index
                     ? 22
                     : 8,
                 height: 8,
@@ -741,7 +866,7 @@ if (
                 borderRadius: 999,
                 background:
                   currentRoomIndex ===
-                  index
+                    index
                     ? "#4f7c5b"
                     : "#c8c8c8",
                 transition:
