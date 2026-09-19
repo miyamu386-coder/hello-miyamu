@@ -16,6 +16,8 @@
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
+		A6BD9ED2305EACF0004F18F1 /* DiaryWatchPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BD9ED1305EACF0004F18F1 /* DiaryWatchPlugin.swift */; };
+		A6BD9ED4305EB6AB004F18F1 /* DiaryWatchReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BD9ED3305EB6AB004F18F1 /* DiaryWatchReceiver.swift */; };
 		A6BEA1843046C14C00FB0E19 /* Diary Watch App Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A6BEA17A3046C14C00FB0E19 /* Diary Watch App Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A6BEA1B2304736F500FB0E19 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BEA1AD304736F500FB0E19 /* ContentView.swift */; };
 		A6BEA1B3304736F500FB0E19 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BEA1B0304736F500FB0E19 /* HealthKitManager.swift */; };
@@ -62,6 +64,8 @@
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		A6BD9ED1305EACF0004F18F1 /* DiaryWatchPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryWatchPlugin.swift; sourceTree = "<group>"; };
+		A6BD9ED3305EB6AB004F18F1 /* DiaryWatchReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryWatchReceiver.swift; sourceTree = "<group>"; };
 		A6BEA17A3046C14C00FB0E19 /* Diary Watch App Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Diary Watch App Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6BEA1AC304736F500FB0E19 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A6BEA1AD304736F500FB0E19 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -97,6 +101,7 @@
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
 			children = (
+				A6BD9ED1305EACF0004F18F1 /* DiaryWatchPlugin.swift */,
 				A6BEA1B1304736F500FB0E19 /* Diary Watch App Watch App */,
 				A6C608F63035CAC9007A9F45 /* HealthKitPlugin.swift */,
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
@@ -142,6 +147,7 @@
 				A6BEA1AF304736F500FB0E19 /* Diary_Watch_AppApp.swift */,
 				A6BEA1B0304736F500FB0E19 /* HealthKitManager.swift */,
 				A6BEA1B63047374200FB0E19 /* CalendarManager.swift */,
+				A6BD9ED3305EB6AB004F18F1 /* DiaryWatchReceiver.swift */,
 			);
 			path = "Diary Watch App Watch App";
 			sourceTree = "<group>";
@@ -264,6 +270,7 @@
 				A6C608F73035CAC9007A9F45 /* HealthKitPlugin.swift in Sources */,
 				A6C608F93035D60E007A9F45 /* MyViewController.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
+				A6BD9ED2305EACF0004F18F1 /* DiaryWatchPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,6 +279,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A6BEA1B2304736F500FB0E19 /* ContentView.swift in Sources */,
+				A6BD9ED4305EB6AB004F18F1 /* DiaryWatchReceiver.swift in Sources */,
 				A6BEA1B73047374200FB0E19 /* CalendarManager.swift in Sources */,
 				A6BEA1B3304736F500FB0E19 /* HealthKitManager.swift in Sources */,
 				A6BEA1B4304736F500FB0E19 /* Diary_Watch_AppApp.swift in Sources */,

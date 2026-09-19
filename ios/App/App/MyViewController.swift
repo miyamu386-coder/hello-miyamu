@@ -9,5 +9,11 @@ class MyViewController: CAPBridgeViewController {
         )
 
         print("🐾 HealthKitPlugin registered")
+
+        bridge?.registerPluginInstance(
+            DiaryWatchPlugin()
+        )
+
+        print("⌚ DiaryWatchPlugin registered")
     }
 }

@@ -5,11 +5,18 @@
 
 import SwiftUI
 import Combine
+import WatchKit
 
 struct ContentView: View {
 
-    @StateObject private var healthKit = HealthKitManager()
-    @StateObject private var calendarManager = CalendarManager()
+    @StateObject private var healthKit =
+        HealthKitManager()
+
+    @StateObject private var calendarManager =
+        CalendarManager()
+
+    @StateObject private var diaryWatch =
+        DiaryWatchReceiver()
 
     @State private var walkFrameIndex = 0
     @State private var mofuX: CGFloat = -45
@@ -24,8 +31,17 @@ struct ContentView: View {
     @State private var isSleepDeprived = false
     @State private var isYawning = false
     @State private var isJumping = false
+
+    // 通知済みのDiary予定段階を記録
+    @State private var notifiedDiaryAlertIds:
+        Set<String> = []
+
+    // 同じ天気コメントを何度も通知しない
+    @State private var lastWeatherNotificationMessage:
+        String? = nil
+
     // false = 歩数
-    // true = 予定
+    // true = Appleカレンダー予定
     @State private var showScheduleNext = false
 
     private let walkFrames = [
@@ -49,130 +65,163 @@ struct ContentView: View {
                 Image("watch-mofu-sleep")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 80, height: 80)
-                    .offset(x: 10, y: 35)
+                    .frame(
+                        width: 80,
+                        height: 80
+                    )
+                    .offset(
+                        x: 10,
+                        y: 35
+                    )
 
             } else if isConcerned {
 
                 Image("watch-mofu-concerned")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 80, height: 80)
-                    .offset(x: 0, y: 35)
+                    .frame(
+                        width: 80,
+                        height: 80
+                    )
+                    .offset(
+                        x: 0,
+                        y: 35
+                    )
 
             } else if isSleepDeprived {
 
                 Image("watch-mofu-sleepy-angry")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 80, height: 80)
-                    .offset(x: 0, y: 35)
+                    .frame(
+                        width: 80,
+                        height: 80
+                    )
+                    .offset(
+                        x: 0,
+                        y: 35
+                    )
 
             } else if isYawning {
 
                 Image("watch-mofu-yawn")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 80, height: 80)
-                    .offset(x: 0, y: 35)
+                    .frame(
+                        width: 80,
+                        height: 80
+                    )
+                    .offset(
+                        x: 0,
+                        y: 35
+                    )
 
             } else {
 
-                Image(walkFrames[walkFrameIndex])
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 65, height: 65)
-                    .scaleEffect(
-                        x: movingRight ? -1 : 1,
-                        y: 1
-                    )
-                    .offset(
-                        x: mofuX,
-                        y: isJumping ? 15 : 35
-                    )
-                    .animation(
-                        .spring(
-                            response: 0.25,
-                            dampingFraction: 0.45
-                        ),
-                        value: isJumping
-                    )
-                    .onTapGesture {
-                        
-                        // --------------------
+                Image(
+                    walkFrames[
+                        walkFrameIndex
+                    ]
+                )
+                .resizable()
+                .scaledToFit()
+                .frame(
+                    width: 65,
+                    height: 65
+                )
+                .scaleEffect(
+                    x: movingRight ? -1 : 1,
+                    y: 1
+                )
+                .offset(
+                    x: mofuX,
+                    y: isJumping
+                        ? 15
+                        : 35
+                )
+                .animation(
+                    .spring(
+                        response: 0.25,
+                        dampingFraction: 0.45
+                    ),
+                    value: isJumping
+                )
+                .onTapGesture {
 
-                        // タップリアクション
+                    // --------------------
+                    // タップリアクション
+                    // --------------------
 
-                        // --------------------
+                    isJumping = true
 
-                        isJumping = true
-
-                        DispatchQueue.main.asyncAfter(
-
-                            deadline: .now() + 0.25
-
+                    DispatchQueue.main
+                        .asyncAfter(
+                            deadline:
+                                .now() + 0.25
                         ) {
-
                             isJumping = false
-
                         }
 
-                        // --------------------
-                        // 予定を表示
-                        // --------------------
+                    // --------------------
+                    // Appleカレンダー予定
+                    // --------------------
 
-                        if showScheduleNext {
+                    if showScheduleNext {
+
+                        healthMessage =
+                            calendarManager
+                                .scheduleMessage()
+
+                    // --------------------
+                    // 歩数
+                    // --------------------
+
+                    } else {
+
+                        let steps =
+                            healthKit.stepCount
+
+                        if steps < 3000 {
 
                             healthMessage =
-                                calendarManager.scheduleMessage()
+                                "今日は \(steps) 歩。\nまだ動けるだろ？"
 
-                        // --------------------
-                        // 歩数を表示
-                        // --------------------
+                        } else if steps < 8000 {
+
+                            healthMessage =
+                                "今日は \(steps) 歩。\nまあまあだな"
+
+                        } else if steps < 10000 {
+
+                            healthMessage =
+                                "今日は \(steps) 歩。\n結構歩いたじゃん"
 
                         } else {
 
-                            let steps =
-                                healthKit.stepCount
-
-                            if steps < 3000 {
-
-                                healthMessage =
-                                    "今日は \(steps) 歩。\nまだ動けるだろ？"
-
-                            } else if steps < 8000 {
-
-                                healthMessage =
-                                    "今日は \(steps) 歩。\nまあまあだな"
-
-                            } else if steps < 10000 {
-
-                                healthMessage =
-                                    "今日は \(steps) 歩。\n結構歩いたじゃん"
-
-                            } else {
-
-                                healthMessage =
-                                    "今日は \(steps) 歩。\n1万歩超え。やるじゃん"
-                            }
+                            healthMessage =
+                                "今日は \(steps) 歩。\n1万歩超え。やるじゃん"
                         }
+                    }
 
-                        // 次回は反対側
-                        showScheduleNext.toggle()
+                    showScheduleNext.toggle()
 
-                        DispatchQueue.main.asyncAfter(
-                            deadline: .now() + 4
+                    DispatchQueue.main
+                        .asyncAfter(
+                            deadline:
+                                .now() + 4
                         ) {
                             healthMessage = nil
                         }
-                    }
+                }
             }
 
             if let healthMessage {
 
                 Text(healthMessage)
                     .font(.caption2)
-                    .multilineTextAlignment(.center)
+                    .multilineTextAlignment(
+                        .center
+                    )
                     .padding(6)
                     .background(
                         .black.opacity(0.65)
@@ -182,30 +231,104 @@ struct ContentView: View {
                             cornerRadius: 8
                         )
                     )
-                    .padding(.horizontal, 8)
+                    .padding(
+                        .horizontal,
+                        8
+                    )
                     .offset(y: -45)
             }
         }
 
+        // --------------------
+        // 起動処理
+        // --------------------
+
         .task {
-        print("ContentView task started")            // --------------------
+
+            print(
+                "ContentView task started"
+            )
+
+            // --------------------
+            // Diary予定・天気
+            // 起動直後チェック
+            // --------------------
+
+            DispatchQueue.main
+                .asyncAfter(
+                    deadline:
+                        .now() + 2
+                ) {
+
+                    print(
+                        "⌚ 起動時Diary予定チェック"
+                    )
+
+                    // --------------------
+                    // Diary予定を最優先
+                    // --------------------
+
+                    if let alert =
+                        diaryWatch
+                            .upcomingScheduleAlert()
+                    {
+                        handleDiaryAlert(
+                            alert
+                        )
+
+                        return
+                    }
+
+                    // --------------------
+                    // 予定がなければ天気
+                    // --------------------
+
+                    print(
+                        "⌚ 起動時天気チェック"
+                    )
+
+                    if let message =
+                        diaryWatch
+                            .weatherMessage()
+                    {
+                        lastWeatherNotificationMessage =
+                            message
+
+                        print(
+                            "⌚ 天気お知らせ: \(message)"
+                        )
+
+                        showMofuNotification(
+                            message
+                        )
+                    }
+                }
+
+            // --------------------
             // HealthKit
             // --------------------
 
-            await healthKit.requestAuthorization()
+            await healthKit
+                .requestAuthorization()
 
-            await healthKit.fetchTodaySteps()
-            await healthKit.fetchLatestHeartRate()
-            await healthKit.fetchSleep()
-            
-            
+            await healthKit
+                .fetchTodaySteps()
+
+            await healthKit
+                .fetchLatestHeartRate()
+
+            await healthKit
+                .fetchSleep()
 
             // --------------------
-            // Calendar
+            // Apple Calendar
             // --------------------
 
-            await calendarManager.requestAuthorization()
-            calendarManager.fetchTodayEvents()
+            await calendarManager
+                .requestAuthorization()
+
+            calendarManager
+                .fetchTodayEvents()
 
             // --------------------
             // 睡眠リアクション
@@ -257,14 +380,17 @@ struct ContentView: View {
 
             if healthMessage != nil {
 
-                DispatchQueue.main.asyncAfter(
-                    deadline: .now() + 5
-                ) {
+                DispatchQueue.main
+                    .asyncAfter(
+                        deadline:
+                            .now() + 5
+                    ) {
 
-                    healthMessage = nil
-                    isSleepDeprived = false
-                    isYawning = false
-                }
+                        healthMessage = nil
+                        isSleepDeprived =
+                            false
+                        isYawning = false
+                    }
             }
         }
 
@@ -283,13 +409,15 @@ struct ContentView: View {
                 healthMessage =
                     "おい、ちょっと深呼吸しろ"
 
-                DispatchQueue.main.asyncAfter(
-                    deadline: .now() + 5
-                ) {
+                DispatchQueue.main
+                    .asyncAfter(
+                        deadline:
+                            .now() + 5
+                    ) {
 
-                    healthMessage = nil
-                    isConcerned = false
-                }
+                        healthMessage = nil
+                        isConcerned = false
+                    }
             }
         }
 
@@ -307,10 +435,11 @@ struct ContentView: View {
         ) { _ in
 
             Task {
-                await healthKit.fetchLatestHeartRate()
+                await healthKit
+                    .fetchLatestHeartRate()
             }
         }
-         
+
         // --------------------
         // 歩数更新
         // --------------------
@@ -325,10 +454,11 @@ struct ContentView: View {
         ) { _ in
 
             Task {
-                await healthKit.fetchTodaySteps()
+                await healthKit
+                    .fetchTodaySteps()
             }
         }
-        
+
         // --------------------
         // 睡眠更新
         // --------------------
@@ -343,12 +473,13 @@ struct ContentView: View {
         ) { _ in
 
             Task {
-                await healthKit.fetchSleep()
+                await healthKit
+                    .fetchSleep()
             }
         }
 
         // --------------------
-        // 予定更新
+        // Appleカレンダー予定更新
         // --------------------
 
         .onReceive(
@@ -360,7 +491,83 @@ struct ContentView: View {
             .autoconnect()
         ) { _ in
 
-            calendarManager.fetchTodayEvents()
+            calendarManager
+                .fetchTodayEvents()
+        }
+
+        // --------------------
+        // Diary予定 自動お知らせ
+        // --------------------
+
+        .onReceive(
+            Timer.publish(
+                every: 30,
+                on: .main,
+                in: .common
+            )
+            .autoconnect()
+        ) { _ in
+
+            guard
+                let alert =
+                    diaryWatch
+                        .upcomingScheduleAlert()
+            else {
+                return
+            }
+
+            handleDiaryAlert(
+                alert
+            )
+        }
+
+        // --------------------
+        // 天気 自動お知らせ
+        // --------------------
+
+        .onReceive(
+            Timer.publish(
+                every: 60,
+                on: .main,
+                in: .common
+            )
+            .autoconnect()
+        ) { _ in
+
+            // 1時間以内にDiary予定があるなら
+            // 天気より予定を優先
+            if diaryWatch
+                .upcomingScheduleAlert()
+                != nil
+            {
+                return
+            }
+
+            guard
+                let message =
+                    diaryWatch
+                        .weatherMessage()
+            else {
+                return
+            }
+
+            guard
+                message !=
+                    lastWeatherNotificationMessage
+            else {
+                return
+            }
+
+            lastWeatherNotificationMessage =
+                message
+
+            print(
+                "⌚ 天気お知らせ: \(message)"
+            )
+
+            showMofuNotification(
+                message
+            )
         }
 
         // --------------------
@@ -378,8 +585,8 @@ struct ContentView: View {
 
             if isConcerned
                 || isSleepDeprived
-                || isYawning {
-
+                || isYawning
+            {
                 return
             }
 
@@ -400,7 +607,9 @@ struct ContentView: View {
             }
 
             walkFrameIndex =
-                (walkFrameIndex + 1)
+                (
+                    walkFrameIndex + 1
+                )
                 % walkFrames.count
 
             if movingRight {
@@ -430,6 +639,160 @@ struct ContentView: View {
                 elapsedTime = 0
             }
         }
+    }
+
+    // --------------------
+    // Diary予定通知
+    // --------------------
+
+    private func handleDiaryAlert(
+        _ alert: DiaryScheduleAlert
+    ) {
+        // この予定のこの段階は
+        // すでに通知済みなら何もしない
+        guard
+            !notifiedDiaryAlertIds
+                .contains(
+                    alert.notificationId
+                )
+        else {
+            return
+        }
+
+        notifiedDiaryAlertIds
+            .insert(
+                alert.notificationId
+            )
+
+        print(
+            "⌚ Diary予定お知らせ: \(alert.message)"
+        )
+
+        print(
+            "⌚ Diary通知段階: \(alert.stage.rawValue)"
+        )
+
+        // モフを起こす
+        isSleeping = false
+        elapsedTime = 0
+
+        // モフがぴょん
+        isJumping = true
+
+        // セリフ
+        healthMessage =
+            alert.message
+
+        DispatchQueue.main
+            .asyncAfter(
+                deadline:
+                    .now() + 0.25
+            ) {
+                isJumping = false
+            }
+
+        // --------------------
+        // 段階別ハプティック
+        // --------------------
+
+        switch alert.stage {
+
+        case .oneHour:
+
+            // 1時間前
+            // 軽く1回
+            WKInterfaceDevice
+                .current()
+                .play(.click)
+
+        case .thirtyMinutes:
+
+            // 30分前
+            // 通知らしい1回
+            WKInterfaceDevice
+                .current()
+                .play(.notification)
+
+        case .fifteenMinutes:
+
+            // 15分前
+            // 強調して2回
+            WKInterfaceDevice
+                .current()
+                .play(.notification)
+
+            DispatchQueue.main
+                .asyncAfter(
+                    deadline:
+                        .now() + 0.45
+                ) {
+                    WKInterfaceDevice
+                        .current()
+                        .play(
+                            .notification
+                        )
+                }
+        }
+
+        // 5秒後にセリフを消す
+        DispatchQueue.main
+            .asyncAfter(
+                deadline:
+                    .now() + 5
+            ) {
+
+                if healthMessage ==
+                    alert.message
+                {
+                    healthMessage = nil
+                }
+            }
+    }
+
+    // --------------------
+    // モフ共通通知
+    // 天気などで使用
+    // --------------------
+
+    private func showMofuNotification(
+        _ message: String
+    ) {
+        // モフを起こす
+        isSleeping = false
+        elapsedTime = 0
+
+        // モフがぴょん
+        isJumping = true
+
+        // セリフ
+        healthMessage = message
+
+        // 通常ハプティック
+        WKInterfaceDevice
+            .current()
+            .play(.notification)
+
+        DispatchQueue.main
+            .asyncAfter(
+                deadline:
+                    .now() + 0.25
+            ) {
+                isJumping = false
+            }
+
+        // 5秒後にセリフを消す
+        DispatchQueue.main
+            .asyncAfter(
+                deadline:
+                    .now() + 5
+            ) {
+
+                if healthMessage ==
+                    message
+                {
+                    healthMessage = nil
+                }
+            }
     }
 }
 

@@ -6,6 +6,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+import { DiaryWatch } from "../../lib/diaryWatch";
 
 type Props = {
   onBack: () => void;
@@ -26,6 +27,14 @@ type ScheduleItem = {
 };
 
 const STORAGE_KEY = "miyamu_diary_schedules_v1";
+const WEATHER_STORAGE_KEY =
+  "miyamu_diary_weather_v1";
+
+type WeatherData = {
+  temperature: number;
+  weatherCode: number;
+  precipitationProbability: number;
+};
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -262,6 +271,53 @@ export default function CalendarPage({
       STORAGE_KEY,
       JSON.stringify(schedules)
     );
+
+    const sendSchedulesToWatch =
+      async () => {
+        try {
+          const savedWeather =
+            localStorage.getItem(
+              WEATHER_STORAGE_KEY
+            );
+
+          let weather:
+            WeatherData | undefined;
+
+          if (savedWeather) {
+            try {
+              weather =
+                JSON.parse(
+                  savedWeather
+                ) as WeatherData;
+            } catch {
+              weather = undefined;
+            }
+          }
+
+          const result =
+            await DiaryWatch.sendSchedules({
+              schedules,
+              weather,
+            });
+
+          console.log(
+            "⌚ Diary schedules sent:",
+            result.count
+          );
+
+          console.log(
+            "⌚ Diary weather sent:",
+            weather
+          );
+        } catch (error) {
+          console.log(
+            "⌚ Diary Watch送信スキップ:",
+            error
+          );
+        }
+      };
+
+    void sendSchedulesToWatch();
   }, [schedules, isLoaded]);
 
   const calendarDays = useMemo(() => {
@@ -939,111 +995,111 @@ export default function CalendarPage({
               {selectedSchedules.map(
                 (schedule) => (
                   <div
-  key={schedule.id}
-  style={scheduleItemStyle}
->
-  <div style={scheduleInfoStyle}>
-    <div style={scheduleMainStyle}>
-      <div style={scheduleCardIconStyle}>
-        {getScheduleIcon([schedule])}
-      </div>
+                    key={schedule.id}
+                    style={scheduleItemStyle}
+                  >
+                    <div style={scheduleInfoStyle}>
+                      <div style={scheduleMainStyle}>
+                        <div style={scheduleCardIconStyle}>
+                          {getScheduleIcon([schedule])}
+                        </div>
 
-      <div style={scheduleTextStyle}>
-        {schedule.startTime && (
-          <span style={scheduleTimeStyle}>
-            🕐 {schedule.startTime}
-            {schedule.endTime
-              ? ` 〜 ${schedule.endTime}`
-              : ""}
-          </span>
-        )}
+                        <div style={scheduleTextStyle}>
+                          {schedule.startTime && (
+                            <span style={scheduleTimeStyle}>
+                              🕐 {schedule.startTime}
+                              {schedule.endTime
+                                ? ` 〜 ${schedule.endTime}`
+                                : ""}
+                            </span>
+                          )}
 
-        <strong style={scheduleTitleStyle}>
-          {schedule.title}
-        </strong>
+                          <strong style={scheduleTitleStyle}>
+                            {schedule.title}
+                          </strong>
 
-        {schedule.repeat !== "none" && (
-          <p style={repeatLabelStyle}>
-            {schedule.repeat === "weekly" &&
-              `毎週 ${schedule.weekdays
-                ?.map(
-                  (weekday) =>
-                    WEEKDAYS[weekday]
-                )
-                .join("・")
-              }曜日`}
+                          {schedule.repeat !== "none" && (
+                            <p style={repeatLabelStyle}>
+                              {schedule.repeat === "weekly" &&
+                                `毎週 ${schedule.weekdays
+                                  ?.map(
+                                    (weekday) =>
+                                      WEEKDAYS[weekday]
+                                  )
+                                  .join("・")
+                                }曜日`}
 
-            {schedule.repeat === "monthly" &&
-              `毎月 ${Number(
-                schedule.date.slice(8, 10)
-              )}日`}
+                              {schedule.repeat === "monthly" &&
+                                `毎月 ${Number(
+                                  schedule.date.slice(8, 10)
+                                )}日`}
 
-            {schedule.repeat === "yearly" &&
-              `毎年 ${Number(
-                schedule.date.slice(5, 7)
-              )}月${Number(
-                schedule.date.slice(8, 10)
-              )}日`}
-          </p>
-        )}
+                              {schedule.repeat === "yearly" &&
+                                `毎年 ${Number(
+                                  schedule.date.slice(5, 7)
+                                )}月${Number(
+                                  schedule.date.slice(8, 10)
+                                )}日`}
+                            </p>
+                          )}
 
-        {schedule.memo && (
-          <p style={scheduleMemoStyle}>
-            {schedule.memo}
-          </p>
-        )}
-      </div>
-    </div>
-  </div>
+                          {schedule.memo && (
+                            <p style={scheduleMemoStyle}>
+                              {schedule.memo}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
-  <div style={scheduleDividerStyle} />
+                    <div style={scheduleDividerStyle} />
 
-  <div style={scheduleActionStyle}>
-    <button
-      type="button"
-      onClick={() =>
-        editSchedule(schedule)
-      }
-      style={editButtonStyle}
-    >
-      ✏️ 編集
-    </button>
+                    <div style={scheduleActionStyle}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          editSchedule(schedule)
+                        }
+                        style={editButtonStyle}
+                      >
+                        ✏️ 編集
+                      </button>
 
-    {schedule.repeat !== "none" && (
-      <button
-        type="button"
-        onClick={() => {
-          const confirmed =
-            window.confirm(
-              `${selectedDate}の予定だけ削除しますか？`
-            );
+                      {schedule.repeat !== "none" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const confirmed =
+                              window.confirm(
+                                `${selectedDate}の予定だけ削除しますか？`
+                              );
 
-          if (confirmed) {
-            removeScheduleOnlyThisDate(
-              schedule.id
-            );
-          }
-        }}
-        style={deleteOneButtonStyle}
-      >
-        📅 この日だけ削除
-      </button>
-    )}
+                            if (confirmed) {
+                              removeScheduleOnlyThisDate(
+                                schedule.id
+                              );
+                            }
+                          }}
+                          style={deleteOneButtonStyle}
+                        >
+                          📅 この日だけ削除
+                        </button>
+                      )}
 
-    <button
-      type="button"
-      onClick={() =>
-        removeSchedule(schedule.id)
-      }
-      style={deleteButtonStyle}
-    >
-      🗑️{" "}
-      {schedule.repeat !== "none"
-        ? "すべて削除"
-        : "削除"}
-    </button>
-  </div>
-</div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeSchedule(schedule.id)
+                        }
+                        style={deleteButtonStyle}
+                      >
+                        🗑️{" "}
+                        {schedule.repeat !== "none"
+                          ? "すべて削除"
+                          : "削除"}
+                      </button>
+                    </div>
+                  </div>
                 )
               )}
             </div>

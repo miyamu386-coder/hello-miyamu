@@ -76,6 +76,9 @@ type Props = {
 const STORAGE_KEY =
   "miyamu_diary_schedules_v1";
 
+const WEATHER_STORAGE_KEY =
+  "miyamu_diary_weather_v1";
+
 const pad2 = (value: number) =>
   String(value).padStart(2, "0");
 
@@ -278,20 +281,24 @@ export default function RoomSwiper({
           const data =
             await response.json();
 
-          setWeather({
+          const nextWeather: WeatherData = {
             temperature:
-              data.current
-                .temperature_2m,
+              data.current.temperature_2m,
 
             weatherCode:
-              data.current
-                .weather_code,
+              data.current.weather_code,
 
             precipitationProbability:
               data.daily
                 .precipitation_probability_max[0],
-          });
+          };
 
+          setWeather(nextWeather);
+
+          localStorage.setItem(
+            WEATHER_STORAGE_KEY,
+            JSON.stringify(nextWeather)
+          );
           console.log(
             "現在地の天気",
             {
