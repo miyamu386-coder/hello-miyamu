@@ -22,6 +22,7 @@ type ScheduleItem = {
   memo: string;
   repeat: RepeatType;
   weekdays?: number[];
+  excludedDates?: string[];
 };
 
 const STORAGE_KEY = "miyamu_diary_schedules_v1";
@@ -115,6 +116,11 @@ const scheduleMatchesDate = (
   schedule: ScheduleItem,
   dateISO: string
 ) => {
+  if (
+    schedule.excludedDates?.includes(dateISO)
+  ) {
+    return false;
+  }
   // 登録日より前には表示しない
   if (dateISO < schedule.date) {
     return false;
@@ -191,6 +197,9 @@ export default function CalendarPage({
 
   const [schedules, setSchedules] =
     useState<ScheduleItem[]>([]);
+
+  const [editingId, setEditingId] =
+    useState<string | null>(null);
 
   const [isLoaded, setIsLoaded] =
     useState(false);
@@ -312,18 +321,18 @@ export default function CalendarPage({
           selectedDate
         ).sort((a, b) => {
           if (a.startTime && b.startTime) {
-  return a.startTime.localeCompare(
-    b.startTime
-  );
-}
+            return a.startTime.localeCompare(
+              b.startTime
+            );
+          }
 
-if (a.startTime) {
-  return -1;
-}
+          if (a.startTime) {
+            return -1;
+          }
 
-if (b.startTime) {
-  return 1;
-}
+          if (b.startTime) {
+            return 1;
+          }
 
           return a.title.localeCompare(
             b.title,
@@ -402,10 +411,18 @@ if (b.startTime) {
       }
     );
   };
+  const resetForm = () => {
+    setTitleInput("");
+    setStartTimeInput("");
+    setEndTimeInput("");
+    setMemoInput("");
+    setRepeatInput("none");
+    setWeekdayInputs([]);
+    setEditingId(null);
+  };
 
-  const addSchedule = () => {
-    const title =
-      titleInput.trim();
+  const saveSchedule = () => {
+    const title = titleInput.trim();
 
     if (!title) {
       window.alert(
@@ -416,8 +433,7 @@ if (b.startTime) {
     }
 
     if (
-      repeatInput ===
-      "weekly" &&
+      repeatInput === "weekly" &&
       weekdayInputs.length === 0
     ) {
       window.alert(
@@ -427,34 +443,85 @@ if (b.startTime) {
       return;
     }
 
-   const newSchedule: ScheduleItem = {
-  id: crypto.randomUUID(),
-  date: selectedDate,
-  startTime: startTimeInput,
-  endTime: endTimeInput,
-  title,
-  memo: memoInput.trim(),
-  repeat: repeatInput,
+    if (editingId) {
+      setSchedules((current) =>
+        current.map((schedule) =>
+          schedule.id === editingId
+            ? {
+              ...schedule,
+              date: selectedDate,
+              startTime: startTimeInput,
+              endTime: endTimeInput,
+              title,
+              memo: memoInput.trim(),
+              repeat: repeatInput,
+              weekdays:
+                repeatInput === "weekly"
+                  ? weekdayInputs
+                  : [],
+            }
+            : schedule
+        )
+      );
 
+      resetForm();
+      return;
+    }
+
+    const newSchedule: ScheduleItem = {
+      id: crypto.randomUUID(),
+      date: selectedDate,
+      startTime: startTimeInput,
+      endTime: endTimeInput,
+      title,
+      memo: memoInput.trim(),
+      repeat: repeatInput,
       weekdays:
         repeatInput === "weekly"
           ? weekdayInputs
           : [],
     };
 
-    setSchedules(
-      (current) => [
-        ...current,
-        newSchedule,
-      ]
-    );
+    setSchedules((current) => [
+      ...current,
+      newSchedule,
+    ]);
+    resetForm();
+  };
 
-   setTitleInput("");
-setStartTimeInput("");
-setEndTimeInput("");
-setMemoInput("");
-setRepeatInput("none");
-setWeekdayInputs([]);
+  const editSchedule = (
+    schedule: ScheduleItem
+  ) => {
+    setEditingId(schedule.id);
+    setSelectedDate(schedule.date);
+
+    setTitleInput(schedule.title);
+    setStartTimeInput(schedule.startTime);
+    setEndTimeInput(schedule.endTime);
+    setMemoInput(schedule.memo);
+    setRepeatInput(schedule.repeat);
+    setWeekdayInputs(schedule.weekdays ?? []);
+  };
+
+  const removeScheduleOnlyThisDate = (
+    id: string
+  ) => {
+    setSchedules((current) =>
+      current.map((schedule) =>
+        schedule.id === id
+          ? {
+            ...schedule,
+            excludedDates: [
+              ...(schedule.excludedDates ?? []),
+              selectedDate,
+            ].filter(
+              (date, index, array) =>
+                array.indexOf(date) === index
+            ),
+          }
+          : schedule
+      )
+    );
   };
 
   const removeSchedule = (
@@ -843,15 +910,23 @@ setWeekdayInputs([]);
 
             <button
               type="button"
-              onClick={
-                addSchedule
-              }
-              style={
-                addButtonStyle
-              }
+              onClick={saveSchedule}
+              style={addButtonStyle}
             >
-              予定を追加
+              {editingId
+                ? "予定を更新"
+                : "予定を追加"}
             </button>
+
+            {editingId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                style={cancelButtonStyle}
+              >
+                編集をキャンセル
+              </button>
+            )}
           </div>
 
           {selectedSchedules.length >
@@ -876,22 +951,22 @@ setWeekdayInputs([]);
                         minWidth: 0,
                       }}
                     >
-                     {schedule.startTime && (
-  <span
-    style={{
-      display: "block",
-      marginBottom: 4,
-      color: "#4f7c5b",
-      fontSize: 14,
-      fontWeight: 800,
-    }}
-  >
-    🕐 {schedule.startTime}
-    {schedule.endTime
-      ? ` 〜 ${schedule.endTime}`
-      : ""}
-  </span>
-)}
+                      {schedule.startTime && (
+                        <span
+                          style={{
+                            display: "block",
+                            marginBottom: 4,
+                            color: "#4f7c5b",
+                            fontSize: 14,
+                            fontWeight: 800,
+                          }}
+                        >
+                          🕐 {schedule.startTime}
+                          {schedule.endTime
+                            ? ` 〜 ${schedule.endTime}`
+                            : ""}
+                        </span>
+                      )}
 
                       <strong
                         style={
@@ -934,19 +1009,50 @@ setWeekdayInputs([]);
                       )}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeSchedule(
-                          schedule.id
-                        )
-                      }
-                      style={
-                        deleteButtonStyle
-                      }
-                    >
-                      削除
-                    </button>
+                    <div style={scheduleActionStyle}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          editSchedule(schedule)
+                        }
+                        style={editButtonStyle}
+                      >
+                        編集
+                      </button>
+
+                      {schedule.repeat !== "none" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const confirmed =
+                              window.confirm(
+                                `${selectedDate}の予定だけ削除しますか？`
+                              );
+
+                            if (confirmed) {
+                              removeScheduleOnlyThisDate(
+                                schedule.id
+                              );
+                            }
+                          }}
+                          style={deleteOneButtonStyle}
+                        >
+                          この日だけ削除
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeSchedule(schedule.id)
+                        }
+                        style={deleteButtonStyle}
+                      >
+                        {schedule.repeat !== "none"
+                          ? "すべて削除"
+                          : "削除"}
+                      </button>
+                    </div>
                   </div>
                 )
               )}
@@ -1284,5 +1390,40 @@ const timeLabelStyle: CSSProperties = {
 const timeSeparatorStyle: CSSProperties = {
   paddingBottom: 13,
   color: "#78817c",
+  fontWeight: 700,
+};
+
+const scheduleActionStyle: CSSProperties = {
+  display: "flex",
+  flexShrink: 0,
+  gap: 6,
+};
+
+const editButtonStyle: CSSProperties = {
+  padding: "7px 10px",
+  border: "none",
+  borderRadius: 9,
+  background: "#eef5ff",
+  color: "#4169a1",
+  cursor: "pointer",
+  fontWeight: 700,
+};
+
+const cancelButtonStyle: CSSProperties = {
+  padding: "12px 16px",
+  border: "1px solid #cad8cf",
+  borderRadius: 12,
+  background: "#fff",
+  color: "#66706a",
+  cursor: "pointer",
+  fontWeight: 700,
+};
+const deleteOneButtonStyle: CSSProperties = {
+  padding: "7px 10px",
+  border: "none",
+  borderRadius: 9,
+  background: "#fff7e8",
+  color: "#a66a00",
+  cursor: "pointer",
   fontWeight: 700,
 };
