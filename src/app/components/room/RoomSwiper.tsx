@@ -24,6 +24,7 @@ type ScheduleItem = {
   memo: string;
   repeat: RepeatType;
   weekdays?: number[];
+  excludedDates?: string[];
 };
 type WeatherData = {
   temperature: number;
@@ -101,6 +102,15 @@ const scheduleMatchesDate = (
   schedule: ScheduleItem,
   dateISO: string
 ) => {
+  // 個別削除された日は表示しない
+  if (
+    schedule.excludedDates?.includes(
+      dateISO
+    )
+  ) {
+    return false;
+  }
+
   // 登録日より前には表示しない
   if (dateISO < schedule.date) {
     return false;
@@ -437,6 +447,12 @@ export default function RoomSwiper({
                   schedule.weekdays
                 )
                   ? schedule.weekdays
+                  : [],
+              excludedDates:
+                Array.isArray(
+                  schedule.excludedDates
+                )
+                  ? schedule.excludedDates
                   : [],
             })
           );
