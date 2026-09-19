@@ -939,121 +939,111 @@ export default function CalendarPage({
               {selectedSchedules.map(
                 (schedule) => (
                   <div
-                    key={
-                      schedule.id
-                    }
-                    style={
-                      scheduleItemStyle
-                    }
-                  >
-                    <div
-                      style={{
-                        minWidth: 0,
-                      }}
-                    >
-                      {schedule.startTime && (
-                        <span
-                          style={{
-                            display: "block",
-                            marginBottom: 4,
-                            color: "#4f7c5b",
-                            fontSize: 14,
-                            fontWeight: 800,
-                          }}
-                        >
-                          🕐 {schedule.startTime}
-                          {schedule.endTime
-                            ? ` 〜 ${schedule.endTime}`
-                            : ""}
-                        </span>
-                      )}
+  key={schedule.id}
+  style={scheduleItemStyle}
+>
+  <div style={scheduleInfoStyle}>
+    <div style={scheduleMainStyle}>
+      <div style={scheduleCardIconStyle}>
+        {getScheduleIcon([schedule])}
+      </div>
 
-                      <strong
-                        style={
-                          scheduleTitleStyle
-                        }
-                      >
-                        {
-                          schedule.title
-                        }
-                      </strong>
+      <div style={scheduleTextStyle}>
+        {schedule.startTime && (
+          <span style={scheduleTimeStyle}>
+            🕐 {schedule.startTime}
+            {schedule.endTime
+              ? ` 〜 ${schedule.endTime}`
+              : ""}
+          </span>
+        )}
 
-                      {schedule.repeat !== "none" && (
-                        <p style={repeatLabelStyle}>
-                          {schedule.repeat === "weekly" &&
-                            `毎週 ${schedule.weekdays
-                              ?.map((weekday) => WEEKDAYS[weekday])
-                              .join("・")
-                            }曜日`}
+        <strong style={scheduleTitleStyle}>
+          {schedule.title}
+        </strong>
 
-                          {schedule.repeat === "monthly" &&
-                            `毎月 ${Number(schedule.date.slice(8, 10))}日`}
+        {schedule.repeat !== "none" && (
+          <p style={repeatLabelStyle}>
+            {schedule.repeat === "weekly" &&
+              `毎週 ${schedule.weekdays
+                ?.map(
+                  (weekday) =>
+                    WEEKDAYS[weekday]
+                )
+                .join("・")
+              }曜日`}
 
-                          {schedule.repeat === "yearly" &&
-                            `毎年 ${Number(schedule.date.slice(5, 7))}月${Number(
-                              schedule.date.slice(8, 10)
-                            )}日`}
-                        </p>
-                      )}
+            {schedule.repeat === "monthly" &&
+              `毎月 ${Number(
+                schedule.date.slice(8, 10)
+              )}日`}
 
-                      {schedule.memo && (
-                        <p
-                          style={
-                            scheduleMemoStyle
-                          }
-                        >
-                          {
-                            schedule.memo
-                          }
-                        </p>
-                      )}
-                    </div>
+            {schedule.repeat === "yearly" &&
+              `毎年 ${Number(
+                schedule.date.slice(5, 7)
+              )}月${Number(
+                schedule.date.slice(8, 10)
+              )}日`}
+          </p>
+        )}
 
-                    <div style={scheduleActionStyle}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          editSchedule(schedule)
-                        }
-                        style={editButtonStyle}
-                      >
-                        編集
-                      </button>
+        {schedule.memo && (
+          <p style={scheduleMemoStyle}>
+            {schedule.memo}
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
 
-                      {schedule.repeat !== "none" && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const confirmed =
-                              window.confirm(
-                                `${selectedDate}の予定だけ削除しますか？`
-                              );
+  <div style={scheduleDividerStyle} />
 
-                            if (confirmed) {
-                              removeScheduleOnlyThisDate(
-                                schedule.id
-                              );
-                            }
-                          }}
-                          style={deleteOneButtonStyle}
-                        >
-                          この日だけ削除
-                        </button>
-                      )}
+  <div style={scheduleActionStyle}>
+    <button
+      type="button"
+      onClick={() =>
+        editSchedule(schedule)
+      }
+      style={editButtonStyle}
+    >
+      ✏️ 編集
+    </button>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          removeSchedule(schedule.id)
-                        }
-                        style={deleteButtonStyle}
-                      >
-                        {schedule.repeat !== "none"
-                          ? "すべて削除"
-                          : "削除"}
-                      </button>
-                    </div>
-                  </div>
+    {schedule.repeat !== "none" && (
+      <button
+        type="button"
+        onClick={() => {
+          const confirmed =
+            window.confirm(
+              `${selectedDate}の予定だけ削除しますか？`
+            );
+
+          if (confirmed) {
+            removeScheduleOnlyThisDate(
+              schedule.id
+            );
+          }
+        }}
+        style={deleteOneButtonStyle}
+      >
+        📅 この日だけ削除
+      </button>
+    )}
+
+    <button
+      type="button"
+      onClick={() =>
+        removeSchedule(schedule.id)
+      }
+      style={deleteButtonStyle}
+    >
+      🗑️{" "}
+      {schedule.repeat !== "none"
+        ? "すべて削除"
+        : "削除"}
+    </button>
+  </div>
+</div>
                 )
               )}
             </div>
@@ -1306,18 +1296,56 @@ const scheduleListStyle: CSSProperties = {
 };
 
 const scheduleItemStyle: CSSProperties = {
+  padding: 16,
+  border: "1px solid #d5e4da",
+  borderRadius: 18,
+  background: "#fbfdfb",
+};
+
+const scheduleInfoStyle: CSSProperties = {
+  minWidth: 0,
+};
+
+const scheduleMainStyle: CSSProperties = {
   display: "flex",
   alignItems: "flex-start",
-  justifyContent: "space-between",
   gap: 12,
-  padding: 14,
-  border: "1px solid #dce7df",
-  borderRadius: 14,
-  background: "#f7faf8",
+  minWidth: 0,
+};
+
+const scheduleCardIconStyle: CSSProperties = {
+  flexShrink: 0,
+  width: 34,
+  paddingTop: 2,
+  fontSize: 24,
+  textAlign: "center",
+};
+
+const scheduleTextStyle: CSSProperties = {
+  flex: 1,
+  minWidth: 0,
+};
+
+const scheduleTimeStyle: CSSProperties = {
+  display: "block",
+  marginBottom: 4,
+  color: "#4f7c5b",
+  fontSize: 14,
+  fontWeight: 800,
+};
+
+const scheduleDividerStyle: CSSProperties = {
+  height: 1,
+  margin: "14px 0",
+  background: "#e1ebe4",
 };
 
 const scheduleTitleStyle: CSSProperties = {
   display: "block",
+  color: "#202320",
+  fontSize: 18,
+  fontWeight: 800,
+  lineHeight: 1.4,
   overflowWrap: "anywhere",
 };
 
@@ -1336,15 +1364,18 @@ const scheduleMemoStyle: CSSProperties = {
 };
 
 const deleteButtonStyle: CSSProperties = {
-  flexShrink: 0,
-  padding: "7px 10px",
+  minWidth: 0,
+  padding: "10px 6px",
   border: "none",
-  borderRadius: 9,
+  borderRadius: 12,
   background: "#fff0f0",
   color: "#c33",
   cursor: "pointer",
   fontWeight: 700,
+  whiteSpace: "nowrap",
 };
+
+
 
 const emptyTextStyle: CSSProperties = {
   margin: "18px 0 0",
@@ -1394,19 +1425,23 @@ const timeSeparatorStyle: CSSProperties = {
 };
 
 const scheduleActionStyle: CSSProperties = {
-  display: "flex",
-  flexShrink: 0,
-  gap: 6,
+  display: "grid",
+  gridTemplateColumns:
+    "repeat(3, minmax(0, 1fr))",
+  gap: 8,
+  width: "100%",
 };
 
 const editButtonStyle: CSSProperties = {
-  padding: "7px 10px",
+  minWidth: 0,
+  padding: "10px 6px",
   border: "none",
-  borderRadius: 9,
+  borderRadius: 12,
   background: "#eef5ff",
   color: "#4169a1",
   cursor: "pointer",
   fontWeight: 700,
+  whiteSpace: "nowrap",
 };
 
 const cancelButtonStyle: CSSProperties = {
@@ -1418,12 +1453,15 @@ const cancelButtonStyle: CSSProperties = {
   cursor: "pointer",
   fontWeight: 700,
 };
+
 const deleteOneButtonStyle: CSSProperties = {
-  padding: "7px 10px",
+  minWidth: 0,
+  padding: "10px 6px",
   border: "none",
-  borderRadius: 9,
+  borderRadius: 12,
   background: "#fff7e8",
   color: "#a66a00",
   cursor: "pointer",
   fontWeight: 700,
+  whiteSpace: "nowrap",
 };
