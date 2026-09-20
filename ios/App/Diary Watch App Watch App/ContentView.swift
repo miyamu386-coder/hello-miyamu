@@ -12,9 +12,6 @@ struct ContentView: View {
     @StateObject private var healthKit =
         HealthKitManager()
 
-    @StateObject private var calendarManager =
-        CalendarManager()
-
     @StateObject private var diaryWatch =
         DiaryWatchReceiver()
 
@@ -31,7 +28,10 @@ struct ContentView: View {
     @State private var isSleepDeprived = false
     @State private var isYawning = false
     @State private var isJumping = false
-
+    @State private var isReportingNotification = false
+    @State private var rewardStage = 0
+    @State private var isRewardAvailable = false
+    
     // 通知済みのDiary予定段階を記録
     @State private var notifiedDiaryAlertIds:
         Set<String> = []
@@ -40,8 +40,22 @@ struct ContentView: View {
     @State private var lastWeatherNotificationMessage:
         String? = nil
 
+    // 最後にモフが報告した
+    // 配信済みDiary通知ID
+    @State private var lastReportedDiaryNotificationId:
+        String? =
+            UserDefaults.standard.string(
+                forKey:
+                    "lastReportedDiaryNotificationId"
+            )
+
+    // 起動時に配信済みDiary通知を
+    // モフが報告したか
+    @State private var didReportDeliveredDiaryNotification =
+        false
+
     // false = 歩数
-    // true = Appleカレンダー予定
+    // true = Diary予定
     @State private var showScheduleNext = false
 
     private let walkFrames = [
@@ -60,7 +74,56 @@ struct ContentView: View {
                 .scaledToFill()
                 .ignoresSafeArea()
 
-            if isSleeping {
+            // --------------------
+            // モフ表示
+            // --------------------
+            
+
+            if rewardStage == 1 {
+
+                Image("watch-chocolat-supply")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(
+                        width: 90,
+                        height: 90
+                    )
+                    .offset(
+                        x: 0,
+                        y: 30
+                    )
+
+            } else if rewardStage == 2 {
+
+                Image("watch-mofu-reward-time")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(
+                        width: 120,
+                        height: 90
+                    )
+                    .offset(
+                        x: 0,
+                        y: 30
+                    )
+
+            } else if isReportingNotification {
+
+                // 事後報告中は
+                // 腕組みモフを最優先
+                Image("watch-mofu-arms-crossed")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(
+                        width: 80,
+                        height: 80
+                    )
+                    .offset(
+                        x: 0,
+                        y: 35
+                    )
+
+            } else if isSleeping {
 
                 Image("watch-mofu-sleep")
                     .resizable()
@@ -163,14 +226,23 @@ struct ContentView: View {
                         }
 
                     // --------------------
-                    // Appleカレンダー予定
+                    // Diary予定
                     // --------------------
 
                     if showScheduleNext {
 
-                        healthMessage =
-                            calendarManager
-                                .scheduleMessage()
+                        if let diaryMessage =
+                            diaryWatch
+                                .nextDiaryScheduleMessage()
+                        {
+                            healthMessage =
+                                diaryMessage
+
+                        } else {
+
+                            healthMessage =
+                                "Diaryの予定は\nもうないぞ"
+                        }
 
                     // --------------------
                     // 歩数
@@ -210,10 +282,63 @@ struct ContentView: View {
                             deadline:
                                 .now() + 4
                         ) {
+
+                            // 事後報告中なら
+                            // タップ側から消さない
+                            guard
+                                !isReportingNotification
+                            else {
+                                return
+                            }
+
                             healthMessage = nil
+                            
                         }
                 }
             }
+            // --------------------
+            // ツナ缶ご褒美ボタン
+            // --------------------
+
+            if isRewardAvailable && rewardStage == 0
+            {
+
+                Button {
+
+                    rewardStage = 1
+                    healthMessage = "ショコラ！それ…ツナ缶か！"
+                    DispatchQueue.main
+                        .asyncAfter(
+                            deadline:
+                                .now() + 5
+                        )
+                    {
+
+                            rewardStage = 2
+                            healthMessage = nil
+                            DispatchQueue.main
+                                .asyncAfter(
+                                    deadline:
+                                        .now() + 5
+                                )
+                        {
+                            rewardStage = 0
+                            isRewardAvailable = false
+                        }
+                    }
+
+                } label:
+                {
+                    Text("🥫 ご褒美")
+                        .font(.caption2)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.mini)
+                .offset(y: 70)
+            }
+            // --------------------
+            // モフのセリフ
+            // --------------------
 
             if let healthMessage {
 
@@ -248,6 +373,77 @@ struct ContentView: View {
             print(
                 "ContentView task started"
             )
+            // --------------------
+            // 閉じている間に届いた
+            // Diary通知をモフが報告
+            // --------------------
+
+            diaryWatch
+                .latestDeliveredDiaryNotification {
+                    message,
+                    notificationId in
+
+                    guard
+                        let message,
+                        let notificationId
+                    else {
+                        return
+                    }
+
+                    guard
+                        notificationId !=
+                            lastReportedDiaryNotificationId
+                    else {
+                        return
+                    }
+
+                    lastReportedDiaryNotificationId =
+                        notificationId
+
+                    didReportDeliveredDiaryNotification =
+                        true
+
+                    UserDefaults.standard.set(
+                        notificationId,
+                        forKey:
+                            "lastReportedDiaryNotificationId"
+                    )
+
+                    print(
+                        "⌚ 未報告Diary通知あり: \(notificationId)"
+                    )
+
+                    // --------------------
+                    // 他の表情を解除して
+                    // 腕組み事後報告モフへ
+                    // --------------------
+
+                    isSleeping = false
+                    isSleepDeprived = false
+                    isYawning = false
+                    isConcerned = false
+
+                    isReportingNotification = true
+                    isRewardAvailable = true
+
+                    print("😼 腕組みモフ ON")
+                    showMofuNotification(
+                        message,
+                        duration: 10
+                    )
+
+                    DispatchQueue.main
+                        .asyncAfter(
+                            deadline:
+                                .now() + 10
+                        ) {
+
+                            isReportingNotification =
+                                false
+
+                            print("😼 腕組みモフ OFF")
+                        }
+                }
 
             // --------------------
             // Diary予定・天気
@@ -259,6 +455,20 @@ struct ContentView: View {
                     deadline:
                         .now() + 2
                 ) {
+
+                    // 配信済みDiary通知を
+                    // モフが報告した場合は
+                    // 起動時のお知らせを重ねない
+                    guard
+                        !didReportDeliveredDiaryNotification
+                    else {
+
+                        print(
+                            "⌚ 配信済みDiary通知を報告済みのため起動時チェック省略"
+                        )
+
+                        return
+                    }
 
                     print(
                         "⌚ 起動時Diary予定チェック"
@@ -321,79 +531,97 @@ struct ContentView: View {
                 .fetchSleep()
 
             // --------------------
-            // Apple Calendar
-            // --------------------
-
-            await calendarManager
-                .requestAuthorization()
-
-            calendarManager
-                .fetchTodayEvents()
-
-            // --------------------
             // 睡眠リアクション
+            // Diary通知の事後報告中は
+            // 上書きしない
             // --------------------
 
-            let sleepHours =
-                healthKit.sleepHours
+            if !didReportDeliveredDiaryNotification {
 
-            if sleepHours < 3 {
+                let sleepHours =
+                    healthKit.sleepHours
 
-                isSleepDeprived = true
-                isYawning = false
+                if sleepHours < 3 {
 
-                healthMessage =
-                    "……寝てないだろ。"
+                    isSleepDeprived = true
+                    isYawning = false
 
-            } else if sleepHours < 5 {
+                    healthMessage =
+                        "……寝てないだろ。"
 
-                isSleepDeprived = true
-                isYawning = false
+                } else if sleepHours < 5 {
 
-                healthMessage =
-                    "寝不足。今日は無理すんな。"
+                    isSleepDeprived = true
+                    isYawning = false
 
-            } else if sleepHours < 6 {
+                    healthMessage =
+                        "寝不足。今日は無理すんな。"
 
-                isSleepDeprived = false
-                isYawning = true
+                } else if sleepHours < 6 {
 
-                healthMessage =
-                    "ふぁ〜……もうちょい寝たかったな"
+                    isSleepDeprived = false
+                    isYawning = true
 
-            } else if sleepHours < 8 {
+                    healthMessage =
+                        "ふぁ〜……もうちょい寝たかったな"
 
-                isSleepDeprived = false
-                isYawning = false
+                } else if sleepHours < 8 {
 
-                healthMessage =
-                    "まあ、悪くない"
+                    isSleepDeprived = false
+                    isYawning = false
+
+                    healthMessage =
+                        "まあ、悪くない"
+
+                } else {
+
+                    isSleepDeprived = false
+                    isYawning = false
+
+                    healthMessage =
+                        "よく寝たじゃん"
+                }
+
+                if healthMessage != nil {
+
+                    DispatchQueue.main
+                        .asyncAfter(
+                            deadline:
+                                .now() + 5
+                        ) {
+
+                            // 事後報告モフが始まっていたら
+                            // 古い睡眠リアクションの
+                            // タイマーで消さない
+                            guard
+                                !isReportingNotification
+                            else {
+                                return
+                            }
+
+                            healthMessage = nil
+                            isSleepDeprived =
+                                false
+                            isYawning = false
+                        }
+                }
 
             } else {
 
-                isSleepDeprived = false
-                isYawning = false
-
-                healthMessage =
-                    "よく寝たじゃん"
-            }
-
-            if healthMessage != nil {
-
-                DispatchQueue.main
-                    .asyncAfter(
-                        deadline:
-                            .now() + 5
-                    ) {
-
-                        healthMessage = nil
-                        isSleepDeprived =
-                            false
-                        isYawning = false
-                    }
+                print(
+                    "⌚ Diary通知報告中のため睡眠リアクション省略"
+                )
             }
         }
 
+        .onChange(
+            of: isReportingNotification
+        ) { _, newValue in
+
+            print(
+                "😼 isReportingNotification changed: \(newValue)"
+            )
+        }
         // --------------------
         // 心拍リアクション
         // --------------------
@@ -401,6 +629,14 @@ struct ContentView: View {
         .onChange(
             of: healthKit.heartRate
         ) { _, newHeartRate in
+
+            // 事後報告中は
+            // 心拍リアクションを重ねない
+            guard
+                !isReportingNotification
+            else {
+                return
+            }
 
             if newHeartRate >= 110 {
 
@@ -414,6 +650,12 @@ struct ContentView: View {
                         deadline:
                             .now() + 5
                     ) {
+
+                        guard
+                            !isReportingNotification
+                        else {
+                            return
+                        }
 
                         healthMessage = nil
                         isConcerned = false
@@ -435,6 +677,7 @@ struct ContentView: View {
         ) { _ in
 
             Task {
+
                 await healthKit
                     .fetchLatestHeartRate()
             }
@@ -454,6 +697,7 @@ struct ContentView: View {
         ) { _ in
 
             Task {
+
                 await healthKit
                     .fetchTodaySteps()
             }
@@ -473,26 +717,10 @@ struct ContentView: View {
         ) { _ in
 
             Task {
+
                 await healthKit
                     .fetchSleep()
             }
-        }
-
-        // --------------------
-        // Appleカレンダー予定更新
-        // --------------------
-
-        .onReceive(
-            Timer.publish(
-                every: 60,
-                on: .main,
-                in: .common
-            )
-            .autoconnect()
-        ) { _ in
-
-            calendarManager
-                .fetchTodayEvents()
         }
 
         // --------------------
@@ -507,6 +735,14 @@ struct ContentView: View {
             )
             .autoconnect()
         ) { _ in
+
+            // 事後報告中は
+            // 新しい画面表示を重ねない
+            guard
+                !isReportingNotification
+            else {
+                return
+            }
 
             guard
                 let alert =
@@ -533,6 +769,14 @@ struct ContentView: View {
             )
             .autoconnect()
         ) { _ in
+
+            // 事後報告中は
+            // 天気を重ねない
+            guard
+                !isReportingNotification
+            else {
+                return
+            }
 
             // 1時間以内にDiary予定があるなら
             // 天気より予定を優先
@@ -583,14 +827,22 @@ struct ContentView: View {
             .autoconnect()
         ) { _ in
 
+            // 特別な表情中は
+            // 歩行処理を止める
             if isConcerned
                 || isSleepDeprived
                 || isYawning
+                || isReportingNotification
+                || rewardStage > 0
             {
                 return
             }
 
             elapsedTime += 0.18
+
+            // --------------------
+            // 睡眠中
+            // --------------------
 
             if isSleeping {
 
@@ -605,6 +857,10 @@ struct ContentView: View {
 
                 return
             }
+
+            // --------------------
+            // 歩行アニメーション
+            // --------------------
 
             walkFrameIndex =
                 (
@@ -633,6 +889,10 @@ struct ContentView: View {
                 }
             }
 
+            // --------------------
+            // 20秒歩いたら寝る
+            // --------------------
+
             if elapsedTime >= 20 {
 
                 isSleeping = true
@@ -648,6 +908,7 @@ struct ContentView: View {
     private func handleDiaryAlert(
         _ alert: DiaryScheduleAlert
     ) {
+
         // この予定のこの段階は
         // すでに通知済みなら何もしない
         guard
@@ -688,6 +949,7 @@ struct ContentView: View {
                 deadline:
                     .now() + 0.25
             ) {
+
                 isJumping = false
             }
 
@@ -726,6 +988,7 @@ struct ContentView: View {
                     deadline:
                         .now() + 0.45
                 ) {
+
                     WKInterfaceDevice
                         .current()
                         .play(
@@ -734,12 +997,20 @@ struct ContentView: View {
                 }
         }
 
-        // 5秒後にセリフを消す
+        // 指定時間後にセリフを消す
         DispatchQueue.main
             .asyncAfter(
                 deadline:
                     .now() + 5
             ) {
+
+                // その後に事後報告が
+                // 始まっていたら消さない
+                guard
+                    !isReportingNotification
+                else {
+                    return
+                }
 
                 if healthMessage ==
                     alert.message
@@ -755,8 +1026,10 @@ struct ContentView: View {
     // --------------------
 
     private func showMofuNotification(
-        _ message: String
+        _ message: String,
+        duration: Double = 5
     ) {
+
         // モフを起こす
         isSleeping = false
         elapsedTime = 0
@@ -777,14 +1050,15 @@ struct ContentView: View {
                 deadline:
                     .now() + 0.25
             ) {
+
                 isJumping = false
             }
 
-        // 5秒後にセリフを消す
+        // 指定時間後にセリフを消す
         DispatchQueue.main
             .asyncAfter(
                 deadline:
-                    .now() + 5
+                    .now() + duration
             ) {
 
                 if healthMessage ==

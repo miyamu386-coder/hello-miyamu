@@ -1,6 +1,7 @@
 import Foundation
 import WatchConnectivity
 import Combine
+import UserNotifications
 
 // --------------------
 // Diary予定の通知段階
@@ -65,8 +66,24 @@ final class DiaryWatchReceiver:
     @Published var precipitationProbability:
         Int? = nil
 
+    private let notificationCenter =
+        UNUserNotificationCenter.current()
+
+    private let notificationPrefix =
+        "diary-mofu-"
+
     override init() {
         super.init()
+
+        // --------------------
+        // 通知許可
+        // --------------------
+
+        requestNotificationAuthorization()
+
+        // --------------------
+        // WatchConnectivity
+        // --------------------
 
         guard
             WCSession.isSupported()
@@ -86,6 +103,39 @@ final class DiaryWatchReceiver:
             "⌚ DiaryWatchReceiver activated"
         )
     }
+
+    // --------------------
+    // 通知許可
+    // --------------------
+
+    private func requestNotificationAuthorization()
+    {
+        notificationCenter
+            .requestAuthorization(
+                options: [
+                    .alert,
+                    .sound
+                ]
+            ) {
+                granted,
+                error in
+
+                if let error {
+                    print(
+                        "⌚ 通知許可エラー: \(error.localizedDescription)"
+                    )
+                    return
+                }
+
+                print(
+                    "⌚ 通知許可: \(granted)"
+                )
+            }
+    }
+
+    // --------------------
+    // WatchConnectivity
+    // --------------------
 
     func session(
         _ session: WCSession,
@@ -136,6 +186,10 @@ final class DiaryWatchReceiver:
         )
     }
 
+    // --------------------
+    // Diaryデータ受信
+    // --------------------
+
     private func readApplicationContext(
         _ context: [String: Any]
     ) {
@@ -150,6 +204,14 @@ final class DiaryWatchReceiver:
 
                 print(
                     "⌚ Diary schedules received: \(receivedSchedules.count)"
+                )
+
+                // --------------------
+                // ローカル通知を予約
+                // --------------------
+
+                self.scheduleLocalNotifications(
+                    for: receivedSchedules
                 )
             }
         }
@@ -190,7 +252,356 @@ final class DiaryWatchReceiver:
     }
 
     // --------------------
+    // Diaryローカル通知予約
+    // --------------------
+
+    private func scheduleLocalNotifications(
+        for schedules:
+            [[String: Any]]
+    ) {
+        let center =
+            notificationCenter
+
+        // --------------------
+        // 古いDiary通知だけ削除
+        // --------------------
+
+        center
+            .getPendingNotificationRequests {
+                [weak self]
+                requests in
+
+                guard let self else {
+                    return
+                }
+
+                let oldIds =
+                    requests
+                        .map {
+                            $0.identifier
+                        }
+                        .filter {
+                            $0.hasPrefix(
+                                self.notificationPrefix
+                            )
+                        }
+
+                if !oldIds.isEmpty {
+
+                    center
+                        .removePendingNotificationRequests(
+                            withIdentifiers:
+                                oldIds
+                        )
+
+                    print(
+                        "⌚ 古いDiary通知削除: \(oldIds.count)"
+                    )
+                }
+
+                // --------------------
+                // 最新予定を予約
+                // --------------------
+
+                self.addScheduleNotifications(
+                    schedules
+                )
+            }
+    }
+
+    // --------------------
+    // 各予定の通知を登録
+    // --------------------
+
+    private func addScheduleNotifications(
+        _ schedules:
+            [[String: Any]]
+    ) {
+        let calendar =
+            Calendar.current
+
+        let now =
+            Date()
+
+        let formatter =
+            DateFormatter()
+
+        formatter.locale =
+            Locale(
+                identifier:
+                    "en_US_POSIX"
+            )
+
+        formatter.calendar =
+            calendar
+
+        formatter.dateFormat =
+            "yyyy-MM-dd HH:mm"
+
+        for schedule in schedules {
+
+            guard
+                let id =
+                    schedule["id"]
+                        as? String,
+                let date =
+                    schedule["date"]
+                        as? String,
+                let startTime =
+                    schedule["startTime"]
+                        as? String,
+                let title =
+                    schedule["title"]
+                        as? String,
+                !startTime.isEmpty
+            else {
+                continue
+            }
+
+            guard
+                let startDate =
+                    formatter.date(
+                        from:
+                            "\(date) \(startTime)"
+                    )
+            else {
+                print(
+                    "⌚ 通知日時変換失敗: \(title)"
+                )
+
+                continue
+            }
+
+            // --------------------
+            // 1時間前
+            // --------------------
+
+            addLocalNotification(
+                scheduleId: id,
+                title: title,
+                stage: .oneHour,
+                fireDate:
+                    calendar.date(
+                        byAdding:
+                            .minute,
+                        value: -60,
+                        to: startDate
+                    ),
+                now: now
+            )
+
+            // --------------------
+            // 30分前
+            // --------------------
+
+            addLocalNotification(
+                scheduleId: id,
+                title: title,
+                stage:
+                    .thirtyMinutes,
+                fireDate:
+                    calendar.date(
+                        byAdding:
+                            .minute,
+                        value: -30,
+                        to: startDate
+                    ),
+                now: now
+            )
+
+            // --------------------
+            // 15分前
+            // --------------------
+
+            addLocalNotification(
+                scheduleId: id,
+                title: title,
+                stage:
+                    .fifteenMinutes,
+                fireDate:
+                    calendar.date(
+                        byAdding:
+                            .minute,
+                        value: -15,
+                        to: startDate
+                    ),
+                now: now
+            )
+        }
+    }
+
+    // --------------------
+    // 1件の通知を予約
+    // --------------------
+
+    private func addLocalNotification(
+        scheduleId: String,
+        title: String,
+        stage:
+            DiaryScheduleAlertStage,
+        fireDate: Date?,
+        now: Date
+    ) {
+        guard
+            let fireDate
+        else {
+            return
+        }
+
+        // 過去の通知は予約しない
+        guard
+            fireDate > now
+        else {
+            return
+        }
+
+        let alert =
+            DiaryScheduleAlert(
+                scheduleId:
+                    scheduleId,
+                title:
+                    title,
+                stage:
+                    stage
+            )
+
+        let content =
+            UNMutableNotificationContent()
+
+        content.title =
+            "秘書もふ"
+
+        content.body =
+            alert.message
+                .replacingOccurrences(
+                    of: "\n",
+                    with: " "
+                )
+
+        content.sound =
+            .default
+
+        let dateComponents =
+            Calendar.current
+                .dateComponents(
+                    [
+                        .year,
+                        .month,
+                        .day,
+                        .hour,
+                        .minute
+                    ],
+                    from:
+                        fireDate
+                )
+
+        let trigger =
+            UNCalendarNotificationTrigger(
+                dateMatching:
+                    dateComponents,
+                repeats: false
+            )
+
+        let identifier =
+            notificationPrefix
+            + alert.notificationId
+
+        let request =
+            UNNotificationRequest(
+                identifier:
+                    identifier,
+                content:
+                    content,
+                trigger:
+                    trigger
+            )
+
+        notificationCenter
+            .add(request) {
+                error in
+
+                if let error {
+
+                    print(
+                        "⌚ 通知予約失敗: \(title) / \(stage.rawValue) / \(error.localizedDescription)"
+                    )
+
+                    return
+                }
+
+                let logFormatter =
+                    DateFormatter()
+
+                logFormatter
+                    .dateFormat =
+                        "yyyy-MM-dd HH:mm"
+
+                print(
+                    "⌚ 通知予約成功: \(title) / \(stage.rawValue) / \(logFormatter.string(from: fireDate))"
+                )
+                self.printPendingNotifications()
+            }
+    }
+
+    // --------------------
+    // 予約済み通知確認
+    // --------------------
+
+    private func printPendingNotifications()
+    {
+        notificationCenter
+            .getPendingNotificationRequests {
+                [weak self]
+                requests in
+
+                guard let self else {
+                    return
+                }
+
+                let diaryRequests =
+                    requests.filter {
+                        $0.identifier.hasPrefix(
+                            self.notificationPrefix
+                        )
+                    }
+
+                print(
+                    "⌚ ===== Diary pending通知 ====="
+                )
+
+                print(
+                    "⌚ pending件数: \(diaryRequests.count)"
+                )
+
+                for request in diaryRequests {
+
+                    print(
+                        "⌚ pending ID: \(request.identifier)"
+                    )
+
+                    print(
+                        "⌚ pending本文: \(request.content.body)"
+                    )
+
+                    if let trigger =
+                        request.trigger
+                            as? UNCalendarNotificationTrigger
+                    {
+                        print(
+                            "⌚ pending次回発火: \(String(describing: trigger.nextTriggerDate()))"
+                        )
+                    }
+                }
+
+                print(
+                    "⌚ ============================"
+                )
+            }
+    }
+
+    // --------------------
     // Diary予定チェック
+    // フォアグラウンド用
     // --------------------
 
     func upcomingScheduleAlert()
@@ -270,7 +681,6 @@ final class DiaryWatchReceiver:
 
             // --------------------
             // 15分前
-            // 0〜20分
             // --------------------
 
             if minutes >= 0 &&
@@ -287,7 +697,6 @@ final class DiaryWatchReceiver:
 
             // --------------------
             // 30分前
-            // 21〜45分
             // --------------------
 
             if minutes >= 21 &&
@@ -304,7 +713,6 @@ final class DiaryWatchReceiver:
 
             // --------------------
             // 1時間前
-            // 46〜60分
             // --------------------
 
             if minutes >= 46 &&
@@ -322,7 +730,198 @@ final class DiaryWatchReceiver:
 
         return nil
     }
+    // --------------------
+    // タップ用
+    // 次のDiary予定
+    // --------------------
 
+    func nextDiaryScheduleMessage()
+        -> String?
+    {
+        let now =
+            Date()
+
+        let dateFormatter =
+            DateFormatter()
+
+        dateFormatter.locale =
+            Locale(
+                identifier:
+                    "en_US_POSIX"
+            )
+
+        dateFormatter.dateFormat =
+            "yyyy-MM-dd"
+
+        let timeFormatter =
+            DateFormatter()
+
+        timeFormatter.locale =
+            Locale(
+                identifier:
+                    "en_US_POSIX"
+            )
+
+        timeFormatter.dateFormat =
+            "yyyy-MM-dd HH:mm"
+
+        let today =
+            dateFormatter.string(
+                from: now
+            )
+
+        var nextSchedule:
+            (
+                date: Date,
+                title: String,
+                startTime: String
+            )? = nil
+
+        for schedule in schedules {
+
+            guard
+                let date =
+                    schedule["date"]
+                        as? String,
+                let startTime =
+                    schedule["startTime"]
+                        as? String,
+                let title =
+                    schedule["title"]
+                        as? String,
+                !startTime.isEmpty
+            else {
+                continue
+            }
+
+            // 今日の予定だけ
+            guard
+                date == today
+            else {
+                continue
+            }
+
+            guard
+                let startDate =
+                    timeFormatter.date(
+                        from:
+                            "\(date) \(startTime)"
+                    )
+            else {
+                continue
+            }
+
+            // すでに始まった予定は除外
+            guard
+                startDate > now
+            else {
+                continue
+            }
+
+            // 一番近い予定を保存
+            if nextSchedule == nil
+                || startDate <
+                    nextSchedule!.date
+            {
+                nextSchedule =
+                    (
+                        date:
+                            startDate,
+                        title:
+                            title,
+                        startTime:
+                            startTime
+                    )
+            }
+        }
+
+        guard
+            let nextSchedule
+        else {
+            return nil
+        }
+
+        return
+            "次は\(nextSchedule.startTime)から\n\(nextSchedule.title)だぞ"
+    }
+    // --------------------
+    // 配信済みDiary通知
+    // モフの報告用
+    // --------------------
+
+    func latestDeliveredDiaryNotification(
+        completion:
+            @escaping (
+                String?,
+                String?
+            ) -> Void
+    ) {
+        notificationCenter
+            .getDeliveredNotifications {
+                [weak self]
+                notifications in
+                print(
+                    "⌚ 配信済み通知の取得件数: \(notifications.count)"
+                )
+                guard let self else {
+
+                    DispatchQueue.main.async {
+                        completion(
+                            nil,
+                            nil
+                        )
+                    }
+
+                    return
+                }
+
+                let diaryNotifications =
+                    notifications
+                        .filter {
+                            $0.request
+                                .identifier
+                                .hasPrefix(
+                                    self.notificationPrefix
+                                )
+                        }
+                        .sorted {
+                            $0.date > $1.date
+                        }
+
+                guard
+                    let latest =
+                        diaryNotifications.first
+                else {
+
+                    DispatchQueue.main.async {
+                        completion(
+                            nil,
+                            nil
+                        )
+                    }
+
+                    return
+                }
+
+                let notificationId =
+                    latest.request
+                        .identifier
+
+                let body =
+                    latest.request
+                        .content
+                        .body
+
+                DispatchQueue.main.async {
+
+                    completion(
+                        "さっき知らせたぞ。\n\(body)",
+                        notificationId
+                    )
+                }
+            }
+    }
+    
     // --------------------
     // 天気コメント
     // --------------------

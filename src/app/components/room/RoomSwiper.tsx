@@ -11,6 +11,13 @@ import LivingRoom from "./LivingRoom";
 import WorkRoom from "./WorkRoom";
 import ConditioningRoom from "./ConditioningRoom";
 import { getMofuMessage } from "../mofu/mofuMessages";
+import {
+  fetchWeather,
+  type WeatherData,
+} from "./useWeather";
+import {
+  fetchWeatherWarnings,
+} from "./useWeatherWarning";
 type RepeatType =
   | "none"
   | "weekly"
@@ -25,11 +32,6 @@ type ScheduleItem = {
   repeat: RepeatType;
   weekdays?: number[];
   excludedDates?: string[];
-};
-type WeatherData = {
-  temperature: number;
-  weatherCode: number;
-  precipitationProbability: number;
 };
 
 type RoomId =
@@ -231,11 +233,6 @@ export default function RoomSwiper({
     setWeather,
   ] = useState<WeatherData | null>(null);
 
-  const [
-    weatherError,
-    setWeatherError,
-  ] = useState<string | null>(null);
-
   useEffect(() => {
     if (!navigator.geolocation) {
 
@@ -253,45 +250,15 @@ export default function RoomSwiper({
         } = position.coords;
 
         try {
-          const params =
-            new URLSearchParams({
-              latitude:
-                String(latitude),
-              longitude:
-                String(longitude),
-              current:
-                "temperature_2m,weather_code",
-              daily:
-                "precipitation_probability_max",
-              timezone: "auto",
-              forecast_days: "1",
-            });
-
-          const response =
-            await fetch(
-              `https://api.open-meteo.com/v1/forecast?${params.toString()}`
+          const nextWeather =
+            await fetchWeather(
+              latitude,
+              longitude
             );
-
-          if (!response.ok) {
-            throw new Error(
-              "天気データ取得失敗"
-            );
-          }
-
-          const data =
-            await response.json();
-
-          const nextWeather: WeatherData = {
-            temperature:
-              data.current.temperature_2m,
-
-            weatherCode:
-              data.current.weather_code,
-
-            precipitationProbability:
-              data.daily
-                .precipitation_probability_max[0],
-          };
+          await fetchWeatherWarnings(
+            latitude,
+            longitude
+          );
 
           setWeather(nextWeather);
 
@@ -304,7 +271,7 @@ export default function RoomSwiper({
             {
               latitude,
               longitude,
-              weather: data,
+              weather: nextWeather,
             }
           );
         } catch (error) {
