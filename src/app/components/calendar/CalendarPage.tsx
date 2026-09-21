@@ -30,10 +30,24 @@ const STORAGE_KEY = "miyamu_diary_schedules_v1";
 const WEATHER_STORAGE_KEY =
   "miyamu_diary_weather_v1";
 
+const WEATHER_WARNING_STORAGE_KEY =
+  "miyamu_diary_weather_warnings_v1";
+
 type WeatherData = {
   temperature: number;
   weatherCode: number;
   precipitationProbability: number;
+};
+
+type WeatherWarningData = {
+  area: {
+    code: string;
+    name: string;
+  };
+  warnings: {
+    code: string;
+    name: string;
+  }[];
 };
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
@@ -294,10 +308,30 @@ export default function CalendarPage({
             }
           }
 
+          const savedWeatherWarnings =
+            localStorage.getItem(
+              WEATHER_WARNING_STORAGE_KEY
+            );
+
+          let weatherWarnings:
+            WeatherWarningData | undefined;
+
+          if (savedWeatherWarnings) {
+            try {
+              weatherWarnings =
+                JSON.parse(
+                  savedWeatherWarnings
+                ) as WeatherWarningData;
+            } catch {
+              weatherWarnings = undefined;
+            }
+          }
+
           const result =
             await DiaryWatch.sendSchedules({
               schedules,
               weather,
+              weatherWarnings,
             });
 
           console.log(

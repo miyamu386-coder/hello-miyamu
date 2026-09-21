@@ -31,7 +31,13 @@ struct ContentView: View {
     @State private var isReportingNotification = false
     @State private var rewardStage = 0
     @State private var isRewardAvailable = false
-    
+    @State private var didCompleteFifteenMinuteAlert = false
+    @State private var rewardScheduleId: String? = nil
+    // 最後にご褒美を受け取った予定ID
+    @State private var lastRewardedScheduleId: String? =
+        UserDefaults.standard.string(
+            forKey: "lastRewardedScheduleId"
+        )
     // 通知済みのDiary予定段階を記録
     @State private var notifiedDiaryAlertIds:
         Set<String> = []
@@ -324,6 +330,47 @@ struct ContentView: View {
                         {
                             rewardStage = 0
                             isRewardAvailable = false
+                            
+                            //
+                            // --------------------
+                            // 今回の予定は
+                            // ご褒美受取済みとして保存
+                            // --------------------
+
+                            if let completedScheduleId =
+                                rewardScheduleId
+                            {
+                                lastRewardedScheduleId =
+                                    completedScheduleId
+
+                                UserDefaults.standard.set(
+                                    completedScheduleId,
+                                    forKey: "lastRewardedScheduleId"
+                                )
+
+                                print(
+                                    "🥫 ご褒美受取済み: \(completedScheduleId)"
+                                )
+                            }
+
+                            // --------------------
+                            // 今回のご褒美処理を完了
+                            // --------------------
+
+                            didCompleteFifteenMinuteAlert = false
+                            rewardScheduleId = nil
+                            // --------------------
+                            // 保存していた
+                            // ご褒美対象も削除
+                            // --------------------
+                            
+                            UserDefaults.standard.removeObject(
+                                forKey: "rewardScheduleId"
+                            )
+                            
+                            print(
+                                "🥫 ご褒美完了"
+                            )
                         }
                     }
 
@@ -373,6 +420,26 @@ struct ContentView: View {
             print(
                 "ContentView task started"
             )
+            
+            // --------------------
+            // 保存済みのご褒美対象を復元
+            // --------------------
+
+            if let savedRewardScheduleId =
+                UserDefaults.standard.string(
+                    forKey: "rewardScheduleId"
+                )
+            {
+                rewardScheduleId =
+                    savedRewardScheduleId
+
+                didCompleteFifteenMinuteAlert =
+                    true
+
+                print(
+                    "🥫 ご褒美対象を復元: \(savedRewardScheduleId)"
+                )
+            }
             // --------------------
             // 閉じている間に届いた
             // Diary通知をモフが報告
@@ -412,6 +479,8 @@ struct ContentView: View {
                     print(
                         "⌚ 未報告Diary通知あり: \(notificationId)"
                     )
+                    
+                    
 
                     // --------------------
                     // 他の表情を解除して
@@ -424,7 +493,42 @@ struct ContentView: View {
                     isConcerned = false
 
                     isReportingNotification = true
-                    isRewardAvailable = true
+
+                    // --------------------
+                    // 15分前通知なら
+                    // ご褒美を解放
+                    // --------------------
+
+                    if diaryWatch
+                        .isFifteenMinuteNotification(
+                            notificationId
+                        )
+                    {
+                        let notificationScheduleId =
+                            diaryWatch
+                                .scheduleIdFromNotification(
+                                    notificationId
+                                )
+
+                        if notificationScheduleId !=
+                            lastRewardedScheduleId
+                        {
+                            rewardScheduleId =
+                                notificationScheduleId
+
+                            isRewardAvailable = true
+
+                            print(
+                                "🥫 15分前通知のお仕事完了・ご褒美解放"
+                            )
+
+                        } else {
+
+                            print(
+                                "🥫 この予定はご褒美受取済み"
+                            )
+                        }
+                    }
 
                     print("😼 腕組みモフ ON")
                     showMofuNotification(
@@ -722,7 +826,42 @@ struct ContentView: View {
                     .fetchSleep()
             }
         }
+        
+        // --------------------
+        // ご褒美解放チェック
+        // --------------------
 
+        .onReceive(
+            Timer.publish(
+                every: 30,
+                on: .main,
+                in: .common
+            )
+            .autoconnect()
+        ) { _ in
+
+            guard
+                didCompleteFifteenMinuteAlert,
+                let rewardScheduleId,
+                !isRewardAvailable
+            else {
+                return
+            }
+
+            guard
+                diaryWatch.hasScheduleStarted(
+                    scheduleId: rewardScheduleId
+                )
+            else {
+                return
+            }
+
+            isRewardAvailable = true
+
+            print(
+                "🥫 ご褒美解放: \(rewardScheduleId)"
+            )
+        }
         // --------------------
         // Diary予定 自動お知らせ
         // --------------------
@@ -735,7 +874,10 @@ struct ContentView: View {
             )
             .autoconnect()
         ) { _ in
-
+            
+            print(
+                "⏱️ Diary予定タイマー発火"
+            )
             // 事後報告中は
             // 新しい画面表示を重ねない
             guard
@@ -958,43 +1100,90 @@ struct ContentView: View {
         // --------------------
 
         switch alert.stage {
-
+            
         case .oneHour:
-
+            
             // 1時間前
             // 軽く1回
             WKInterfaceDevice
                 .current()
                 .play(.click)
-
+            
         case .thirtyMinutes:
-
+            
             // 30分前
             // 通知らしい1回
             WKInterfaceDevice
                 .current()
                 .play(.notification)
-
+            
         case .fifteenMinutes:
+            
+            // --------------------
 
+               // この予定ですでに
+
+               // ご褒美を受取済みなら
+
+               // 再びご褒美対象にしない
+
+               // --------------------
+
+               if lastRewardedScheduleId ==
+
+                   alert.scheduleId
+
+               {
+
+                   print(
+
+                       "🥫 ご褒美受取済みの予定: \(alert.scheduleId)"
+
+                   )
+
+                   break
+
+               }
             // 15分前
             // 強調して2回
             WKInterfaceDevice
                 .current()
                 .play(.notification)
-
+            
             DispatchQueue.main
                 .asyncAfter(
                     deadline:
-                        .now() + 0.45
+                            .now() + 0.45
                 ) {
-
+                    
                     WKInterfaceDevice
                         .current()
                         .play(
                             .notification
                         )
                 }
+            
+            // --------------------
+            // 15分前のお知らせ完了を記録
+            // ※まだご褒美は表示しない
+            // --------------------
+            
+            didCompleteFifteenMinuteAlert = true
+            rewardScheduleId = alert.scheduleId
+
+            // --------------------
+            // アプリを閉じても
+            // ご褒美対象を保持
+            // --------------------
+
+            UserDefaults.standard.set(
+                alert.scheduleId,
+                forKey: "rewardScheduleId"
+            )
+
+            print(
+                "😼 15分前のお知らせ完了: \(alert.scheduleId)"
+            )
         }
 
         // 指定時間後にセリフを消す

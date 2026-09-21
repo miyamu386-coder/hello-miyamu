@@ -17,6 +17,7 @@ import {
 } from "./useWeather";
 import {
   fetchWeatherWarnings,
+  type WeatherWarningResult,
 } from "./useWeatherWarning";
 type RepeatType =
   | "none"
@@ -250,17 +251,24 @@ export default function RoomSwiper({
         } = position.coords;
 
         try {
-          const nextWeather =
-            await fetchWeather(
+          const [
+            nextWeather,
+            nextWeatherWarnings,
+          ] = await Promise.all([
+            fetchWeather(
               latitude,
               longitude
-            );
-          await fetchWeatherWarnings(
-            latitude,
-            longitude
-          );
+            ),
+            fetchWeatherWarnings(
+              latitude,
+              longitude
+            ),
+          ]);
 
           setWeather(nextWeather);
+          setWeatherWarnings(
+            nextWeatherWarnings
+          );
 
           localStorage.setItem(
             WEATHER_STORAGE_KEY,
@@ -303,6 +311,14 @@ export default function RoomSwiper({
     showMofuMessageRoom,
     setShowMofuMessageRoom,
   ] = useState<RoomId | null>(null);
+  const [
+    weatherWarnings,
+    setWeatherWarnings,
+  ] =
+    useState<WeatherWarningResult | null>(
+      null
+    );
+
   const [
     wasLivingMofuSleeping,
     setWasLivingMofuSleeping,

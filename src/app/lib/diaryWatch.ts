@@ -21,12 +21,23 @@ export type DiaryWatchWeather = {
   weatherCode: number;
   precipitationProbability: number;
 };
+export type DiaryWatchWeatherWarnings = {
+  area: {
+    code: string;
+    name: string;
+  };
+  warnings: {
+    code: string;
+    name: string;
+  }[];
+};
 
 interface DiaryWatchPlugin {
   sendSchedules(options: {
-    schedules: DiaryWatchSchedule[];
-    weather?: DiaryWatchWeather;
-  }): Promise<{
+  schedules: DiaryWatchSchedule[];
+  weather?: DiaryWatchWeather;
+  weatherWarnings?: DiaryWatchWeatherWarnings;
+}): Promise<{
     sent: boolean;
     count: number;
   }>;

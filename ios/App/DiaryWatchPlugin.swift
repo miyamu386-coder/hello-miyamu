@@ -58,52 +58,66 @@ public class DiaryWatchPlugin:
         }
 
         let schedules =
-            call.getArray(
-                "schedules",
-                JSObject.self
-            ) ?? []
+    call.getArray(
+        "schedules",
+        JSObject.self
+    ) ?? []
 
-        let weather =
-            call.getObject("weather")
+let weather =
+    call.getObject("weather")
 
-        let session =
-            WCSession.default
+let weatherWarnings =
+    call.getObject(
+        "weatherWarnings"
+    )
 
-        print(
-            "⌚ --- WCSession status ---"
-        )
+let session =
+    WCSession.default
 
-        print(
-            "⌚ activationState: \(session.activationState.rawValue)"
-        )
+print(
+    "⌚ --- WCSession status ---"
+)
 
-        print(
-            "⌚ isPaired: \(session.isPaired)"
-        )
+print(
+    "⌚ activationState: \(session.activationState.rawValue)"
+)
 
-        print(
-            "⌚ isWatchAppInstalled: \(session.isWatchAppInstalled)"
-        )
+print(
+    "⌚ isPaired: \(session.isPaired)"
+)
 
-        print(
-            "⌚ isReachable: \(session.isReachable)"
-        )
+print(
+    "⌚ isWatchAppInstalled: \(session.isWatchAppInstalled)"
+)
 
-        var message: [String: Any] = [
-            "diarySchedules":
-                schedules
-        ]
+print(
+    "⌚ isReachable: \(session.isReachable)"
+)
 
-        if let weather {
-            message["weather"] =
-                weather
+var message: [String: Any] = [
+    "diarySchedules":
+        schedules
+]
 
-            print(
-                "⌚ Weather added to context"
-            )
-        }
+if let weather {
+    message["weather"] =
+        weather
 
-        do {
+    print(
+        "⌚ Weather added to context"
+    )
+}
+
+if let weatherWarnings {
+    message["weatherWarnings"] =
+        weatherWarnings
+
+    print(
+        "⚠️ Weather warnings added to context"
+    )
+}
+
+do {
             try session
                 .updateApplicationContext(
                     message

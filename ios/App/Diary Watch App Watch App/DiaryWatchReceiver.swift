@@ -65,7 +65,9 @@ final class DiaryWatchReceiver:
 
     @Published var precipitationProbability:
         Int? = nil
-
+    
+    @Published var weatherWarnings:
+        [[String: String]] = []
     private let notificationCenter =
         UNUserNotificationCenter.current()
 
@@ -195,62 +197,79 @@ final class DiaryWatchReceiver:
     ) {
         if let receivedSchedules =
             context["diarySchedules"]
-                as? [[String: Any]]
+            as? [[String: Any]]
         {
             DispatchQueue.main.async {
-
+                
                 self.schedules =
-                    receivedSchedules
-
+                receivedSchedules
+                
                 print(
                     "⌚ Diary schedules received: \(receivedSchedules.count)"
                 )
-
+                
                 // --------------------
                 // ローカル通知を予約
                 // --------------------
-
+                
                 self.scheduleLocalNotifications(
                     for: receivedSchedules
                 )
             }
         }
-
+        
         if let weather =
             context["weather"]
-                as? [String: Any]
+            as? [String: Any]
         {
             let temperature =
-                weather["temperature"]
-                    as? Double
-
+            weather["temperature"]
+            as? Double
+            
             let weatherCode =
-                weather["weatherCode"]
-                    as? Int
-
+            weather["weatherCode"]
+            as? Int
+            
             let precipitation =
-                weather[
-                    "precipitationProbability"
-                ] as? Int
-
+            weather[
+                "precipitationProbability"
+            ] as? Int
+            
             DispatchQueue.main.async {
-
+                
                 self.temperature =
-                    temperature
-
+                temperature
+                
                 self.weatherCode =
-                    weatherCode
-
+                weatherCode
+                
                 self.precipitationProbability =
-                    precipitation
-
+                precipitation
+                
                 print(
                     "⌚ Weather received: \(temperature ?? 0)℃ / code \(weatherCode ?? -1) / rain \(precipitation ?? -1)%"
                 )
             }
         }
+        
+        if let weatherWarningData =
+            context["weatherWarnings"]
+            as? [String: Any],
+           let receivedWarnings =
+            weatherWarningData["warnings"]
+            as? [[String: String]]
+        {
+            DispatchQueue.main.async {
+                
+                self.weatherWarnings =
+                receivedWarnings
+                
+                print(
+                    "⚠️ Weather warnings received: \(receivedWarnings)"
+                )
+            }
+        }   //
     }
-
     // --------------------
     // Diaryローカル通知予約
     // --------------------
@@ -731,6 +750,63 @@ final class DiaryWatchReceiver:
         return nil
     }
     // --------------------
+    // 指定したDiary予定が
+    // 開始時刻を迎えたか
+    // --------------------
+
+    func hasScheduleStarted(
+        scheduleId: String
+    ) -> Bool {
+
+        let now = Date()
+
+        let formatter =
+            DateFormatter()
+
+        formatter.locale =
+            Locale(
+                identifier:
+                    "en_US_POSIX"
+            )
+
+        formatter.dateFormat =
+            "yyyy-MM-dd HH:mm"
+
+        for schedule in schedules {
+
+            guard
+                let id =
+                    schedule["id"]
+                        as? String,
+                id == scheduleId,
+                let date =
+                    schedule["date"]
+                        as? String,
+                let startTime =
+                    schedule["startTime"]
+                        as? String,
+                !startTime.isEmpty
+            else {
+                continue
+            }
+
+            guard
+                let startDate =
+                    formatter.date(
+                        from:
+                            "\(date) \(startTime)"
+                    )
+            else {
+                return false
+            }
+
+            return now >= startDate
+        }
+
+        return false
+    }
+    
+    // --------------------
     // タップ用
     // 次のDiary予定
     // --------------------
@@ -844,6 +920,57 @@ final class DiaryWatchReceiver:
         return
             "次は\(nextSchedule.startTime)から\n\(nextSchedule.title)だぞ"
     }
+    
+    // --------------------
+    // 15分前通知か判定
+    // --------------------
+
+    func isFifteenMinuteNotification(
+        _ notificationId: String
+    ) -> Bool {
+
+        return notificationId.hasSuffix(
+            "-\(DiaryScheduleAlertStage.fifteenMinutes.rawValue)"
+        )
+    }
+    // --------------------
+    // 通知IDから予定IDを取得
+    // --------------------
+
+    func scheduleIdFromNotification(
+        _ notificationId: String
+    ) -> String? {
+
+        let prefix = "diary-mofu-"
+
+        guard
+            notificationId.hasPrefix(prefix)
+        else {
+            return nil
+        }
+
+        let value =
+            String(
+                notificationId.dropFirst(
+                    prefix.count
+                )
+            )
+
+        let suffix =
+            "-\(DiaryScheduleAlertStage.fifteenMinutes.rawValue)"
+
+        guard
+            value.hasSuffix(suffix)
+        else {
+            return nil
+        }
+
+        return String(
+            value.dropLast(
+                suffix.count
+            )
+        )
+    }
     // --------------------
     // 配信済みDiary通知
     // モフの報告用
@@ -929,11 +1056,48 @@ final class DiaryWatchReceiver:
     func weatherMessage()
         -> String?
     {
+        // --------------------
+        // 警報・注意報を最優先
+        // --------------------
+
+        if let warning =
+            weatherWarnings.first,
+           let name =
+            warning["name"]
+        {
+            if name.contains(
+                "特別警報"
+            ) {
+                return
+                    "\(name)だぞ。\n安全を最優先にしろ"
+            }
+
+            if name.contains(
+                "警報"
+            ) {
+                return
+                    "\(name)出てるぞ。\n十分気をつけろ"
+            }
+
+            if name.contains(
+                "注意報"
+            ) {
+                return
+                    "\(name)出てるぞ。\n気をつけてけよ"
+            }
+        }
+
         guard
             let temperature,
             let precipitationProbability
         else {
             return nil
+        }
+
+        if precipitationProbability == 100 {
+
+            return
+                "雨だぞ。\n傘持ってけよ"
         }
 
         if precipitationProbability >= 70 {
