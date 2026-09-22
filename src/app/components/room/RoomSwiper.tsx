@@ -81,6 +81,8 @@ const STORAGE_KEY =
 
 const WEATHER_STORAGE_KEY =
   "miyamu_diary_weather_v1";
+const WEATHER_WARNING_STORAGE_KEY =
+  "miyamu_diary_weather_warnings_v1";
 
 const pad2 = (value: number) =>
   String(value).padStart(2, "0");
@@ -274,6 +276,19 @@ export default function RoomSwiper({
             WEATHER_STORAGE_KEY,
             JSON.stringify(nextWeather)
           );
+
+          if (nextWeatherWarnings) {
+            localStorage.setItem(
+              WEATHER_WARNING_STORAGE_KEY,
+              JSON.stringify(
+                nextWeatherWarnings
+              )
+            );
+          } else {
+            localStorage.removeItem(
+              WEATHER_WARNING_STORAGE_KEY
+            );
+          }
           console.log(
             "現在地の天気",
             {

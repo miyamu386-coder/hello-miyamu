@@ -45,7 +45,11 @@ struct ContentView: View {
     // 同じ天気コメントを何度も通知しない
     @State private var lastWeatherNotificationMessage:
         String? = nil
-
+    
+    // 同じ気象警報を何度も通知しない
+    @State private var lastWeatherWarningKey:
+        String? = nil
+    
     // 最後にモフが報告した
     // 配信済みDiary通知ID
     @State private var lastReportedDiaryNotificationId:
@@ -296,6 +300,8 @@ struct ContentView: View {
                             else {
                                 return
                             }
+                            
+                            
 
                             healthMessage = nil
                             
@@ -560,9 +566,51 @@ struct ContentView: View {
                         .now() + 2
                 ) {
 
+                                
+                    // --------------------
+                    // 気象警報を最優先
+                    // --------------------
+
+                    if let warning =
+                        currentWeatherWarning()
+                    {
+                        lastWeatherWarningKey =
+                            warning.key
+
+                        print(
+                            "⚠️ 起動時気象警報: \(warning.message)"
+                        )
+
+                        isSleeping = false
+                        isSleepDeprived = false
+                        isYawning = false
+                        isConcerned = false
+
+                        isReportingNotification = true
+
+                        showMofuNotification(
+                            warning.message,
+                            duration: 10
+                        )
+
+                        DispatchQueue.main
+                            .asyncAfter(
+                                deadline:
+                                    .now() + 10
+                            ) {
+
+                                isReportingNotification =
+                                    false
+                            }
+
+                        return
+                    }
+                    // --------------------
                     // 配信済みDiary通知を
                     // モフが報告した場合は
-                    // 起動時のお知らせを重ねない
+                    // 通常の起動時チェックを重ねない
+                    // --------------------
+
                     guard
                         !didReportDeliveredDiaryNotification
                     else {
@@ -573,11 +621,6 @@ struct ContentView: View {
 
                         return
                     }
-
-                    print(
-                        "⌚ 起動時Diary予定チェック"
-                    )
-
                     // --------------------
                     // Diary予定を最優先
                     // --------------------
@@ -725,6 +768,62 @@ struct ContentView: View {
             print(
                 "😼 isReportingNotification changed: \(newValue)"
             )
+        }
+        // --------------------
+        // 気象警報 更新監視
+        // --------------------
+
+        .onChange(
+            of: diaryWatch.weatherWarnings
+        ) { _, _ in
+
+            guard
+                let warning =
+                    currentWeatherWarning()
+            else {
+                // 警報がなくなったら
+                // 次回の発表を通知できるようリセット
+                lastWeatherWarningKey = nil
+                return
+            }
+
+            // 同じ警報は繰り返さない
+            guard
+                warning.key !=
+                    lastWeatherWarningKey
+            else {
+                return
+            }
+
+            lastWeatherWarningKey =
+                warning.key
+
+            print(
+                "⚠️ 気象警報更新: \(warning.message)"
+            )
+
+            isSleeping = false
+            isSleepDeprived = false
+            isYawning = false
+            isConcerned = false
+
+            // 腕組みモフ
+            isReportingNotification = true
+
+            showMofuNotification(
+                warning.message,
+                duration: 10
+            )
+
+            DispatchQueue.main
+                .asyncAfter(
+                    deadline:
+                        .now() + 10
+                ) {
+
+                    isReportingNotification =
+                        false
+                }
         }
         // --------------------
         // 心拍リアクション
@@ -885,7 +984,16 @@ struct ContentView: View {
             else {
                 return
             }
+            
+            // --------------------
+            // 気象警報が出ている間は
+            // Diary予定より警報を優先
+            // --------------------
 
+            if currentWeatherWarning() != nil
+            {
+                return
+            }
             guard
                 let alert =
                     diaryWatch
@@ -919,7 +1027,16 @@ struct ContentView: View {
             else {
                 return
             }
+            
+            // --------------------
+            // 気象警報が出ている間は
+            // 通常天気を表示しない
+            // --------------------
 
+            if currentWeatherWarning() != nil
+            {
+                return
+            }
             // 1時間以内にDiary予定があるなら
             // 天気より予定を優先
             if diaryWatch
@@ -1042,7 +1159,34 @@ struct ContentView: View {
             }
         }
     }
+    
+    // --------------------
+    // 気象警報
+    // --------------------
 
+    private func currentWeatherWarning()
+        -> (key: String, message: String)?
+    {
+        guard
+            let warning =
+                diaryWatch.weatherWarnings.first,
+            let code = warning["code"],
+            let name = warning["name"]
+        else {
+            return nil
+        }
+
+        let key =
+            "\(code)-\(name)"
+
+        let message =
+            "⚠️ \(name)出てるぞ。\n最新情報確認しろ"
+
+        return (
+            key: key,
+            message: message
+        )
+    }
     // --------------------
     // Diary予定通知
     // --------------------
