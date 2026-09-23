@@ -558,7 +558,6 @@ final class DiaryWatchReceiver:
                 print(
                     "⌚ 通知予約成功: \(title) / \(stage.rawValue) / \(logFormatter.string(from: fireDate))"
                 )
-                self.printPendingNotifications()
             }
     }
 
