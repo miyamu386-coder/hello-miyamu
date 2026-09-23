@@ -10,6 +10,7 @@ import {
 import LivingRoom from "./LivingRoom";
 import WorkRoom from "./WorkRoom";
 import ConditioningRoom from "./ConditioningRoom";
+import { Geolocation } from "@capacitor/geolocation";
 import { getMofuMessage } from "../mofu/mofuMessages";
 import {
   fetchWeather,
@@ -237,88 +238,87 @@ export default function RoomSwiper({
   ] = useState<WeatherData | null>(null);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
+    const loadWeather = async () => {
+      try {
+        const permission =
+          await Geolocation.requestPermissions();
 
-      console.warn(
-        "この端末では位置情報を利用できません"
-      );
-      return;
-    }
+        if (
+          permission.location !== "granted" &&
+          permission.coarseLocation !== "granted"
+        ) {
+          console.warn(
+            "位置情報の利用が許可されていません"
+          );
+          return;
+        }
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
+        const position =
+          await Geolocation.getCurrentPosition({
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 30 * 60 * 1000,
+          });
+
         const {
           latitude,
           longitude,
         } = position.coords;
 
-        try {
-          const [
-            nextWeather,
-            nextWeatherWarnings,
-          ] = await Promise.all([
-            fetchWeather(
-              latitude,
-              longitude
-            ),
-            fetchWeatherWarnings(
-              latitude,
-              longitude
-            ),
-          ]);
+        const [
+          nextWeather,
+          nextWeatherWarnings,
+        ] = await Promise.all([
+          fetchWeather(
+            latitude,
+            longitude
+          ),
+          fetchWeatherWarnings(
+            latitude,
+            longitude
+          ),
+        ]);
 
-          setWeather(nextWeather);
-          setWeatherWarnings(
-            nextWeatherWarnings
-          );
+        setWeather(nextWeather);
+        setWeatherWarnings(
+          nextWeatherWarnings
+        );
 
+        localStorage.setItem(
+          WEATHER_STORAGE_KEY,
+          JSON.stringify(nextWeather)
+        );
+
+        if (nextWeatherWarnings) {
           localStorage.setItem(
-            WEATHER_STORAGE_KEY,
-            JSON.stringify(nextWeather)
+            WEATHER_WARNING_STORAGE_KEY,
+            JSON.stringify(
+              nextWeatherWarnings
+            )
           );
-
-          if (nextWeatherWarnings) {
-            localStorage.setItem(
-              WEATHER_WARNING_STORAGE_KEY,
-              JSON.stringify(
-                nextWeatherWarnings
-              )
-            );
-          } else {
-            localStorage.removeItem(
-              WEATHER_WARNING_STORAGE_KEY
-            );
-          }
-          console.log(
-            "現在地の天気",
-            {
-              latitude,
-              longitude,
-              weather: nextWeather,
-            }
-          );
-        } catch (error) {
-          console.error(
-            "天気データの取得に失敗しました",
-            error
+        } else {
+          localStorage.removeItem(
+            WEATHER_WARNING_STORAGE_KEY
           );
         }
-      },
 
-      (error) => {
-        console.warn(
-          "位置情報を取得できませんでした",
+        console.log(
+          "現在地の天気",
+          {
+            latitude,
+            longitude,
+            weather: nextWeather,
+          }
+        );
+      } catch (error) {
+        console.error(
+          "位置情報または天気データの取得に失敗しました",
           error
         );
-      },
-
-      {
-        enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge:
-          30 * 60 * 1000,
       }
-    );
+    };
+
+    void loadWeather();
   }, []);
 
 

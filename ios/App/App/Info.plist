@@ -7,7 +7,7 @@
 	<key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>ja</string>
 	<key>CFBundleDisplayName</key>
 	<string>みやむDiary</string>
 	<key>CFBundleExecutable</key>
@@ -39,7 +39,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>現在地の天気情報を表示するために位置情報を使用します。</string>
+	<string>現在地の天気・気温・降水確率を表示するために位置情報を使用します。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
