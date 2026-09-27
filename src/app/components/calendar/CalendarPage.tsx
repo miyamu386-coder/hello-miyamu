@@ -6,7 +6,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import { DiaryWatch } from "../../lib/diaryWatch";
+import { DiaryWatch, expandSchedulesForWatch } from "../../lib/diaryWatch";
 
 type Props = {
   onBack: () => void;
@@ -329,7 +329,7 @@ export default function CalendarPage({
 
           const result =
             await DiaryWatch.sendSchedules({
-              schedules,
+              schedules: expandSchedulesForWatch(schedules),
               weather,
               weatherWarnings,
             });
