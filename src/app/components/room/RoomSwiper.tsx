@@ -68,6 +68,7 @@ type MofuRoomState = {
 type Props = {
   initialRoomIndex: number;
   onRoomChange: (index: number) => void;
+  isBgmEnabled: boolean;
   onOpenKitchen: () => void;
   onOpenFridge: () => void;
   onOpenWork: () => void;
@@ -200,6 +201,7 @@ const mofuWorkWalkFrames = [
 export default function RoomSwiper({
   initialRoomIndex,
   onRoomChange,
+  isBgmEnabled,
   onOpenKitchen,
   onOpenFridge,
   onOpenWork,
@@ -211,6 +213,9 @@ export default function RoomSwiper({
   const scrollRef =
     useRef<HTMLDivElement>(null);
 
+  const bgmRef =
+    useRef<HTMLAudioElement | null>(null);
+
   const mofuMessageTimerRef =
     useRef<number | null>(null);
 
@@ -221,6 +226,7 @@ export default function RoomSwiper({
     currentRoomIndex,
     setCurrentRoomIndex,
   ] = useState(initialRoomIndex);
+
 
   const [
     mofuWalkFrameIndex,
@@ -493,6 +499,58 @@ export default function RoomSwiper({
 
   const currentRoom =
     rooms[currentRoomIndex];
+
+  useEffect(() => {
+    const bgmMap: Record<RoomId, string> = {
+      "living-kitchen":
+        "/audio/living/living.mp3",
+      workroom:
+        "/audio/work/work.mp3",
+      "conditioning-room":
+        "/audio/conditioning/conditioning.mp3",
+    };
+
+    // BGMがOFFなら停止して終了
+    if (!isBgmEnabled) {
+      if (bgmRef.current) {
+        bgmRef.current.pause();
+        bgmRef.current.currentTime = 0;
+      }
+
+      return;
+    }
+
+    const nextSrc =
+      bgmMap[currentRoom.id];
+
+    // 前の部屋のBGMを停止
+    if (bgmRef.current) {
+      bgmRef.current.pause();
+      bgmRef.current.currentTime = 0;
+    }
+
+    // 今いる部屋のBGMを作成
+    const audio = new Audio(nextSrc);
+
+    audio.loop = true;
+    audio.volume = 0.25;
+
+    bgmRef.current = audio;
+
+    audio.play().catch((error) => {
+      console.log(
+        "BGM再生待ち:",
+        error
+      );
+    });
+
+    return () => {
+      audio.pause();
+    };
+  }, [
+    currentRoom.id,
+    isBgmEnabled,
+  ]);
 
   const mofuTapCount =
     currentRoom.id === "living-kitchen" ||

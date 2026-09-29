@@ -1,8 +1,13 @@
-import { useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+} from "react";
 import RoomSwiper from "./room/RoomSwiper";
 import LivingBook from "./book/LivingBook";
 import CalendarPage from "./calendar/CalendarPage";
 import TrainingPage from "./training/TrainingPage";
+import BackupButton from "./backup/BackupButton";
 
 export type DiaryCategory = "work" | "life";
 
@@ -20,6 +25,8 @@ export type DiaryCard = {
   category: DiaryCategory;
   unit: DiaryUnit;
 };
+const BGM_ENABLED_STORAGE_KEY =
+  "miyamu_diary_bgm_enabled_v1";
 
 type Props = {
   cards: DiaryCard[];
@@ -53,6 +60,21 @@ export default function DiaryHome({
   const [isBookOpen, setIsBookOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isTrainingOpen, setIsTrainingOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const [isBgmEnabled, setIsBgmEnabled] =
+    useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(
+      BGM_ENABLED_STORAGE_KEY
+    );
+
+    if (saved !== null) {
+      setIsBgmEnabled(saved === "true");
+    }
+  }, []);
+
   const workCards = cards.filter(
     (card) => card.category === "work"
   );
@@ -77,95 +99,95 @@ export default function DiaryHome({
   };
 
   const exerciseRecords: Record<
-  string,
-  {
-    name: string;
-    cardName: "筋トレ" | "ストレッチ";
-  }
-> = {
-  squat: {
-    name: "スクワット",
-    cardName: "筋トレ",
-  },
-  "push-up": {
-    name: "腕立て伏せ",
-    cardName: "筋トレ",
-  },
-  crunch: {
-    name: "腹筋",
-    cardName: "筋トレ",
-  },
-  plank: {
-    name: "プランク",
-    cardName: "筋トレ",
-  },
-  lunge: {
-    name: "ランジ",
-    cardName: "筋トレ",
-  },
+    string,
+    {
+      name: string;
+      cardName: "筋トレ" | "ストレッチ";
+    }
+  > = {
+    squat: {
+      name: "スクワット",
+      cardName: "筋トレ",
+    },
+    "push-up": {
+      name: "腕立て伏せ",
+      cardName: "筋トレ",
+    },
+    crunch: {
+      name: "腹筋",
+      cardName: "筋トレ",
+    },
+    plank: {
+      name: "プランク",
+      cardName: "筋トレ",
+    },
+    lunge: {
+      name: "ランジ",
+      cardName: "筋トレ",
+    },
 
-  "stretch-neck": {
-    name: "首・肩",
-    cardName: "ストレッチ",
-  },
-  "stretch-chest": {
-    name: "胸・肩",
-    cardName: "ストレッチ",
-  },
-  "stretch-back": {
-    name: "背中",
-    cardName: "ストレッチ",
-  },
-  "stretch-hip": {
-    name: "股関節",
-    cardName: "ストレッチ",
-  },
-  "stretch-hamstring": {
-    name: "もも裏",
-    cardName: "ストレッチ",
-  },
-  "stretch-calf": {
-    name: "ふくらはぎ",
-    cardName: "ストレッチ",
-  },
-};
+    "stretch-neck": {
+      name: "首・肩",
+      cardName: "ストレッチ",
+    },
+    "stretch-chest": {
+      name: "胸・肩",
+      cardName: "ストレッチ",
+    },
+    "stretch-back": {
+      name: "背中",
+      cardName: "ストレッチ",
+    },
+    "stretch-hip": {
+      name: "股関節",
+      cardName: "ストレッチ",
+    },
+    "stretch-hamstring": {
+      name: "もも裏",
+      cardName: "ストレッチ",
+    },
+    "stretch-calf": {
+      name: "ふくらはぎ",
+      cardName: "ストレッチ",
+    },
+  };
 
-const openExerciseRecord = (
-  exerciseId: string
-) => {
-  const exercise =
-    exerciseRecords[exerciseId];
+  const openExerciseRecord = (
+    exerciseId: string
+  ) => {
+    const exercise =
+      exerciseRecords[exerciseId];
 
-  if (!exercise) {
-    window.alert(
-      "運動メニューが見つかりません"
+    if (!exercise) {
+      window.alert(
+        "運動メニューが見つかりません"
+      );
+      return;
+    }
+
+    const exerciseCard = cards.find(
+      (card) =>
+        card.name === exercise.cardName
     );
-    return;
-  }
 
-  const exerciseCard = cards.find(
-    (card) =>
-      card.name === exercise.cardName
-  );
+    if (!exerciseCard) {
+      window.alert(
+        `「${exercise.cardName}」カードが見つかりません`
+      );
+      return;
+    }
 
-  if (!exerciseCard) {
-    window.alert(
-      `「${exercise.cardName}」カードが見つかりません`
-    );
-    return;
-  }
+    const isStretch =
+      exerciseId.startsWith("stretch-");
 
-  const isStretch =
-    exerciseId.startsWith("stretch-");
-
-  onSelect({
-    ...exerciseCard,
-    name: exercise.name,
-    unit: isStretch
-      ? "秒"
-      : exerciseCard.unit,
-  });
-};
+    onSelect({
+      ...exerciseCard,
+      name: exercise.name,
+      unit: isStretch
+        ? "秒"
+        : exerciseCard.unit,
+    });
+  };
 
   if (isBookOpen) {
     return (
@@ -188,19 +210,185 @@ const openExerciseRecord = (
     );
   }
 
-if (isTrainingOpen) {
-  return (
-    <TrainingPage
-      onBack={() =>
-        setIsTrainingOpen(false)
-      }
-      onSelectExercise={(exerciseId) => {
-        setIsTrainingOpen(false);
-        openExerciseRecord(exerciseId);
-      }}
-    />
-  );
-}
+  if (isTrainingOpen) {
+    return (
+      <TrainingPage
+        onBack={() =>
+          setIsTrainingOpen(false)
+        }
+        onSelectExercise={(exerciseId) => {
+          setIsTrainingOpen(false);
+          openExerciseRecord(exerciseId);
+        }}
+      />
+    );
+  }
+  if (isSettingsOpen) {
+    return (
+      <>
+        <section
+          style={{
+            padding: 20,
+            paddingBottom:
+              "calc(90px + env(safe-area-inset-bottom))",
+          }}
+        >
+          <div
+  style={{
+    marginBottom: 8,
+  }}
+>
+  <h2
+    style={{
+      margin: 0,
+      fontSize: 28,
+      fontWeight: 800,
+      letterSpacing: "-0.02em",
+      color: "#222",
+    }}
+  >
+    ⚙️ 設定
+  </h2>
+
+  <p
+    style={{
+      margin: "8px 0 0",
+      fontSize: 14,
+      lineHeight: 1.6,
+      color: "#777",
+    }}
+  >
+    Diaryを自分好みに整えます🐾
+  </p>
+</div>
+          <div
+            style={{
+              marginTop: 28,
+            }}
+          >
+            <div
+              style={{
+                marginBottom: 8,
+                paddingLeft: 4,
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#666",
+              }}
+            >
+              サウンド
+            </div>
+
+            <div
+              style={{
+                minHeight: 56,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+                padding: "0 16px",
+                borderRadius: 16,
+                background: "#fff",
+                border: "1px solid #e5e5e5",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                }}
+              >
+                🎵 BGM
+              </span>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !isBgmEnabled;
+
+                  setIsBgmEnabled(next);
+
+                  localStorage.setItem(
+                    BGM_ENABLED_STORAGE_KEY,
+                    String(next)
+                  );
+                }}
+                style={{
+                  minWidth: 52,
+                  border: "none",
+                  borderRadius: 999,
+                  padding: "7px 12px",
+                  background: isBgmEnabled
+                    ? "#4f7c5b"
+                    : "#ddd",
+                  color: isBgmEnabled
+                    ? "#fff"
+                    : "#666",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {isBgmEnabled ? "ON" : "OFF"}
+              </button>
+            </div>
+          </div>
+
+          <BackupButton
+            storageKeyBase={storageKeyBase}
+          />
+        </section>
+
+        <nav
+          style={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 900,
+            display: "flex",
+            justifyContent: "space-around",
+            alignItems: "center",
+            padding:
+              "8px 12px calc(8px + env(safe-area-inset-bottom))",
+            background: "rgba(255, 255, 255, 0.96)",
+            borderTop: "1px solid #ddd",
+          }}
+        >
+          <button
+            type="button"
+            style={bottomMenuButtonStyle}
+            onClick={() =>
+              setIsSettingsOpen(false)
+            }
+          >
+            <span style={bottomMenuIconStyle}>
+              🏠
+            </span>
+            <span>ホーム</span>
+          </button>
+
+          <button
+            type="button"
+            style={bottomMenuButtonStyle}
+          >
+            <span style={bottomMenuIconStyle}>
+              ⚙️
+            </span>
+            <span>設定</span>
+          </button>
+
+          <button
+            type="button"
+            style={bottomMenuButtonStyle}
+          >
+            <span style={bottomMenuIconStyle}>
+              •••
+            </span>
+            <span>その他</span>
+          </button>
+        </nav>
+      </>
+    );
+  }
 
   return (
     <section>
@@ -211,7 +399,8 @@ if (isTrainingOpen) {
 
         <RoomSwiper
           initialRoomIndex={roomIndex}
-         onRoomChange={onRoomChange}
+          onRoomChange={onRoomChange}
+          isBgmEnabled={isBgmEnabled}
           onOpenKitchen={() => {
             setIsPuzzleOpen(false);
             setOpenCategory("life");
@@ -322,9 +511,46 @@ if (isTrainingOpen) {
           </button>
         </section>
       )}
+
+      <nav
+        style={{
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 900,
+          display: "flex",
+          justifyContent: "space-around",
+          alignItems: "center",
+          padding:
+            "8px 12px calc(8px + env(safe-area-inset-bottom))",
+          background: "rgba(255, 255, 255, 0.96)",
+          borderTop: "1px solid #ddd",
+        }}
+      >
+        <button type="button" style={bottomMenuButtonStyle}>
+          <span style={bottomMenuIconStyle}>🏠</span>
+          <span>ホーム</span>
+        </button>
+
+        <button
+          type="button"
+          style={bottomMenuButtonStyle}
+          onClick={() => setIsSettingsOpen(true)}
+        >
+          <span style={bottomMenuIconStyle}>⚙️</span>
+          <span>設定</span>
+        </button>
+
+        <button type="button" style={bottomMenuButtonStyle}>
+          <span style={bottomMenuIconStyle}>•••</span>
+          <span>その他</span>
+        </button>
+      </nav>
     </section>
   );
 }
+
 
 type DiaryCardSectionProps = {
   title: string;
@@ -378,18 +604,18 @@ function DiaryCardSection({
               );
 
             if (
-  unitInput !== "時間" &&
-  unitInput !== "分" &&
-  unitInput !== "秒" &&
-  unitInput !== "回数" &&
-  unitInput !== "kcal" &&
-  unitInput !== "kg"
-) {
-window.alert(
-  "単位は「時間」「分」「秒」「回数」「kcal」「kg」から入力してください"
-);
-  return;
-}
+              unitInput !== "時間" &&
+              unitInput !== "分" &&
+              unitInput !== "秒" &&
+              unitInput !== "回数" &&
+              unitInput !== "kcal" &&
+              unitInput !== "kg"
+            ) {
+              window.alert(
+                "単位は「時間」「分」「秒」「回数」「kcal」「kg」から入力してください"
+              );
+              return;
+            }
 
             onAddCard(
               category,
@@ -662,5 +888,25 @@ const modalCloseButtonStyle: CSSProperties = {
   background: "#f0f0f0",
   cursor: "pointer",
   fontSize: 24,
+  lineHeight: 1,
+};
+const bottomMenuButtonStyle: CSSProperties = {
+  flex: 1,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 3,
+  padding: "6px 4px",
+  border: "none",
+  background: "transparent",
+  color: "#4f7c5b",
+  fontSize: 11,
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const bottomMenuIconStyle: CSSProperties = {
+  fontSize: 22,
   lineHeight: 1,
 };

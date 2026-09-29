@@ -181,7 +181,8 @@ do {
 
     public func sessionDidBecomeInactive(
         _ session: WCSession
-    ) {}
+    )
+    {}
 
     public func sessionDidDeactivate(
         _ session: WCSession

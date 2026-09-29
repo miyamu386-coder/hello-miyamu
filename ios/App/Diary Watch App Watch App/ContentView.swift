@@ -8,7 +8,8 @@ import Combine
 import WatchKit
 
 struct ContentView: View {
-
+    
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var healthKit =
         HealthKitManager()
 
@@ -446,6 +447,8 @@ struct ContentView: View {
                     "🥫 ご褒美対象を復元: \(savedRewardScheduleId)"
                 )
             }
+            refreshRewardEligibility()
+            
             // --------------------
             // 閉じている間に届いた
             // Diary通知をモフが報告
@@ -516,16 +519,24 @@ struct ContentView: View {
                                     notificationId
                                 )
 
-                        if notificationScheduleId !=
-                            lastRewardedScheduleId
+                        if let notificationScheduleId,
+                           notificationScheduleId != lastRewardedScheduleId
                         {
-                            rewardScheduleId =
-                                notificationScheduleId
+                            rewardScheduleId = notificationScheduleId
+                            didCompleteFifteenMinuteAlert = true
+                            UserDefaults.standard.set(
+                                notificationScheduleId,
+                                forKey: "rewardScheduleId"
+                            )
 
-                            isRewardAvailable = true
+                            if diaryWatch.hasScheduleStarted(
+                                scheduleId: notificationScheduleId
+                            ) {
+                                isRewardAvailable = true
+                            }
 
                             print(
-                                "🥫 15分前通知のお仕事完了・ご褒美解放"
+                                "🥫 15分前通知のご褒美対象を保存"
                             )
 
                         } else {
@@ -535,7 +546,6 @@ struct ContentView: View {
                             )
                         }
                     }
-
                     print("😼 腕組みモフ ON")
                     showMofuNotification(
                         message,
@@ -555,6 +565,8 @@ struct ContentView: View {
                         }
                 }
 
+            
+            
             // --------------------
             // Diary予定・天気
             // 起動直後チェック
@@ -769,6 +781,11 @@ struct ContentView: View {
                 "😼 isReportingNotification changed: \(newValue)"
             )
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                refreshRewardEligibility()
+            }
+        }
         // --------------------
         // 気象警報 更新監視
         // --------------------
@@ -942,6 +959,7 @@ struct ContentView: View {
             guard
                 didCompleteFifteenMinuteAlert,
                 let rewardScheduleId,
+                rewardScheduleId != lastRewardedScheduleId,
                 !isRewardAvailable
             else {
                 return
@@ -1352,7 +1370,32 @@ struct ContentView: View {
                 }
             }
     }
+    
+    private func refreshRewardEligibility() {
+        diaryWatch.latestDeliveredFifteenMinuteScheduleId { scheduleId in
+            guard let scheduleId,
+                  scheduleId != lastRewardedScheduleId
+            else { return }
 
+            rewardScheduleId = scheduleId
+            didCompleteFifteenMinuteAlert = true
+            UserDefaults.standard.set(
+                scheduleId,
+                forKey: "rewardScheduleId"
+            )
+            isRewardAvailable = diaryWatch.hasScheduleStarted(
+                scheduleId: scheduleId
+            )
+        }
+
+        if let rewardScheduleId,
+           rewardScheduleId != lastRewardedScheduleId,
+           diaryWatch.hasScheduleStarted(
+               scheduleId: rewardScheduleId
+           ) {
+            isRewardAvailable = true
+        }
+    }
     // --------------------
     // モフ共通通知
     // 天気などで使用

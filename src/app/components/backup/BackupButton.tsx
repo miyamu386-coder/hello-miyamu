@@ -1,6 +1,12 @@
 "use client";
 
 import { useRef } from "react";
+import {
+  Directory,
+  Encoding,
+  Filesystem,
+} from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 
 type Props = {
   storageKeyBase: string;
@@ -19,79 +25,87 @@ export default function BackupButton({
   const fileInputRef =
     useRef<HTMLInputElement | null>(null);
 
-  const handleBackup = () => {
-    const backupData: Record<string, unknown> = {};
+  const handleBackup = async () => {
+    try {
+      const backupData: Record<string, unknown> = {};
 
-    for (
-      let index = 0;
-      index < localStorage.length;
-      index += 1
-    ) {
-      const key = localStorage.key(index);
+      for (
+        let index = 0;
+        index < localStorage.length;
+        index += 1
+      ) {
+        const key = localStorage.key(index);
 
-      if (!key) continue;
+        if (!key) continue;
 
-      const lowerKey = key.toLowerCase();
+        const lowerKey = key.toLowerCase();
 
-      const isDiaryLog =
-  key.startsWith(storageKeyBase);
+        const isDiaryLog =
+          key.startsWith(storageKeyBase);
 
-const isDiaryCard =
-  lowerKey.includes("diary") &&
-  lowerKey.includes("card");
+        const isDiaryCard =
+          lowerKey.includes("diary") &&
+          lowerKey.includes("card");
 
-const isCalendarSchedule =
-  key === "miyamu_diary_schedules_v1";
+        const isCalendarSchedule =
+          key === "miyamu_diary_schedules_v1";
 
-if (
-  !isDiaryLog &&
-  !isDiaryCard &&
-  !isCalendarSchedule
-) {
-  continue;
-}
+        if (
+          !isDiaryLog &&
+          !isDiaryCard &&
+          !isCalendarSchedule
+        ) {
+          continue;
+        }
 
-      const raw = localStorage.getItem(key);
+        const raw = localStorage.getItem(key);
 
-      if (raw === null) continue;
+        if (raw === null) continue;
 
-      try {
-        backupData[key] = JSON.parse(raw);
-      } catch {
-        backupData[key] = raw;
+        try {
+          backupData[key] = JSON.parse(raw);
+        } catch {
+          backupData[key] = raw;
+        }
       }
+
+      const backup: BackupFile = {
+        app: "みやむDiary",
+        version: 1,
+        createdAt: new Date().toISOString(),
+        data: backupData,
+      };
+
+      const date = new Date()
+        .toISOString()
+        .slice(0, 10);
+
+      const fileName =
+        `miyamu-diary-backup-${date}.json`;
+
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: JSON.stringify(backup, null, 2),
+        directory: Directory.Cache,
+        encoding: Encoding.UTF8,
+      });
+
+      await Share.share({
+        title: "みやむDiary バックアップ",
+        text: "みやむDiaryのバックアップファイルです。",
+        url: result.uri,
+        dialogTitle: "バックアップを保存",
+      });
+    } catch (error) {
+      console.error(
+        "バックアップ作成エラー:",
+        error
+      );
+
+      window.alert(
+        "バックアップを作成できませんでした"
+      );
     }
-
-    const backup: BackupFile = {
-      app: "みやむDiary",
-      version: 1,
-      createdAt: new Date().toISOString(),
-      data: backupData,
-    };
-
-    const blob = new Blob(
-      [JSON.stringify(backup, null, 2)],
-      {
-        type: "application/json",
-      }
-    );
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    const date = new Date()
-      .toISOString()
-      .slice(0, 10);
-
-    link.href = url;
-    link.download =
-      `miyamu-diary-backup-${date}.json`;
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    URL.revokeObjectURL(url);
   };
 
   const handleRestore = async (
@@ -168,28 +182,82 @@ if (
   };
 
   return (
+  <div
+    style={{
+      marginTop: 28,
+    }}
+  >
     <div
       style={{
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "center",
-        gap: 10,
+        marginBottom: 8,
+        paddingLeft: 4,
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#666",
+      }}
+    >
+      データ管理
+    </div>
+
+    <div
+      style={{
+        overflow: "hidden",
+        borderRadius: 16,
+        background: "#fff",
+        border: "1px solid #e5e5e5",
       }}
     >
       <button
         type="button"
         onClick={handleBackup}
         style={{
-          padding: "10px 16px",
-          borderRadius: 12,
-          border: "1px solid #ccc",
-          background: "#fff",
+          width: "100%",
+          minHeight: 56,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "0 16px",
+          border: "none",
+          background: "transparent",
           cursor: "pointer",
-          fontWeight: 700,
+          textAlign: "left",
         }}
       >
-        📦 バックアップを作成
+        <span
+          style={{
+            fontSize: 22,
+          }}
+        >
+          📦
+        </span>
+
+        <span
+          style={{
+            flex: 1,
+            fontSize: 16,
+            fontWeight: 700,
+          }}
+        >
+          バックアップを作成
+        </span>
+
+        <span
+          style={{
+            color: "#aaa",
+            fontSize: 22,
+          }}
+        >
+          ›
+        </span>
       </button>
+
+      <div
+        style={{
+          height: 1,
+          marginLeft: 50,
+          background: "#eee",
+        }}
+      />
 
       <button
         type="button"
@@ -197,26 +265,56 @@ if (
           fileInputRef.current?.click()
         }
         style={{
-          padding: "10px 16px",
-          borderRadius: 12,
-          border: "1px solid #ccc",
-          background: "#fff",
+          width: "100%",
+          minHeight: 56,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "0 16px",
+          border: "none",
+          background: "transparent",
           cursor: "pointer",
-          fontWeight: 700,
+          textAlign: "left",
         }}
       >
-        ♻️ バックアップを復元
-      </button>
+        <span
+          style={{
+            fontSize: 22,
+          }}
+        >
+          ♻️
+        </span>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="application/json,.json"
-        onChange={handleRestore}
-        style={{
-          display: "none",
-        }}
-      />
+        <span
+          style={{
+            flex: 1,
+            fontSize: 16,
+            fontWeight: 700,
+          }}
+        >
+          バックアップを復元
+        </span>
+
+        <span
+          style={{
+            color: "#aaa",
+            fontSize: 22,
+          }}
+        >
+          ›
+        </span>
+      </button>
     </div>
-  );
+
+    <input
+      ref={fileInputRef}
+      type="file"
+      accept="application/json,.json"
+      onChange={handleRestore}
+      style={{
+        display: "none",
+      }}
+    />
+  </div>
+);
 }

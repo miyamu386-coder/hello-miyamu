@@ -970,6 +970,37 @@ final class DiaryWatchReceiver:
             )
         )
     }
+    func latestDeliveredFifteenMinuteScheduleId(
+        completion: @escaping (String?) -> Void
+    ) {
+        notificationCenter.getDeliveredNotifications { [weak self] notifications in
+            guard let self else {
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+
+            let now = Date()
+            let scheduleId = notifications
+                .filter {
+                    now.timeIntervalSince($0.date) < 24 * 60 * 60
+                        && $0.date <= now
+                        && self.isFifteenMinuteNotification(
+                            $0.request.identifier
+                        )
+                }
+                .sorted { $0.date > $1.date }
+                .compactMap {
+                    self.scheduleIdFromNotification(
+                        $0.request.identifier
+                    )
+                }
+                .first
+
+            DispatchQueue.main.async {
+                completion(scheduleId)
+            }
+        }
+    }
     // --------------------
     // 配信済みDiary通知
     // モフの報告用
