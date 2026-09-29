@@ -393,9 +393,6 @@ export default function DiaryHome({
   return (
     <section>
       <div style={houseStageStyle}>
-        <div style={houseTitleStyle}>
-          みやむDiary
-        </div>
 
         <RoomSwiper
           initialRoomIndex={roomIndex}
@@ -760,13 +757,6 @@ const houseStageStyle: CSSProperties = {
   border: "none",
   borderRadius: 0,
   background: "transparent",
-};
-
-const houseTitleStyle: CSSProperties = {
-  marginBottom: 16,
-  fontSize: 22,
-  fontWeight: 800,
-  textAlign: "center",
 };
 
 const roomStyle: CSSProperties = {

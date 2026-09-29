@@ -227,6 +227,21 @@ export default function RoomSwiper({
     setCurrentRoomIndex,
   ] = useState(initialRoomIndex);
 
+  const [
+    currentTime,
+    setCurrentTime,
+  ] = useState(new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
 
   const [
     mofuWalkFrameIndex,
@@ -803,26 +818,6 @@ export default function RoomSwiper({
         overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          padding: "8px 12px",
-          textAlign: "center",
-          fontSize: 14,
-          fontWeight: 700,
-          color: "#4f7c5b",
-          background: "#f4f8f5",
-        }}
-      >
-        {weather ? (
-          <>
-            🌤️ 現在 {weather.temperature}℃
-            ・降水確率{" "}
-            {weather.precipitationProbability}%
-          </>
-        ) : (
-          <>🌤️ 天気データ取得中...</>
-        )}
-      </div>
 
       <div
         ref={scrollRef}
@@ -853,6 +848,55 @@ export default function RoomSwiper({
               borderRadius: 20,
             }}
           >
+            {room.id === "living-kitchen" && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "60%",
+                  left: "68%",
+                  right: "auto",
+                  transform: "translateX(-50%)",
+                  zIndex: 50,
+
+                  padding: "4px 7px 5px",
+                  borderRadius: 5,
+                  background: "rgba(20, 22, 20, 0.92)",
+                  minWidth: 76,
+                  border: "1.5px solid rgba(90, 75, 60, 0.9)",
+                  color: "#ffffff",
+                  textAlign: "center",
+                  fontVariantNumeric: "tabular-nums",
+                  boxShadow:
+                    "0 3px 10px rgba(0, 0, 0, 0.25)",
+                  pointerEvents: "none",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 800,
+                    letterSpacing: 1.5,
+                    lineHeight: 1,
+                  }}
+                >
+                  {pad2(currentTime.getHours())}:
+                  {pad2(currentTime.getMinutes())}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 7,
+                    fontWeight: 700,
+                    lineHeight: 1,
+                  }}
+                >
+                  {weather
+                    ? `${weather.temperature}℃ ・ ☔ ${weather.precipitationProbability}%`
+                    : "天気取得中"}
+                </div>
+              </div>
+            )}
             {room.id === "living-kitchen" && (
               <LivingRoom
                 state={mofuStates["living-kitchen"]}
